@@ -1,5 +1,4 @@
 ﻿import { getChildItems } from '../Modules/itemManager.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -24,7 +23,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}set accessible puzzle button\n`
         + `${settings.commandPrefix}set inaccessible fixture terminal\n`
         + `${settings.commandPrefix}set accessible fixture keypad tool shed\n`
@@ -38,16 +37,16 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     let input = args.join(" ");
     if (args[0] === "accessible") command = "accessible";
     else if (args[0] === "inaccessible") command = "inaccessible";
     else {
-        addReply(game, message, 'The first argument must be "accessible" or "inaccessible". Usage:');
-        addGameMechanicMessage(game, game.guildContext.commandChannel, usage(game.settings));
+        game.communicationHandler.reply(message, 'The first argument must be "accessible" or "inaccessible". Usage:');
+        game.communicationHandler.sendToCommandChannel(usage(game.settings));
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -58,8 +57,8 @@ export async function execute (game, message, command, args) {
     if (args[0] === "fixture" || args[0] === "object") isFixture = true;
     else if (args[0] === "puzzle") isPuzzle = true;
     else {
-        addReply(game, message, 'The second argument must be "fixture" or "puzzle". Usage:');
-        addGameMechanicMessage(game, game.guildContext.commandChannel, usage(game.settings));
+        game.communicationHandler.reply(message, 'The second argument must be "fixture" or "puzzle". Usage:');
+        game.communicationHandler.sendToCommandChannel(usage(game.settings));
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -96,7 +95,7 @@ export async function execute (game, message, command, args) {
             }
         }
         if (fixture === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-        else if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
+        else if (fixture === null) return game.communicationHandler.reply(message, `Couldn't find fixture "${input}".`);
     }
     else if (isPuzzle) {
         const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
@@ -108,7 +107,7 @@ export async function execute (game, message, command, args) {
             }
         }
         if (puzzle === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-        else if (puzzle === null) return addReply(game, message, `Couldn't find puzzle "${input}".`);
+        else if (puzzle === null) return game.communicationHandler.reply(message, `Couldn't find puzzle "${input}".`);
     }
 
     if (command === "accessible") {
@@ -123,11 +122,11 @@ export async function execute (game, message, command, args) {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setAccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${items.length} items in ${fixture.name} accessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${items.length} items in ${fixture.name} accessible.`);
             }
             else {
                 fixture.setAccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${fixture.name} accessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${fixture.name} accessible.`);
             }
         }
         else if (isPuzzle) {
@@ -141,11 +140,11 @@ export async function execute (game, message, command, args) {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setAccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${items.length} items in ${puzzle.name} accessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${items.length} items in ${puzzle.name} accessible.`);
             }
             else {
                 puzzle.setAccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${puzzle.name} accessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${puzzle.name} accessible.`);
             }
         }
     }
@@ -161,11 +160,11 @@ export async function execute (game, message, command, args) {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setInaccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${items.length} items in ${fixture.name} inaccessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${items.length} items in ${fixture.name} inaccessible.`);
             }
             else {
                 fixture.setInaccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${fixture.name} inaccessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${fixture.name} inaccessible.`);
             }
         }
         else if (isPuzzle) {
@@ -179,11 +178,11 @@ export async function execute (game, message, command, args) {
 
                 for (let i = 0; i < items.length; i++)
                     items[i].setInaccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${items.length} items in ${puzzle.name} inaccessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${items.length} items in ${puzzle.name} inaccessible.`);
             }
             else {
                 puzzle.setInaccessible();
-                addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${puzzle.name} inaccessible.`);
+                game.communicationHandler.sendToCommandChannel(`Successfully made ${puzzle.name} inaccessible.`);
             }
         }
     }

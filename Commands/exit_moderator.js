@@ -1,6 +1,4 @@
-﻿import { addReply } from '../Modules/messageHandler.js';
-
-/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+﻿/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
@@ -21,7 +19,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}exit lock carousel door\n`
         + `${settings.commandPrefix}exit unlock headmasters quarters door\n`
         + `${settings.commandPrefix}lock warehouse door 3\n`
@@ -34,7 +32,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     let input = command + " " + args.join(" ");
     if (command === "exit" || command === "room") {
         if (args[0] === "lock") command = "lock";
@@ -43,7 +41,7 @@ export async function execute (game, message, command, args) {
     }
 
     if (args.length === 0)
-        return addReply(game, message, `You need to input a room and an exit. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to input a room and an exit. Usage:\n${usage(game.settings)}`);
 
     input = args.join(" ");
     let parsedInput = input.replace(/ /g, "-").toLowerCase();
@@ -60,16 +58,16 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
-    else if (args.length === 0) return addReply(game, message, `You need to specify an exit to ${room.id}.`);
+    if (room === undefined) return game.communicationHandler.reply(message, `Couldn't find room "${input}".`);
+    else if (args.length === 0) return game.communicationHandler.reply(message, `You need to specify an exit to ${room.id}.`);
 
     // Now that the room has been found, find the exit and its corresponding entrance.
     const exit = game.entityFinder.getExit(room, parsedInput);
     const entrance = game.entityFinder.getExit(exit.dest, exit.link);
-    if (exit === undefined) return addReply(game, message, `Couldn't find exit "${input}" in ${room.id}.`);
-    if (entrance === undefined) return addReply(game, message, `Found exit ${exit.name} in ${room.id}, but it doesn't have a corresponding entrance in ${exit.dest.id}.`);
-    if (command === "unlock" && exit.unlocked && entrance.unlocked) return addReply(game, message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already unlocked.`);
-    if (command === "lock" && !exit.unlocked && !entrance.unlocked) return addReply(game, message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already locked.`);
+    if (exit === undefined) return game.communicationHandler.reply(message, `Couldn't find exit "${input}" in ${room.id}.`);
+    if (entrance === undefined) return game.communicationHandler.reply(message, `Found exit ${exit.name} in ${room.id}, but it doesn't have a corresponding entrance in ${exit.dest.id}.`);
+    if (command === "unlock" && exit.unlocked && entrance.unlocked) return game.communicationHandler.reply(message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already unlocked.`);
+    if (command === "lock" && !exit.unlocked && !entrance.unlocked) return game.communicationHandler.reply(message, `${exit.name} in ${room.id} and ${entrance.name} in ${exit.dest.id} are already locked.`);
 
     // Now lock or unlock the exit.
     if (command === "lock") {

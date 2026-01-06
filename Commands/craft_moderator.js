@@ -1,5 +1,4 @@
 import CraftAction from '../Data/Actions/CraftAction.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -21,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}craft chris drain cleaner and plastic bottle\n`
         + `${settings.commandPrefix}combine keiko's bread and cheese\n`
         + `${settings.commandPrefix}mix finn red vial with blue vial\n`
@@ -34,19 +33,19 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 4)
-        return addReply(game, message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
-        return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     // Now find the item in the player's inventory.
     /** @type {InventoryItem[]} */
@@ -71,11 +70,11 @@ export async function execute (game, message, command, args) {
     if (items.length !== 2) {
         if (items.length === 0) {
             let itemNames = parsedInput.includes(" WITH ") ? parsedInput.split(" WITH ") : parsedInput.split(" AND ");
-            return addReply(game, message, `Couldn't find items "${itemNames[0]}" and "${itemNames[1]}" in either of ${player.name}'s hands.`);
+            return game.communicationHandler.reply(message, `Couldn't find items "${itemNames[0]}" and "${itemNames[1]}" in either of ${player.name}'s hands.`);
         } else {
             let itemNames = parsedInput.includes(" WITH ") ? parsedInput.split(" WITH ") : parsedInput.split(" AND ");
-            if (items[0].identifier !== "" && items[0].identifier === itemNames[0] || items[0].prefab.id === itemNames[0] || items[0].name === itemNames[0]) return addReply(game, message, `Couldn't find item "${itemNames[1]}" in either of ${player.name}'s hands.`);
-            else return addReply(game, message, `Couldn't find item "${itemNames[0]} in either of your ${player.name}'s hands.`);
+            if (items[0].identifier !== "" && items[0].identifier === itemNames[0] || items[0].prefab.id === itemNames[0] || items[0].name === itemNames[0]) return game.communicationHandler.reply(message, `Couldn't find item "${itemNames[1]}" in either of ${player.name}'s hands.`);
+            else return game.communicationHandler.reply(message, `Couldn't find item "${itemNames[0]} in either of your ${player.name}'s hands.`);
         }
     }
 
@@ -93,9 +92,9 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (recipe === null) return addReply(game, message, `Couldn't find recipe requiring ${items[0].prefab.id} and ${items[1].prefab.id}.`);
+    if (recipe === null) return game.communicationHandler.reply(message, `Couldn't find recipe requiring ${items[0].prefab.id} and ${items[1].prefab.id}.`);
 
     const action = new CraftAction(game, message, player, player.location, true);
     action.performCraft(items[0], items[1], recipe);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully crafted ${items[0].getIdentifier()} and ${items[1].getIdentifier()} for ${player.name}.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully crafted ${items[0].getIdentifier()} and ${items[1].getIdentifier()} for ${player.name}.`);
 }

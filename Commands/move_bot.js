@@ -1,6 +1,5 @@
 import Event from "../Data/Event.js";
 import MoveAction from "../Data/Actions/MoveAction.js";
-import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -42,7 +41,7 @@ export function usage(settings) {
 export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -73,7 +72,7 @@ export async function execute(game, command, args, player, callee) {
     }
     else {
         player = game.entityFinder.getLivingPlayer(args[0]);
-        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }
@@ -81,7 +80,7 @@ export async function execute(game, command, args, player, callee) {
     // Check to see that the last argument is the name of a room.
     let input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
     const desiredRoom = game.entityFinder.getRoom(input);
-    if (desiredRoom === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (desiredRoom === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
     input = input.substring(0, input.indexOf(desiredRoom.id));
     args = input.split("-");
 

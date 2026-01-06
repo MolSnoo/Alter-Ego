@@ -1,5 +1,3 @@
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
@@ -17,7 +15,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}end rain\n`
         + `${settings.commandPrefix}end explosion`;
 }
@@ -28,15 +26,15 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
 
     const input = args.join(" ");
     const event = game.entityFinder.getEvent(input);
-    if (event === null) return addReply(game, message, `Couldn't find event "${input}".`);
-    if (!event.ongoing) return addReply(game, message, `${event.id} is not currently ongoing.`);
+    if (event === null) return game.communicationHandler.reply(message, `Couldn't find event "${input}".`);
+    if (!event.ongoing) return game.communicationHandler.reply(message, `${event.id} is not currently ongoing.`);
 
     await event.end(true);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully ended ${event.id}.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully ended ${event.id}.`);
 }

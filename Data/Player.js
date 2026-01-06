@@ -16,10 +16,8 @@ import QueueMoveAction from './Actions/QueueMoveAction.js';
 import StopAction from './Actions/StopAction.js';
 import Timer from '../Classes/Timer.js';
 import * as itemManager from '../Modules/itemManager.js';
-import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { Collection } from 'discord.js';
-import { addDirectNarration, addRoomDescription } from '../Modules/messageHandler.js';
 
 /** @typedef {import('./Action.js').default} Action */
 /** @typedef {import('./Exit.js').default} Exit */
@@ -1486,17 +1484,8 @@ export default class Player extends ItemContainer {
      * @param {GameEntity} container - The game entity the description belongs to.
      */
     sendDescription(description, container) {
-        if (description) {
-            if (!this.hasBehaviorAttribute("unconscious") && (container && container instanceof Room)) {
-                let defaultDropFixtureString = "";
-                const defaultDropFixture = this.getGame().entityFinder.getFixture(this.getGame().settings.defaultDropFixture, container.id);
-                if (defaultDropFixture)
-                    defaultDropFixtureString = parseDescription(defaultDropFixture.description, defaultDropFixture, this);
-                addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
-            }
-            else if (!this.hasBehaviorAttribute("unconscious") || (container && container instanceof Status))
-                addDirectNarration(this, parseDescription(description, container, this));
-        }
+        if (description && !this.isNPC && (!this.hasBehaviorAttribute("unconscious") || container instanceof Status))
+            this.getGame().communicationHandler.sendDescriptionToPlayer(this, description, container);
     }
 
     /**
@@ -1506,7 +1495,7 @@ export default class Player extends ItemContainer {
      */
     notify(messageText, addSpectate = true) {
         if (!this.hasBehaviorAttribute("unconscious") && !this.isNPC)
-            addDirectNarration(this, messageText, addSpectate);
+            this.getGame().communicationHandler.sendMessageToPlayer(this, messageText, addSpectate);
     }
 
     /**

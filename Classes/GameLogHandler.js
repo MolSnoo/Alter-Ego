@@ -7,7 +7,6 @@ import Player from "../Data/Player.js";
 import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
-import { addLogMessage } from "../Modules/messageHandler.js";
 import { generateListString } from "../Modules/helpers.js";
 
 /** @typedef {import("../Data/EquipmentSlot.js").default} EquipmentSlot */
@@ -54,7 +53,7 @@ export default class GameLogHandler {
 	 * @param {string} logText - The text of the log message. 
 	 */
 	#sendLogMessage(logText) {
-		addLogMessage(this.game, logText);
+		this.game.communicationHandler.sendLogMessage(logText);
 	}
 
 	/**

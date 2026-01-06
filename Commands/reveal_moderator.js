@@ -1,6 +1,4 @@
-﻿import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-
-/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+﻿/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
@@ -18,7 +16,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}reveal chris\n`
         + `${settings.commandPrefix}reveal micah joshua amber devyn veronica\n`;
 }
@@ -29,9 +27,9 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify at least one player. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     const players = [];
@@ -44,7 +42,7 @@ export async function execute (game, message, command, args) {
     }
     if (args.length > 0) {
         const missingPlayers = args.join(", ");
-        return addReply(game, message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
+        return game.communicationHandler.reply(message, `Couldn't find player(s) on dead list: ${missingPlayers}.`);
     }
 
     for (let i = 0; i < players.length; i++) {
@@ -54,5 +52,5 @@ export async function execute (game, message, command, args) {
         }
     }
 
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Listed players have been given the ${game.guildContext.deadRole.name} role.`);
+    game.communicationHandler.sendToCommandChannel(`Listed players have been given the ${game.guildContext.deadRole.name} role.`);
 }

@@ -1,5 +1,4 @@
 import { Duration } from 'luxon';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -22,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}occupants floor-b1-hall-1\n`
         + `${settings.commandPrefix}o ultimate conference hall`;
 }
@@ -33,13 +32,13 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a room. Usage:\n${usage(game.settings)}`);
 
     const input = args.join(" ");
     const room = game.entityFinder.getRoom(input);
-    if (room === undefined) return addReply(game, message, `Couldn't find room "${input}".`);
+    if (room === undefined) return game.communicationHandler.reply(message, `Couldn't find room "${input}".`);
 
     // Generate a string of all occupants in the room.
     const occupants = room.occupants.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
@@ -80,5 +79,5 @@ export async function execute (game, message, command, args) {
     else occupantsMessage += `__All occupants in ${room.id}:__\n` + occupantsList.join(" ");
     if (hiddenList.length > 0) occupantsMessage += `\n\n__Hidden occupants:__\n` + hiddenList.join("\n");
     if (movingList.length > 0) occupantsMessage += `\n\n__Moving occupants:__\n` + movingList.join("\n");
-    addGameMechanicMessage(game, game.guildContext.commandChannel, occupantsMessage);
+    game.communicationHandler.sendToCommandChannel(occupantsMessage);
 }

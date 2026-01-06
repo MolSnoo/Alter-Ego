@@ -1,5 +1,4 @@
 import EquipAction from '../Data/Actions/EquipAction.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -20,7 +19,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}equip lavris's mask\n`
         + `${settings.commandPrefix}equip keiko lab coat\n`
         + `${settings.commandPrefix}equip cara's sweater to shirt\n`
@@ -33,12 +32,12 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(' ');
@@ -50,16 +49,16 @@ export async function execute (game, message, command, args) {
     // First, find the item in the player's inventory.
     const hand = game.entityFinder.getPlayerHandHoldingItem(player, itemName, "moderator");
     const item = hand ? hand.equippedItem : undefined;
-    if (item === undefined) return addReply(game, message, `Couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
+    if (item === undefined) return game.communicationHandler.reply(message, `Couldn't find item "${itemName}" in either of ${player.name}'s hands.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
 
     let slot = player.inventoryCollection.get(slotName);
-    if (slot === undefined) return addReply(game, message, `Couldn't find equipment slot "${slotName}".`);
-    if (slot.equippedItem !== null) return addReply(game, message, `Cannot equip items to ${slotName} because ${slot.equippedItem.getIdentifier()} is already equipped to it.`);
+    if (slot === undefined) return game.communicationHandler.reply(message, `Couldn't find equipment slot "${slotName}".`);
+    if (slot.equippedItem !== null) return game.communicationHandler.reply(message, `Cannot equip items to ${slotName} because ${slot.equippedItem.getIdentifier()} is already equipped to it.`);
 
     const action = new EquipAction(game, message, player, player.location, true);
     action.performEquip(item, slot, hand);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully equipped ${item.getIdentifier()} to ${player.name}'s ${slotName}.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully equipped ${item.getIdentifier()} to ${player.name}'s ${slotName}.`);
 }

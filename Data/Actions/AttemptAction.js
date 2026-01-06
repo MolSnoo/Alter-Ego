@@ -2,8 +2,6 @@ import { default as Action, ActionType } from "../Action.js";
 import Die from "../Die.js";
 import Player from "../Player.js";
 
-import { addReply } from "../../Modules/messageHandler.js";
-
 /** @typedef {import("../ItemInstance.js").default} ItemInstance */
 /** @typedef {import("../Puzzle.js").default} Puzzle */
 
@@ -50,7 +48,7 @@ export default class AttemptAction extends Action {
 			return;
 		}
 		if (puzzle.requiresMod && !puzzle.solved) {
-			if (this.message && !this.forced) addReply(this.getGame(), this.message, "You need moderator assistance to do that.");
+			if (this.message && !this.forced) this.getGame().communicationHandler.reply(this.message, "You need moderator assistance to do that.");
 			return;
 		}
 		if (puzzle.remainingAttempts === 0) {
@@ -298,7 +296,7 @@ export default class AttemptAction extends Action {
 		if (this.#checkInaccessiblePuzzleHasDescription(puzzle)) {
 			this.#narrateAndLogPuzzleIsInaccessible(puzzle, this.#getInaccessiblePuzzleCustomNarration(customNarration));
 		}
-		else if (this.message) addReply(this.getGame(), this.message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
+		else this.#reply(`Couldn't find "${input}" to ${command}. Try using a different command?`);
 	}
 
 	/**
@@ -323,7 +321,7 @@ export default class AttemptAction extends Action {
 	 * @param {string} messageText - The text of the message to send. 
 	 */
 	#reply(messageText) {
-		if (this.message) addReply(this.getGame(), this.message, messageText);
+		if (this.message) this.getGame().communicationHandler.reply(this.message, messageText);
 	}
 
 	/**

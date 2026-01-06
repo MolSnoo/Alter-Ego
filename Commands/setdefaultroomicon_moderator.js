@@ -1,6 +1,5 @@
 import fs from 'fs';
 import settings from '../Configs/settings.json' with { type: 'json' };
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -20,7 +19,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}setdefaultroomicon https://media.discordapp.net/attachments/1290826220367249489/1441259427411001455/sLPkDhP.png\n`
         + `${settings.commandPrefix}setdefaultroomicon`;
 }
@@ -31,14 +30,14 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     const iconURLSyntax = RegExp('(http(s?)://.*?\\.(jpg|jpeg|png|gif|webp|avif))(\\?.*)?$');
     let input = args.join(" ");
     if (input.length === 0) {
         if (message.attachments.size !== 0)
             input = message.attachments.first().url.replace(iconURLSyntax, '$1');
     }
-    if (!iconURLSyntax.test(input) && input !== "") return addReply(game, message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
+    if (!iconURLSyntax.test(input) && input !== "") return game.communicationHandler.reply(message, `The display icon must be a URL with a .jpg, .jpeg, .png, .gif, .webp, or .avif extension.`);
 
     game.settings.defaultRoomIconURL = input;
     settings.defaultRoomIconURL = input;
@@ -46,5 +45,5 @@ export async function execute (game, message, command, args) {
     const json = JSON.stringify(settings, null, "  ");
     await fs.writeFileSync('Configs/settings.json', json, 'utf8');
 
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated the default room icon.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully updated the default room icon.`);
 }

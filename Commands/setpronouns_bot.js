@@ -1,5 +1,3 @@
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
@@ -24,7 +22,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `setpronouns sadie female\n`
         + `setpronouns roma neutral\n`
         + `setpronouns platt male\n`
@@ -41,23 +39,23 @@ export function usage (settings) {
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length !== 2)
-        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to specify a player and a pronoun set. Usage:\n${exports.config.usage}`);
+        return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". You need to specify a player and a pronoun set. Usage:\n${exports.config.usage}`);
 
     if (args[0].toLowerCase() !== "player") {
         player = game.entityFinder.getLivingPlayer(args[0]);
-        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
+        if (player === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
     }
     else if (args[0].toLowerCase() === "player" && player === null)
-        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
+        return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
 
     args.splice(0, 1);
 
     const input = args.join(" ").toLowerCase().replace(/\\/g, "/");
     if (input !== "female" && input !== "male" && input !== "neutral" && input.split('/').length !== 6)
-        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The supplied pronoun string is invalid.`);
+        return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". The supplied pronoun string is invalid.`);
     player.setPronouns(player.pronouns, input);
 
     // Check if the pronouns were set correctly.
@@ -89,7 +87,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     if (correct === false) {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}".\n${errorMessage}`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}".\n${errorMessage}`);
         // Revert the player's pronouns.
         player.setPronouns(player.pronouns, player.pronounString);
     }

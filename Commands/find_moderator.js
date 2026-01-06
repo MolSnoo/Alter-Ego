@@ -7,7 +7,6 @@ import Player from '../Data/Player.js';
 import Puzzle from '../Data/Puzzle.js';
 import Recipe from '../Data/Recipe.js';
 import { table } from 'table';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -39,7 +38,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}find room dorm 201\n`
 		+ `${settings.commandPrefix}search rooms stoke-hall\n`
 		+ `${settings.commandPrefix}find object desk\n`
@@ -73,11 +72,11 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
 	let input = args.join(' ');
 
 	if (args.length === 0)
-		return addReply(game, message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
+		return game.communicationHandler.reply(message, `You need to specify what kind of data to find. Usage:\n${usage(game.settings)}`);
 
 	const dataTypeRegex = /^((?<Room>rooms?)|(?<Object>objects?)|(?<Prefab>prefabs?)|(?<Recipe>recipes?)|(?<Item>items?)|(?<Puzzle>puzzles?)|(?<Event>events?)|(?<Status>status(?:es)? ?(?:effects?)?)|(?<Player>players?)|(?<InventoryItem>inventory(?: ?items?)?)|(?<Gesture>gestures?)|(?<Flag>flags?))(?<search>.*)/i;
 	const dataTypeMatch = input.match(dataTypeRegex);
@@ -266,10 +265,10 @@ export async function execute (game, message, command, args) {
 			else results = game.entityFinder.getFlags(dataTypeMatch.groups.search, true);
 			fields = { row: 'Row', id: 'ID' };
 		}
-		else return addReply(game, message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
+		else return game.communicationHandler.reply(message, `Couldn't find a valid data type in "${originalInput}". Usage:\n${usage(game.settings)}`);
 		
 		if (results.length === 0)
-			return addGameMechanicMessage(game, game.guildContext.commandChannel, `Found 0 results.`);
+			return game.communicationHandler.sendToCommandChannel(`Found 0 results.`);
 		// Divide the results into pages.
 		const pages = createPages(fields, results);
 		let page = 0;
@@ -311,7 +310,7 @@ export async function execute (game, message, command, args) {
 			}
 		});
 	}
-	else addReply(game, message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
+	else game.communicationHandler.reply(message, `Couldn't find "${input}". Usage:\n${usage(game.settings)}`);
 }
 
 /**

@@ -1,6 +1,5 @@
 import zlib from 'zlib';
 import fs from 'fs';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -62,7 +61,7 @@ export async function execute(game, message, command, args) {
         });
     } catch (error) {
         console.error("Compression error:", error);
-        return addReply(game, message, "An error occurred while compressing the data.");
+        return game.communicationHandler.reply(message, "An error occurred while compressing the data.");
     }
 
     if (bufferGame.byteLength > 10 * 1024 * 1024 || bufferLog.byteLength > 10 * 1024 * 1024) {
@@ -71,17 +70,17 @@ export async function execute(game, message, command, args) {
         fs.writeFile(fileGame, bufferGame, function (err) {
             if (err) {
                 console.log(err);
-                return addReply(game, message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_game.txt.gz`, see console for details!");
+                return game.communicationHandler.reply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_game.txt.gz`, see console for details!");
             }
         });
         fs.writeFile(fileLog, bufferLog, function (err) {
             if (err) {
                 console.log(err);
-                return addReply(game, message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_commands.log.gz`, see console for details!");
+                return game.communicationHandler.reply(message, "The compressed data exceeds Discord's file size limit. Failed to write to `./data_commands.log.gz`, see console for details!");
             }
         });
 
-        return addReply(game, message, "The compressed data exceeds Discord's file size limit. Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.")
+        return game.communicationHandler.reply(message, "The compressed data exceeds Discord's file size limit. Saved to disk at `./data_game.txt.gz` and `./data_commands.log.gz`.");
     } else {
         const fileGame = { attachment: bufferGame, name: "data_game.txt.gz" };
         const fileLog = { attachment: bufferLog, name: "data_commands.log.gz" };

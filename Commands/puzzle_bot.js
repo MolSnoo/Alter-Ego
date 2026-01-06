@@ -1,8 +1,6 @@
 import AttemptAction from "../Data/Actions/AttemptAction.js";
 import SolveAction from "../Data/Actions/SolveAction.js";
 import UnsolveAction from "../Data/Actions/UnsolveAction.js";
-import Puzzle from "../Data/Puzzle.js";
-import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -32,7 +30,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `puzzle solve button\n`
         + `puzzle unsolve keypad\n`
         + `solve binder taylor\n`
@@ -53,7 +51,7 @@ export function usage (settings) {
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     let input = cmdString;
     if (command === "puzzle") {
@@ -66,7 +64,7 @@ export async function execute (game, command, args, player, callee) {
     else input = args.join(" ");
 
     if (args.length === 0) {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -132,7 +130,7 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     if (puzzle === null && player === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-    if (puzzle === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
+    if (puzzle === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
 
     let outcome = "";
     let targetPlayer = null;
@@ -152,7 +150,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     if (command === "solve") {
-        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
+        if (puzzle.solutions.length > 1 && input !== "" && outcome === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". "${input}" is not a valid solution.`);
         const solveAction = new SolveAction(game, undefined, player, puzzle.location, true);
         solveAction.performSolve(puzzle, outcome, targetPlayer, announcement, callee);
     }
@@ -161,7 +159,7 @@ export async function execute (game, command, args, player, callee) {
         unsolveAction.performUnsolve(puzzle, announcement, callee);
     }
     else if (command === "attempt") {
-        if (player === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
+        if (player === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Cannot attempt a puzzle without a player.`);
         const attemptAction = new AttemptAction(game, undefined, player, puzzle.location, true);
         attemptAction.performAttempt(puzzle, undefined, input, command, input, targetPlayer);
     }

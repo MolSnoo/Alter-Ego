@@ -1,5 +1,4 @@
 import GestureAction from '../Data/Actions/GestureAction.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -23,7 +22,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}gesture astrid smile\n`
         + `${settings.commandPrefix}gesture akira point at door 1\n`
         + `${settings.commandPrefix}gesture holly wave johnny`;
@@ -35,7 +34,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     let input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
     if (input === "list") {
@@ -91,10 +90,10 @@ export async function execute (game, message, command, args) {
     }
     else {
         if (args.length < 2)
-            return addReply(game, message, `You need to specify a player and a gesture. Usage:\n${usage(game.settings)}`);
+            return game.communicationHandler.reply(message, `You need to specify a player and a gesture. Usage:\n${usage(game.settings)}`);
 
         const player = game.entityFinder.getLivingPlayer(args[0]);
-        if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+        if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
         args.splice(0, 1);
         input = args.join(" ").toLowerCase().replace(/\'/g, "");
 
@@ -109,15 +108,11 @@ export async function execute (game, message, command, args) {
             }
         }
         if (gesture === undefined)
-            return addReply(
-                game,
-                message,
-                `Couldn't find gesture "${input}". For a list of gestures, send \`${game.settings.commandPrefix}gesture list\`.`
-            );
+            return game.communicationHandler.reply(message,  `Couldn't find gesture "${input}". For a list of gestures, send \`${game.settings.commandPrefix}gesture list\`.`);
         else if (args.length === 0 && gesture.requires.length > 0)
-            return addReply(game, message, `You need to specify a target for that gesture.`);
+            return game.communicationHandler.reply(message, `You need to specify a target for that gesture.`);
         else if (args.length > 0 && gesture.requires.length === 0)
-            return addReply(game, message, `That gesture doesn't take a target.`);
+            return game.communicationHandler.reply(message, `That gesture doesn't take a target.`);
         else if (args.length > 0 && gesture.requires.length > 0) {
             const input2 = args.join(" ").toLowerCase().replace(/\'/g, "");
             for (const requireType of gesture.requires) {
@@ -142,11 +137,7 @@ export async function execute (game, message, command, args) {
                                 occupant.hidingSpot === player.hidingSpot)
                         ) {
                             if (occupant.name === player.name)
-                                return addReply(
-                                    game,
-                                    message,
-                                    `${player.name} can't gesture toward ${player.originalPronouns.ref}.`
-                                );
+                                return game.communicationHandler.reply(message, `${player.name} can't gesture toward ${player.originalPronouns.ref}.`);
                             targetType = "Player";
                             target = occupant;
                             break;
@@ -170,24 +161,14 @@ export async function execute (game, message, command, args) {
         }
         input = input.substring(gesture.id.toLowerCase().replace(/\'/g, "").length).trim();
         if (target === null && gesture.requires.length > 0)
-            return addReply(
-                game,
-                message,
-                `Couldn't find target "${input}" in the room with ${player.name}.`
-            );
+            return game.communicationHandler.reply(message, `Couldn't find target "${input}" in the room with ${player.name}.`);
         for (let i = 0; i < gesture.disabledStatuses.length; i++) {
             if (player.statusCollection.has(gesture.disabledStatuses[i].id))
-                return addReply(
-                    game,
-                    message,
-                    `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ` +
-                        (player.originalPronouns.plural ? "are" : "is") +
-                        ` **${gesture.disabledStatuses[i].id}**.`
-                );
+                return game.communicationHandler.reply(message, `${player.name} cannot do that gesture because ${player.originalPronouns.sbj} ${player.originalPronouns.plural ? "are" : "is"} **${gesture.disabledStatuses[i].id}**.`);
         }
 
         const action = new GestureAction(game, message, player, player.location, true);
         action.performGesture(gesture, targetType, target);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully made ${player.name} perform gesture ${gesture.id}.`);
+        game.communicationHandler.sendToCommandChannel(`Successfully made ${player.name} perform gesture ${gesture.id}.`);
     }
 }

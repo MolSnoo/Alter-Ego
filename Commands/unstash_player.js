@@ -1,6 +1,5 @@
 import UnstashAction from '../Data/Actions/UnstashAction.js';
 import InventoryItem from '../Data/InventoryItem.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -24,7 +23,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}unstash laptop\n`
         + `${settings.commandPrefix}retrieve sword from sheath\n`
         + `${settings.commandPrefix}unstash old key from right pocket of pants\n`
@@ -38,16 +37,16 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable unstash");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return addReply(game, message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === undefined) return game.communicationHandler.reply(message, "You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
     
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -102,11 +101,11 @@ export async function execute (game, message, command, args, player) {
         if (parsedInput.includes(" FROM ")) {
             const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return addReply(game, message, `Couldn't find "${containerName}" in your inventory containing "${itemName}".`);
+            return game.communicationHandler.reply(message, `Couldn't find "${containerName}" in your inventory containing "${itemName}".`);
         }
-        else return addReply(game, message, `Couldn't find item "${parsedInput}" in your inventory.`);
+        else return game.communicationHandler.reply(message, `Couldn't find item "${parsedInput}" in your inventory.`);
     }
-    if (item !== null && !container) return addReply(game, message, `${item.name} is not contained in another item and cannot be unstashed.`);
+    if (item !== null && !container) return game.communicationHandler.reply(message, `${item.name} is not contained in another item and cannot be unstashed.`);
 
     const action = new UnstashAction(game, message, player, player.location, false);
     action.performUnstash(item, hand, container, slot);

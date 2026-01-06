@@ -57,7 +57,7 @@ export default class Game {
 	*/
 	constants;
 	/**
-	 * A set of functions to handle communicating actions to players and spectators.
+	 * An interface for the message handler. Contains a number of functions that ensure actions won't be communicated multiple times in the same channel.
 	 * @readonly
 	 * @type {GameCommunicationHandler}
 	 */

@@ -2,7 +2,6 @@
 import Fixture from '../Data/Fixture.js';
 import RoomItem from '../Data/RoomItem.js';
 import Puzzle from "../Data/Puzzle.js";
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -25,7 +24,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}take butcher's knife\n`
         + `${settings.commandPrefix}get first aid kit\n`
         + `${settings.commandPrefix}take pill bottle from medicine cabinet\n`
@@ -42,16 +41,16 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable take");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return addReply(game, message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === undefined) return game.communicationHandler.reply(message, "You do not have a free hand to take an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     const input = args.join(" ");
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -113,15 +112,15 @@ export async function execute (game, message, command, args, player) {
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput)
-                return addReply(game, message, `The ${fixtures[i].name} is not an item.`);
+                return game.communicationHandler.reply(message, `The ${fixtures[i].name} is not an item.`);
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
             const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
+            return game.communicationHandler.reply(message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
-        else return addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
+        else return game.communicationHandler.reply(message, `Couldn't find item "${parsedInput}" in the room.`);
     }
     
     let topContainer = container;
@@ -129,14 +128,14 @@ export async function execute (game, message, command, args, player) {
         topContainer = topContainer.container;
 
     if (topContainer !== null && topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
-        return addReply(game, message, `You cannot take items from ${topContainer.name} while it is turned on.`);
+        return game.communicationHandler.reply(message, `You cannot take items from ${topContainer.name} while it is turned on.`);
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
         if (topContainer !== null && topContainer instanceof Puzzle)
             topContainer = topContainer.parentFixture;
 
         if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
-            return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+            return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
 
     const action = new TakeAction(game, message, player, player.location, false);

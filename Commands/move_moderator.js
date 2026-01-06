@@ -1,5 +1,4 @@
 import MoveAction from '../Data/Actions/MoveAction.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -36,7 +35,7 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify at least one player and a room. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     const players = [];
@@ -77,7 +76,7 @@ export async function execute(game, message, command, args) {
     if (desiredRoom === null) {
         const currentRoom = players[0].location;
         for (let i = 1; i < players.length; i++) {
-            if (players[i].location !== currentRoom) return addReply(game, message, "All listed players must be in the same room to use an exit name.");
+            if (players[i].location !== currentRoom) return game.communicationHandler.reply(message, "All listed players must be in the same room to use an exit name.");
         }
         input = args.join(" ").toUpperCase();
         for (let i = 0; i <= args.length; i++) {
@@ -103,14 +102,14 @@ export async function execute(game, message, command, args) {
     if (args.length > 0) {
         if (desiredRoom === null && exit === null) {
             const roomName = args.join(" ");
-            return addReply(game, message, `Couldn't find room or exit "${roomName}".`);
+            return game.communicationHandler.reply(message, `Couldn't find room or exit "${roomName}".`);
         }
         else {
             const missingPlayers = args.join(", ");
-            return addReply(game, message, `Couldn't find player(s): ${missingPlayers}.`);
+            return game.communicationHandler.reply(message, `Couldn't find player(s): ${missingPlayers}.`);
         }
     }
-    if (players.length === 0) return addReply(game, message, "You need to specify at least one player.");
+    if (players.length === 0) return game.communicationHandler.reply(message, "You need to specify at least one player.");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
@@ -138,5 +137,5 @@ export async function execute(game, message, command, args) {
         }
     }
 
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `The listed players have been moved to ${desiredRoom.channel}.`);
+    game.communicationHandler.sendToCommandChannel(`The listed players have been moved to ${desiredRoom.channel}.`);
 }
