@@ -24,7 +24,7 @@ export default class KnockAction extends Action {
 	performKnock(exit) {
 		if (this.performed) return;
 		super.perform();
-		this.getGame().narrationHandler.narrateKnock(exit, this.player);
+		this.getGame().narrationHandler.narrateKnock(this, exit, this.player);
 		this.getGame().logHandler.logKnock(exit, this.player, this.forced);
 	}
 }

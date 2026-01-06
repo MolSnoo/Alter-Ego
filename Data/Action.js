@@ -130,6 +130,8 @@ export const ActionType = {
 	Gesture: "gesture",
 	QueueMove: "queueMove",
 	StartMove: "startMove",
+	Exit: "exit",
+	Enter: "enter",
 	Move: "move",
 	Stop: "stop",
 	Inspect: "inspect",

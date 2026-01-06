@@ -336,7 +336,7 @@ export default class AttemptAction extends Action {
 	 */
 	#solvePuzzle(puzzle, outcome, requiredItems, item, targetPlayer) {
 		puzzle.solve(this.player, outcome, requiredItems, targetPlayer);
-		this.getGame().narrationHandler.narrateSolve(puzzle, outcome, this.player, item);
+		this.getGame().narrationHandler.narrateSolve(this, puzzle, outcome, this.player, item);
 		this.getGame().logHandler.logSolve(puzzle, this.player, this.forced);
 	}
 
@@ -345,7 +345,7 @@ export default class AttemptAction extends Action {
 	 * @param {Puzzle} puzzle - The puzzle being attempted.
 	 */
 	#unsolvePuzzle(puzzle) {
-		this.getGame().narrationHandler.narrateUnsolve(puzzle, this.player);
+		this.getGame().narrationHandler.narrateUnsolve(this, puzzle, this.player);
 		this.getGame().logHandler.logUnsolve(puzzle, this.player, this.forced);
 		puzzle.unsolve(this.player);
 	}
@@ -357,7 +357,7 @@ export default class AttemptAction extends Action {
 	 */
 	#failPuzzle(puzzle, item) {
 		puzzle.fail();
-		this.getGame().narrationHandler.narrateAttempt(puzzle, this.player, puzzle.incorrectDescription, this.getGame().notificationGenerator.generateAttemptAndFailPuzzleNotification(this.player, false, puzzle, item));
+		this.getGame().narrationHandler.narrateAttempt(this, puzzle, this.player, puzzle.incorrectDescription, this.getGame().notificationGenerator.generateAttemptAndFailPuzzleNotification(this.player, false, puzzle, item));
 		this.getGame().logHandler.logAttemptAndFailPuzzle(puzzle, this.player, this.forced);
 	}
 
@@ -367,7 +367,7 @@ export default class AttemptAction extends Action {
 	 * @param {string} [customNarration] - The custom narration to use, if any. Defaults to a notification that's automatically generated based on the type of puzzle.
 	 */
 	#narrateAndLogAlreadySolvedPuzzle(puzzle, customNarration = this.getGame().notificationGenerator.generateAttemptAlreadySolvedPuzzleNotification(this.player, false, puzzle)) {
-		this.getGame().narrationHandler.narrateAttempt(puzzle, this.player, puzzle.alreadySolvedDescription, customNarration);
+		this.getGame().narrationHandler.narrateAttempt(this, puzzle, this.player, puzzle.alreadySolvedDescription, customNarration);
 		this.getGame().logHandler.logAttemptAlreadySolvedPuzzle(puzzle, this.player, this.forced);
 	}
 
@@ -377,7 +377,7 @@ export default class AttemptAction extends Action {
 	 * @param {string} [customNarration] - The custom narration to use, if any. Defaults to the no remaining attempts notification.
 	 */
 	#narrateAndLogPuzzleHasNoRemainingAttempts(puzzle, customNarration = this.getGame().notificationGenerator.generateAttemptPuzzleWithNoRemainingAttemptsNotification(this.player.displayName, puzzle.getContainingPhrase())) {
-		this.getGame().narrationHandler.narrateAttempt(puzzle, this.player, puzzle.noMoreAttemptsDescription, customNarration);
+		this.getGame().narrationHandler.narrateAttempt(this, puzzle, this.player, puzzle.noMoreAttemptsDescription, customNarration);
 		this.getGame().logHandler.logAttemptPuzzleWithNoRemainingAttempts(puzzle, this.player, this.forced);
 	}
 
@@ -387,7 +387,7 @@ export default class AttemptAction extends Action {
 	 * @param {string} [customNarration] - The custom narration to use, if any. Defaults to the default attempt notification.
 	 */
 	#narrateAndLogPuzzleIsInaccessible(puzzle, customNarration = this.getGame().notificationGenerator.generateAttemptPuzzleDefaultNotification(this.player.displayName, puzzle.getContainingPhrase())) {
-		this.getGame().narrationHandler.narrateAttempt(puzzle, this.player, puzzle.requirementsNotMetDescription, customNarration);
+		this.getGame().narrationHandler.narrateAttempt(this, puzzle, this.player, puzzle.requirementsNotMetDescription, customNarration);
 		this.getGame().logHandler.logAttemptInaccessiblePuzzle(puzzle, this.player, this.forced);
 	}
 }

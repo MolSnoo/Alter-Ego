@@ -27,7 +27,7 @@ export default class ActivateAction extends Action {
 		if (this.performed) return;
 		super.perform();
 		if (narrate)
-			this.getGame().narrationHandler.narrateActivate(fixture, this.player, customNarration);
+			this.getGame().narrationHandler.narrateActivate(this, fixture, this.player, customNarration);
 		this.getGame().logHandler.logActivate(fixture, this.player, this.forced);
 		fixture.activate(this.player);
 	}

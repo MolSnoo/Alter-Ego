@@ -1,6 +1,7 @@
 ﻿import { addNarration, addNarrationToWhisper } from "../Modules/messageHandler.js";
 import GameConstruct from "./GameConstruct.js";
 
+/** @typedef {import("./Action.js").default} Action */
 /** @typedef {import("./Game.js").default} Game */
 /** @typedef {import("./Player.js").default} Player */
 /** @typedef {import("./Room.js").default} Room */
@@ -13,6 +14,12 @@ import GameConstruct from "./GameConstruct.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/narration.html
  */
 export default class Narration extends GameConstruct {
+    /**
+     * The action being narrated.
+     * @readonly
+     * @type {Action}
+     */
+    action;
     /**
      * The player who triggered the narration.
      * @readonly
@@ -35,12 +42,14 @@ export default class Narration extends GameConstruct {
     /**
      * @constructor
      * @param {Game} game - The game this is for.
+     * @param {Action} action - The action being narrated.
      * @param {Player} player - The player who triggered the narration.
      * @param {Room} location - The room the narration is intended for.
      * @param {string} message - The text content for the narration.
      */
-    constructor(game, player, location, message) {
+    constructor(game, action, player, location, message) {
         super(game);
+        this.action = action;
         this.player = player;
         this.location = location;
         this.message = message;

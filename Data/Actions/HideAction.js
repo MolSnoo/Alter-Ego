@@ -25,7 +25,7 @@ export default class HideAction extends Action {
 	performHide(hidingSpot) {
 		if (this.performed) return;
 		super.perform();
-		this.getGame().narrationHandler.narrateHide(hidingSpot, this.player);
+		this.getGame().narrationHandler.narrateHide(this, hidingSpot, this.player);
 		let successful = false;
 		if (hidingSpot.occupants.length + 1 <= hidingSpot.capacity) {
 			hidingSpot.addPlayer(this.player);

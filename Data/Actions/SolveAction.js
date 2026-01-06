@@ -42,7 +42,7 @@ export default class SolveAction extends Action {
 		puzzle.checkRequirementsMet(this.player, undefined, requiredItems);
 		const doSolvedCommands = !callee || !(callee instanceof Puzzle);
 		puzzle.solve(this.player, password, requiredItems, targetPlayer, doSolvedCommands);
-		this.getGame().narrationHandler.narrateSolve(puzzle, password, this.player, undefined, customNarration);
+		this.getGame().narrationHandler.narrateSolve(this, puzzle, password, this.player, undefined, customNarration);
 		this.getGame().logHandler.logSolve(puzzle, this.player, this.forced);
 	}
 }

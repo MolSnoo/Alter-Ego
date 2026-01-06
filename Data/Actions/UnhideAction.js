@@ -29,7 +29,7 @@ export default class UnhideAction extends Action {
 			const hidingSpotFixture = this.getGame().entityFinder.getFixture(this.player.hidingSpot, this.player.location.id);
 			if (hidingSpotFixture) hidingSpot = hidingSpotFixture.hidingSpot;
 		}
-		this.getGame().narrationHandler.narrateUnhide(hidingSpot, this.player);
+		this.getGame().narrationHandler.narrateUnhide(this, hidingSpot, this.player);
 		if (hidingSpot) hidingSpot.removePlayer(this.player);
 		else {
 			const whisperNarration = this.getGame().notificationGenerator.generateUnhideNotification(this.player, false, "hiding");

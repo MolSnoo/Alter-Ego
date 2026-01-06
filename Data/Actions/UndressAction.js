@@ -52,7 +52,7 @@ export default class UndressAction extends Action {
 				this.player.drop(rightHand.equippedItem, rightHand, container, inventorySlot);
 			}
 		}
-		this.getGame().narrationHandler.narrateUndress(droppedItems, container, this.player);
+		this.getGame().narrationHandler.narrateUndress(this, droppedItems, container, this.player);
 		this.getGame().logHandler.logUndress(droppedItems, this.player, container, inventorySlot, this.forced);
 		// Container is a weight puzzle.
 		if (container instanceof Puzzle && container.type === "weight") {

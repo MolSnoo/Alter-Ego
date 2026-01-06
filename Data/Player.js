@@ -531,7 +531,9 @@ export default class Player extends ItemContainer {
             // Be sure to check player.#reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.#reachedHalfStamina) {
                 player.#reachedHalfStamina = true;
-                player.getGame().narrationHandler.narrateReachedHalfStamina(player);
+                // The communication handler needs an action to prevent notification duplication, so create a dummy here.
+                const reachedHalfStaminaAction = new MoveAction(player.getGame(), undefined, player, player.location, true);
+                player.getGame().narrationHandler.narrateReachedHalfStamina(reachedHalfStaminaAction, player);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
@@ -540,7 +542,7 @@ export default class Player extends ItemContainer {
                 const wearyStatus = player.getGame().entityFinder.getStatusEffect("weary");
                 const wearyAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
                 wearyAction.performInflict(wearyStatus, false, true, true);
-                player.getGame().narrationHandler.narrateWeary(player);
+                player.getGame().narrationHandler.narrateWeary(wearyAction, player);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);

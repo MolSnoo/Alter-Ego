@@ -83,7 +83,7 @@ export default class InflictAction extends Action {
 
 		this.player.inflict(status, duration);
 		if (notify) this.player.sendDescription(status.inflictedDescription, status);
-		if (narrate) this.getGame().narrationHandler.narrateInflict(status, this.player);
+		if (narrate) this.getGame().narrationHandler.narrateInflict(this, status, this.player);
 		this.getGame().logHandler.logInflict(status, this.player);
 		return true;
 	}

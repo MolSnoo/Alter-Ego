@@ -26,6 +26,6 @@ export default class StopAction extends Action {
 		if (this.performed) return;
 		super.perform();
 		this.player.stopMoving();
-		this.getGame().narrationHandler.narrateStop(this.player, exitLocked, exit);
+		this.getGame().narrationHandler.narrateStop(this, this.player, exitLocked, exit);
 	}
 }
