@@ -123,13 +123,15 @@ export default class Action extends GameConstruct {
  * @enum {string}
  */
 export const ActionType = {
-	Say: "say", // TODO
+	Say: "say",
 	Whisper: "whisper",
 	Announce: "announce",
 	Text: "text",
 	Gesture: "gesture",
 	QueueMove: "queueMove",
 	StartMove: "startMove",
+	Exit: "exit",
+	Enter: "enter",
 	Move: "move",
 	Stop: "stop",
 	Inspect: "inspect",

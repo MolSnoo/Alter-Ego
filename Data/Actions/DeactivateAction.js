@@ -27,7 +27,7 @@ export default class DeactivateAction extends Action {
 		if (this.performed) return;
 		super.perform();
 		if (narrate)
-			this.getGame().narrationHandler.narrateDeactivate(fixture, this.player, customNarration);
+			this.getGame().narrationHandler.narrateDeactivate(this, fixture, this.player, customNarration);
 		this.getGame().logHandler.logDeactivate(fixture, this.player, this.forced);
 		fixture.deactivate();
 	}

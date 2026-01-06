@@ -1,5 +1,4 @@
 import CraftAction from '../Data/Actions/CraftAction.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -22,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}craft drain cleaner and plastic bottle\n`
         + `${settings.commandPrefix}combine bread and cheese\n`
         + `${settings.commandPrefix}mix red vial with blue vial\n`
@@ -36,17 +35,17 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length < 3)
-        return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable craft");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[0].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[0].id}**.`);
 
     const parsedInput = args.join(' ').toUpperCase().replace(/\'/g, "");
 
     if (!parsedInput.includes(" WITH ") && !parsedInput.includes(" AND "))
-        return addReply(game, message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify two items separated by "with" or "and". Usage:\n${usage(game.settings)}`);
 
     // Now find the item in the player's inventory.
     /** @type {InventoryItem[]} */
@@ -71,11 +70,11 @@ export async function execute (game, message, command, args, player) {
     if (items.length !== 2) {
         if (items.length === 0) {
             let itemNames = parsedInput.includes(" WITH ") ? parsedInput.split(" WITH ") : parsedInput.split(" AND ");
-            return addReply(game, message, `Couldn't find items "${itemNames[0]}" and "${itemNames[1]}" in either of your hands.`);
+            return game.communicationHandler.reply(message, `Couldn't find items "${itemNames[0]}" and "${itemNames[1]}" in either of your hands.`);
         } else {
             let itemNames = parsedInput.includes(" WITH ") ? parsedInput.split(" WITH ") : parsedInput.split(" AND ");
-            if (items[0].name === itemNames[0]) return addReply(game, message, `Couldn't find item "${itemNames[1]}" in either of your hands.`);
-            else return addReply(game, message, `Couldn't find item "${itemNames[0]} in either of your hands.`);
+            if (items[0].name === itemNames[0]) return game.communicationHandler.reply(message, `Couldn't find item "${itemNames[1]}" in either of your hands.`);
+            else return game.communicationHandler.reply(message, `Couldn't find item "${itemNames[0]} in either of your hands.`);
         }
     }
 
@@ -93,7 +92,7 @@ export async function execute (game, message, command, args, player) {
             break;
         }
     }
-    if (recipe === null) return addReply(game, message, `Couldn't find recipe requiring ${items[0].name} and ${items[1].name}. Contact a moderator if you think there should be one.`);
+    if (recipe === null) return game.communicationHandler.reply(message, `Couldn't find recipe requiring ${items[0].name} and ${items[1].name}. Contact a moderator if you think there should be one.`);
 
     const action = new CraftAction(game, message, player, player.location, false);
     action.performCraft(items[0], items[1], recipe);

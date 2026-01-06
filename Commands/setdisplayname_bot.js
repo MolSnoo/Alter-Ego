@@ -1,5 +1,3 @@
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
@@ -39,20 +37,20 @@ export function usage(settings) {
 export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0)
-        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (args[0].toLowerCase() !== "player") {
         player = game.entityFinder.getLivingPlayer(args[0]);
-        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
+        if (player === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Player "${args[0]}" not found.`);
     }
     else if (args[0].toLowerCase() === "player" && player === null)
-        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
+        return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". The "player" argument was used, but no player was passed into the command.`);
 
     args.splice(0, 1);
 
     let input = args.join(" ");
     if (input === "") input = player.name;
-    if (input.length > 32) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". A name cannot exceed 32 characters.`);
+    if (input.length > 32) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". A name cannot exceed 32 characters.`);
 
     player.displayName = input;
     player.location.occupantsString = player.location.generateOccupantsString(player.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));

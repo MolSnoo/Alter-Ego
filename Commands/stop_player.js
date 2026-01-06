@@ -1,5 +1,4 @@
 ﻿import StopAction from '../Data/Actions/StopAction.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -34,9 +33,9 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable stop");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
-    if (!player.isMoving) return addReply(game, message, `You cannot do that because you are not moving.`);
+    if (!player.isMoving) return game.communicationHandler.reply(message, `You cannot do that because you are not moving.`);
 
     const action = new StopAction(game, message, player, player.location, false);
     action.performStop();

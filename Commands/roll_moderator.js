@@ -1,6 +1,5 @@
 ﻿import Die from '../Data/Die.js';
 import Player from '../Data/Player.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -46,27 +45,27 @@ export async function execute(game, message, command, args) {
     if (args.length === 3) {
         statString = args[0].toLowerCase();
         attacker = game.entityFinder.getLivingPlayer(args[1]);
-        if (attacker === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
+        if (attacker === undefined) return game.communicationHandler.reply(message, `Couldn't find player "${args[1]}".`);
         defender = game.entityFinder.getLivingPlayer(args[2]);
-        if (defender === undefined) return addReply(game, message, `Couldn't find player "${args[2]}".`);
+        if (defender === undefined) return game.communicationHandler.reply(message, `Couldn't find player "${args[2]}".`);
     }
     else if (args.length === 2) {
         const arg0 = game.entityFinder.getLivingPlayer(args[0]);
         if (arg0 !== undefined) {
             attacker = arg0;
             defender = game.entityFinder.getLivingPlayer(args[1]);
-            if (defender === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
+            if (defender === undefined) return game.communicationHandler.reply(message, `Couldn't find player "${args[1]}".`);
         }
         else {
             statString = args[0];
             attacker = game.entityFinder.getLivingPlayer(args[1]);
-            if (attacker === undefined) return addReply(game, message, `Couldn't find player "${args[1]}".`);
+            if (attacker === undefined) return game.communicationHandler.reply(message, `Couldn't find player "${args[1]}".`);
         }
     }
     else if (args.length === 1) {
         const arg0 = game.entityFinder.getLivingPlayer(args[0]);
         if (arg0 !== undefined) attacker = arg0;
-        else return addReply(game, message, `Cannot roll for a stat without a given player.`);
+        else return game.communicationHandler.reply(message, `Cannot roll for a stat without a given player.`);
     }
     if (statString) {
         const statAbbreviation = Player.abbreviateStatName(statString);
@@ -75,10 +74,10 @@ export async function execute(game, message, command, args) {
         else if (statAbbreviation === "dex") stat = "dex";
         else if (statAbbreviation === "spd") stat = "spd";
         else if (statAbbreviation === "sta") stat = "sta";
-        else return addReply(game, message, `"${statString}" is not a valid stat.`);
+        else return game.communicationHandler.reply(message, `"${statString}" is not a valid stat.`);
     }
 
     const die = new Die(game, stat, attacker, defender);
-    if (die.modifier === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with no modifiers.`);
-    else addGameMechanicMessage(game, game.guildContext.commandChannel, `Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
+    if (die.modifier === 0) game.communicationHandler.sendToCommandChannel(`Rolled a **${die.result}** with no modifiers.`);
+    else game.communicationHandler.sendToCommandChannel(`Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
 }

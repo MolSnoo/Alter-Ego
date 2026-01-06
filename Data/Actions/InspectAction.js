@@ -28,7 +28,7 @@ export default class InspectAction extends Action {
 	performInspect(target) {
 		if (this.performed) return;
 		super.perform();
-		this.getGame().narrationHandler.narrateInspect(target, this.player);
+		this.getGame().narrationHandler.narrateInspect(this, target, this.player);
 		let description = target.description;
 		// If the player is inspecting an inventory item that belongs to another player, remove the contents of all il tags before parsing it.
 		if (target instanceof InventoryItem && target.player.name !== this.player.name)

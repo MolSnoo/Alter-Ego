@@ -7,10 +7,10 @@ import Player from "../Data/Player.js";
 import Puzzle from "../Data/Puzzle.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
-import { addLogMessage } from "../Modules/messageHandler.js";
 import { generateListString } from "../Modules/helpers.js";
 
 /** @typedef {import("../Data/EquipmentSlot.js").default} EquipmentSlot */
+/** @typedef {import("../Data/Flag.js").default} Flag */
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Gesture.js").default} Gesture */
 /** @typedef {import("../Data/Event.js").default} Event */
@@ -53,7 +53,7 @@ export default class GameLogHandler {
 	 * @param {string} logText - The text of the log message. 
 	 */
 	#sendLogMessage(logText) {
-		addLogMessage(this.game, logText);
+		this.game.communicationHandler.sendLogMessage(logText);
 	}
 
 	/**
@@ -575,5 +575,25 @@ export default class GameLogHandler {
 	 */
 	logEnd(event) {
 		this.#sendLogMessage(`${this.#getTime()} - ${event.id} was ended`);
+	}
+
+	/**
+	 * Logs a flag being set.
+	 * @param {Flag} flag - The flag that was set.
+	 */
+	logSetFlag(flag) {
+		const valueDisplay =
+			typeof flag.value === "string" ? `"${flag.value}"` :
+				typeof flag.value === "boolean" ? `\`${flag.value}\`` :
+					flag.value;
+		this.#sendLogMessage(`${this.#getTime()} - ${flag.id} was set with value ${valueDisplay}`);
+	}
+
+	/**
+	 * Logs a flag being cleared.
+	 * @param {Flag} flag - The flag that was cleared.
+	 */
+	logClearFlag(flag) {
+		this.#sendLogMessage(`${this.#getTime()} - ${flag.id} was cleared`);
 	}
 }

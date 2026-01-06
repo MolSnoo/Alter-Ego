@@ -1,7 +1,6 @@
 import CureAction from "../Data/Actions/CureAction.js";
 import InflictAction from '../Data/Actions/InflictAction.js';
 import InventoryItem from "../Data/InventoryItem.js";
-import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import("../Data/Status.js").default} Status */
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -32,7 +31,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `status add player heated\n`
         + `status add room safe\n`
         + `inflict all deaf\n`
@@ -50,7 +49,7 @@ export function usage (settings) {
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (command === "status") {
         if (args[0] === "add" || args[0] === "inflict") command = "inflict";
@@ -59,7 +58,7 @@ export async function execute (game, command, args, player, callee) {
     }
 
     if (args.length === 0) {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -77,7 +76,7 @@ export async function execute (game, command, args, player, callee) {
     }
     else {
         player = game.entityFinder.getLivingPlayer(args[0]);
-        if (player === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        if (player === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
     }
     args.splice(0, 1);
@@ -85,8 +84,8 @@ export async function execute (game, command, args, player, callee) {
     const statusId = args.join(" ");
     /** @type {Status} */
     const status = game.entityFinder.getStatusEffect(statusId);
-    if (!status) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusId}".`);
-    if (status.id === "hidden") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Can't inflict or cure "hidden".`);
+    if (!status) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find status effect "${statusId}".`);
+    if (status.id === "hidden") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Can't inflict or cure "hidden".`);
 
     const item = callee instanceof InventoryItem ? callee : undefined;
     for (let i = 0; i < players.length; i++) {

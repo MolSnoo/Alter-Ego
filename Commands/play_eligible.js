@@ -19,7 +19,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}play`;
 }
 
@@ -29,7 +29,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     for (const player of game.playersCollection.values()) {
         if (message.author.id === player.id)
             return message.reply("You are already playing.");

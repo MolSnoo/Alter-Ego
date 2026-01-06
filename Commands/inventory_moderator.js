@@ -1,6 +1,4 @@
-﻿import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-
-/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+﻿/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
@@ -17,7 +15,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}inventory nero`;
 }
 
@@ -27,13 +25,13 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
 
     const inventoryString = player.viewInventory(`${player.name}'s`, true);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, inventoryString);
+    game.communicationHandler.sendToCommandChannel(inventoryString);
 }

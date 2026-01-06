@@ -1,4 +1,3 @@
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -22,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}createroomcategory Floor 1\n`
         + `${settings.commandPrefix}register Floor 2`;
 }
@@ -33,24 +32,24 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
 
     const input = args.join(" ");
     let channel = game.guildContext.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
     if (channel) {
         const response = await registerRoomCategory(channel);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, response);
+        game.communicationHandler.sendToCommandChannel(response);
     }
     else {
         try {
             channel = await createCategory(game.guildContext.guild, input);
             const response = await registerRoomCategory(channel);
-            addGameMechanicMessage(game, game.guildContext.commandChannel, response);
+            game.communicationHandler.sendToCommandChannel(response);
         }
         catch (err) {
-            addGameMechanicMessage(game, game.guildContext.commandChannel, err);
+            game.communicationHandler.sendToCommandChannel(err);
         }
     }
 }

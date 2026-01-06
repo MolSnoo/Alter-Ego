@@ -1,5 +1,3 @@
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
@@ -22,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}setdisplayicon kyra https://cdn.discordapp.com/attachments/697623260736651335/912103115241697301/mm.png\n`
         + `${settings.commandPrefix}setdisplayicon kyra`;
 }
@@ -33,12 +31,12 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const iconURLSyntax = RegExp('(http(s?)://.*?.(jpg|jpeg|png|webp|avif))$');
@@ -47,8 +45,8 @@ export async function execute (game, message, command, args) {
         if (player.isNPC) input = player.id;
         else input = null;
     }
-    else if (!iconURLSyntax.test(input)) return addReply(game, message, `The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
+    else if (!iconURLSyntax.test(input)) return game.communicationHandler.reply(message, `The display icon must be a URL with an extension of .jpg, .jpeg, .png, .webp, or .avif.`);
 
     player.displayIcon = input;
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display icon.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully updated ${player.name}'s display icon.`);
 }

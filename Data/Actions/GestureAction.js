@@ -34,7 +34,7 @@ export default class GestureAction extends Action {
 		let newGesture = new Gesture(gesture.id, [...gesture.requires], [...gesture.disabledStatusesStrings], gesture.description, gesture.narration, gesture.row, this.getGame());
 		newGesture.targetType = targetType;
 		newGesture.target = target;
-		this.getGame().narrationHandler.narrateGesture(newGesture, this.player);
+		this.getGame().narrationHandler.narrateGesture(this, newGesture, this.player);
 		this.getGame().logHandler.logGesture(gesture, target, this.player, this.forced);
 	}
 }

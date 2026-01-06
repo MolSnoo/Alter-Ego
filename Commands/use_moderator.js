@@ -1,5 +1,4 @@
 ﻿import UseAction from '../Data/Actions/UseAction.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -22,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}use princeton first aid kit\n`
         + `${settings.commandPrefix}use celia's food\n`
         + `${settings.commandPrefix}use pollux first aid spray ximena "Pollux uncaps and applies a can of FIRST AID SPRAY to Ximena's wounds."\n`
@@ -35,12 +34,12 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and an item in their inventory. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and an item in their inventory. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     let input = args.join(" ");
@@ -66,9 +65,9 @@ export async function execute (game, message, command, args) {
         // If "on" precedes the target's name, remove both args.
         args.splice(args.length - 2, 2);
     else args.splice(args.length - 1, 1);
-    if (announcement !== "" && target === undefined) return addReply(game, message, `Player "${args[args.length - 1]}" not found.`);
-    if (target !== undefined && player.name === target.name) return addReply(game, message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
-    if (target !== undefined && player.location.id !== target.location.id) return addReply(game, message, `${player.name} and ${target.name} are not in the same room.`);
+    if (announcement !== "" && target === undefined) return game.communicationHandler.reply(message, `Player "${args[args.length - 1]}" not found.`);
+    if (target !== undefined && player.name === target.name) return game.communicationHandler.reply(message, `${player.name} cannot use an item on ${player.originalPronouns.ref} with this command syntax.`);
+    if (target !== undefined && player.location.id !== target.location.id) return game.communicationHandler.reply(message, `${player.name} and ${target.name} are not in the same room.`);
     if (target === undefined) target = player;
 
     // args should now only contain the name of the item.
@@ -95,14 +94,14 @@ export async function execute (game, message, command, args) {
         item = rightHand.equippedItem;
     else if (item === null && leftHand.equippedItem !== null && leftHand.equippedItem.name === parsedInput)
         item = leftHand.equippedItem;
-    if (item === null) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+    if (item === null) return game.communicationHandler.reply(message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
 
-    if (item.uses === 0) return addReply(game, message, "That item has no uses left.");
-    if (!item.prefab.usable) return addReply(game, message, "That item has no programmed use.");
-    if (!item.usableOn(target)) return addReply(game, message, `${item.getIdentifier()} currently has no effect on ${target.name}.`);
+    if (item.uses === 0) return game.communicationHandler.reply(message, "That item has no uses left.");
+    if (!item.prefab.usable) return game.communicationHandler.reply(message, "That item has no programmed use.");
+    if (!item.usableOn(target)) return game.communicationHandler.reply(message, `${item.getIdentifier()} currently has no effect on ${target.name}.`);
     // Use the player's item.
     const action = new UseAction(game, message, player, player.location, true);
     action.performUse(item, target, announcement);
     const targetString = target.name !== player.name ? `on ${target.name} ` : ``;
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully used ${item.getIdentifier()} ${targetString}for ${player.name}.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully used ${item.getIdentifier()} ${targetString}for ${player.name}.`);
 }

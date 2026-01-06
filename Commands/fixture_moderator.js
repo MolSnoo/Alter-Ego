@@ -1,7 +1,6 @@
 import ActivateAction from '../Data/Actions/ActivateAction.js';
 import DeactivateAction from '../Data/Actions/DeactivateAction.js';
 import Room from '../Data/Room.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -27,7 +26,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}fixture activate blender\n`
         + `${settings.commandPrefix}fixture deactivate microwave\n`
         + `${settings.commandPrefix}activate keurig kyra\n`
@@ -44,7 +43,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     let input = command + " " + args.join(" ");
     if (command === "fixture" || command === "object") {
         if (args[0] === "activate") command = "activate";
@@ -54,9 +53,9 @@ export async function execute (game, message, command, args) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return addReply(game, message, 'Invalid command given. Use "activate" or "deactivate".');
+    if (command !== "activate" && command !== "deactivate") return game.communicationHandler.reply(message, 'Invalid command given. Use "activate" or "deactivate".');
     if (args.length === 0)
-        return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // The message, if it exists, is the easiest to find at the beginning. Look for that first.
     let announcement = "";
@@ -113,8 +112,8 @@ export async function execute (game, message, command, args) {
         }
     }
     if (fixture === null && player === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-    else if (fixture === null) return addReply(game, message, `Couldn't find fixture "${input}".`);
-    if (fixture.recipeTag === "") return addReply(game, message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (fixture === null) return game.communicationHandler.reply(message, `Couldn't find fixture "${input}".`);
+    if (fixture.recipeTag === "") return game.communicationHandler.reply(message, `${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
     let narrate = false;
     if (announcement === "" && player !== null) narrate = true;
@@ -122,11 +121,11 @@ export async function execute (game, message, command, args) {
     if (command === "activate") {
         const activateAction = new ActivateAction(game, message, player, fixture.location, true);
         activateAction.performActivate(fixture, narrate, announcement);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully activated ${fixture.name}.`);
+        game.communicationHandler.sendToCommandChannel(`Successfully activated ${fixture.name}.`);
     }
     else if (command === "deactivate") {
         const deactivateAction = new DeactivateAction(game, message, player, fixture.location, true);
         deactivateAction.performDeactivate(fixture, narrate, announcement);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully deactivated ${fixture.name}.`);
+        game.communicationHandler.sendToCommandChannel(`Successfully deactivated ${fixture.name}.`);
     }
 }

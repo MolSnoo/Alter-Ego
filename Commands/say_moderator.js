@@ -1,7 +1,6 @@
 ﻿import Narration from '../Data/Narration.js';
 import handleDialog from '../Modules/dialogHandler.js';
 import { ChannelType } from 'discord.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -24,7 +23,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}say #park Hello. My name is Alter Ego.\n`
         + `${settings.commandPrefix}say #general Thank you for speaking with me today.\n`
         + `${settings.commandPrefix}say amy One appletini, coming right up.`;
@@ -36,9 +35,9 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
     const string = args.slice(1).join(" ");
@@ -48,7 +47,7 @@ export async function execute (game, message, command, args) {
     if (!player)
         player = null;
     else if (!player.isNPC)
-        return addReply(game, message, `You cannot speak for a player that isn't an NPC.`);
+        return game.communicationHandler.reply(message, `You cannot speak for a player that isn't an NPC.`);
     if (player !== null) {
         // Create a webhook for this channel if necessary, or grab the existing one.
         const webHooks = await player.location.channel.fetchWebhooks();
@@ -87,5 +86,5 @@ export async function execute (game, message, command, args) {
     }
     else if (channel.type === ChannelType.GuildText)
         channel.send(string);
-    else addReply(game, message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
+    else game.communicationHandler.reply(message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 }

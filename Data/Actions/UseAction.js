@@ -27,7 +27,7 @@ export default class UseAction extends Action {
 	performUse(item, target = this.player, customNarration) {
 		if (this.performed) return;
 		super.perform();
-		this.getGame().narrationHandler.narrateUse(item, this.player, target, customNarration);
+		this.getGame().narrationHandler.narrateUse(this, item, this.player, target, customNarration);
 		this.getGame().logHandler.logUse(item, this.player, target, this.forced);
 		this.player.use(item, target);
 	}

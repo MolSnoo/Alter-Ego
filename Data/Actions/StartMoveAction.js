@@ -30,7 +30,7 @@ export default class StartMoveAction extends Action {
 		if (this.performed) return;
 		super.perform();
 		const time = this.player.calculateMoveTime(exit, isRunning);
-		if (time > 1000) this.getGame().narrationHandler.narrateStartMove(isRunning, exit, this.player);
+		if (time > 1000) this.getGame().narrationHandler.narrateStartMove(this, isRunning, exit, this.player);
 		this.player.move(isRunning, currentRoom, destinationRoom, exit, entrance, time, this.forced);
 	}
 }

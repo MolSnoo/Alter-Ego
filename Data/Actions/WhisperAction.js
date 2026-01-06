@@ -26,7 +26,7 @@ export default class WhisperAction extends Action {
 		if (this.performed) return;
 		super.perform();
 		const whisper = await this.getGame().entityLoader.createWhisper(players);
-		this.getGame().narrationHandler.narrateWhisper(whisper, this.player);
+		this.getGame().narrationHandler.narrateWhisper(this, whisper, this.player);
 		this.getGame().logHandler.logWhisper(whisper, this.player, this.forced);
 		return whisper;
 	}

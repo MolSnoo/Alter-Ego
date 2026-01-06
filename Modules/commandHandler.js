@@ -1,5 +1,4 @@
 ﻿import Puzzle from '../Data/Puzzle.js';
-import { addReply, addGameMechanicMessage } from './messageHandler.js';
 import { ChannelType } from 'discord.js';
 
 /** @typedef {import('../Data/Event.js').default} Event */
@@ -96,18 +95,18 @@ export async function executeCommand(commandStr, game, message, player, callee) 
                 }
             }
             if (!player) {
-                addReply(game, message, "You are not on the list of living players.");
+                game.communicationHandler.reply(message, "You are not on the list of living players.");
                 return false;
             }
             const commandName = getCommandName(playerCommand);
             const status = player.getBehaviorAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasBehaviorAttribute(`enable ${commandName}`)) {
-                if (player.hasStatus("heated")) addReply(game, message, "The situation is **heated**. Moderator intervention is required.");
-                else addReply(game, message, `You cannot do that because you are **${status[0].id}**.`);
+                if (player.hasStatus("heated")) game.communicationHandler.reply(message, "The situation is **heated**. Moderator intervention is required.");
+                else game.communicationHandler.reply(message, `You cannot do that because you are **${status[0].id}**.`);
                 return false;
             }
             if (game.editMode && commandName !== "say") {
-                addReply(game, message, "You cannot do that because edit mode is currently enabled.");
+                game.communicationHandler.reply(message, "You cannot do that because edit mode is currently enabled.");
                 return false;
             }
 
@@ -165,9 +164,9 @@ export async function parseAndExecuteBotCommands(commandSet, game, callee, playe
     for (let command of commandSet) {
         if (command.startsWith("wait")) {
             let args = command.split(" ");
-            if (!args[1]) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
+            if (!args[1]) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${command}". No amount of seconds to wait was specified.`);
             const seconds = parseInt(args[1]);
-            if (isNaN(seconds) || seconds < 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
+            if (isNaN(seconds) || seconds < 0) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${command}". Invalid amount of seconds to wait.`);
             await sleep(seconds);
         }
         else {

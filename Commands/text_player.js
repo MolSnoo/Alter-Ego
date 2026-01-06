@@ -1,5 +1,4 @@
 import TextAction from '../Data/Actions/TextAction.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -20,7 +19,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}text elijah Hello. I am EVA Chan. We are schoolmates.\n`
         + `${settings.commandPrefix}text astrid i often paint cityscapes, urban scenes, and portraits of people - but today i decided to experiment with something a bit more abstract. (attached image)\n`
         + `${settings.commandPrefix}text viviana (attached image)`;
@@ -33,20 +32,20 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify a player to text and a message. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player to text and a message. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("enable text");
-    if (status.length === 0) return addReply(game, message, `You do not have a device with which to send a text message.`);
+    if (status.length === 0) return game.communicationHandler.reply(message, `You do not have a device with which to send a text message.`);
 
     const recipient = game.entityFinder.getLivingPlayer(args[0]);
-    if (recipient === undefined) return addReply(game, message, `Couldn't find player "${args[0]}".`);
-    if (recipient.name === player.name) return addReply(game, message, `You cannot send a message to yourself.`);
+    if (recipient === undefined) return game.communicationHandler.reply(message, `Couldn't find player "${args[0]}".`);
+    if (recipient.name === player.name) return game.communicationHandler.reply(message, `You cannot send a message to yourself.`);
     args.splice(0, 1);
 
     const input = args.join(" ");
-    if (input === "" && message.attachments.size === 0) return addReply(game, message, `Text message cannot be empty. Please send a message and/or an attachment.`);
+    if (input === "" && message.attachments.size === 0) return game.communicationHandler.reply(message, `Text message cannot be empty. Please send a message and/or an attachment.`);
     
     const action = new TextAction(game, message, player, player.location, false);
     action.performText(recipient, input);

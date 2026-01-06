@@ -1,6 +1,5 @@
 ﻿import handleDialog from '../Modules/dialogHandler.js';
 import { ChannelType } from "discord.js";
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -21,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}say What happened?\n`
         + `${settings.commandPrefix}speak Did someone turn out the lights?`;
 }
@@ -33,12 +32,12 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify something to say. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("enable say");
-    if (status.length === 0) return addReply(game, message, `You have no reason to use the say command. Speak in the room channel instead.`);
+    if (status.length === 0) return game.communicationHandler.reply(message, `You have no reason to use the say command. Speak in the room channel instead.`);
 
     const input = args.join(" ");
     if (!input.startsWith("(")) {
@@ -74,4 +73,4 @@ export async function execute (game, message, command, args, player) {
                 });
         });
     }
-    }
+}

@@ -2,6 +2,7 @@ import { Collection } from "discord.js";
 import GameConstruct from "./GameConstruct.js";
 
 /** @typedef {import("./Game.js").default} Game */
+/** @typedef {import("./InventoryItem.js").default} InventoryItem */
 /** @typedef {import("./Player.js").default} Player */
 /** @typedef {import("./Room.js").default} Room */
 /** @typedef {import("./Whisper.js").default} Whisper */
@@ -25,7 +26,7 @@ export default class Dialog extends GameConstruct {
 	 * The player who spoke the dialog.
 	 * @type {Player}
 	 */
-	player;
+	speaker;
 	/**
 	 * The room the dialog occurred in.
 	 * @type {Room}
@@ -130,9 +131,9 @@ export default class Dialog extends GameConstruct {
 	 */
 	audioMonitoringRooms;
 	/**
-	 * A list of players with the `receiver` behavior attribute.
+	 * A collection of inventory items that inflict the `receiver` behavior attribute. The key of each entry is the name of the player it belongs to.
 	 * If the player doesn't have the `sender` behavior attribute, or if this is an OOC message, this is empty.
-	 * @type {Player[]}
+	 * @type {Collection<string, InventoryItem>}
 	 */
 	receivers;
 	
@@ -148,26 +149,26 @@ export default class Dialog extends GameConstruct {
 	constructor(game, message, player, location, isAnnouncement = false, whisper = null) {
 		super(game);
 		this.message = message;
-		this.player = player;
+		this.speaker = player;
 		this.location = location;
 		this.isAnnouncement = isAnnouncement;
 		this.whisper = whisper;
 		this.content = this.message.content;
 		this.attachments = this.message.attachments;
 		this.embeds = this.message.embeds;
-		this.speakerDisplayName = this.player.displayName;
-		this.speakerDisplayIcon = this.player.displayIcon ? this.player.displayIcon : this.player.member.displayAvatarURL();
-		this.speakerVoiceString = this.player.voiceString;
-		this.speakerRecognitionName = this.player.name;
-		if (this.player.voiceString !== this.player.originalVoiceString) {
-			const mimickedPlayer = game.entityFinder.getPlayer(this.player.voiceString);
+		this.speakerDisplayName = this.speaker.displayName;
+		this.speakerDisplayIcon = this.speaker.displayIcon ? this.speaker.displayIcon : this.speaker.member.displayAvatarURL();
+		this.speakerVoiceString = this.speaker.voiceString;
+		this.speakerRecognitionName = this.speaker.name;
+		if (this.speaker.voiceString !== this.speaker.originalVoiceString) {
+			const mimickedPlayer = game.entityFinder.getPlayer(this.speaker.voiceString);
 			if (mimickedPlayer) {
 				this.speakerVoiceString = mimickedPlayer.originalVoiceString;
 				this.speakerRecognitionName = mimickedPlayer.name;
 			}
 			// If the player's voice descriptor is different but doesn't match the name of another player,
 			// set their recognition name to unknown so that other players won't recognize their voice.
-			if (this.speakerRecognitionName === this.player.name)
+			if (this.speakerRecognitionName === this.speaker.name)
 				this.speakerRecognitionName = "unknown";
 		}
 		this.isOOCMessage = message.cleanContent.startsWith('(');
@@ -178,7 +179,7 @@ export default class Dialog extends GameConstruct {
 		this.locationIsVideoSurveilled = false;
 		this.neighboringAudioSurveilledRooms = [];
 		this.audioMonitoringRooms = [];
-		this.receivers = [];
+		this.receivers = new Collection();
 		// The remaining properties only need to be initialized if the dialog isn't an out-of-character message.
 		if (!this.isOOCMessage) {
 			const contentWithoutEmotes = message.cleanContent.replace(/<?:.*?:\d*>?/g, '');
@@ -203,10 +204,15 @@ export default class Dialog extends GameConstruct {
 			this.locationIsVideoSurveilled = this.location.tags.includes("video surveilled");
 			if (this.locationIsAudioSurveilled || this.neighboringAudioSurveilledRooms.length > 0)
 				this.audioMonitoringRooms = game.entityFinder.getRooms(undefined, "audio monitoring", true);
-			if (this.player.hasBehaviorAttribute("sender")) {
+			if (this.speaker.hasBehaviorAttribute("sender")) {
 				for (const livingPlayer of game.livingPlayersCollection.values()) {
-					if (livingPlayer.hasBehaviorAttribute("receiver") && livingPlayer.name !== this.player.name)
-						this.receivers.push(livingPlayer);
+					if (livingPlayer.hasBehaviorAttribute("receiver") && livingPlayer.name !== this.speaker.name) {
+						for (const equipmentSlot of livingPlayer.inventoryCollection.values()) {
+							if (equipmentSlot.equippedItem !== null && equipmentSlot.equippedItem.prefab.equippedCommands.join(',').toLowerCase().includes('receiver')) {
+								this.receivers.set(livingPlayer.name, equipmentSlot.equippedItem);
+							}
+						}
+					}
 				}
 			}
 		}

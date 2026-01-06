@@ -2,7 +2,6 @@
 import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -31,7 +30,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}inspect desk\n`
         + `${settings.commandPrefix}examine knife\n`
         + `${settings.commandPrefix}look knife on desk\n`
@@ -51,12 +50,12 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify a fixture/item/player. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a fixture/item/player. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable inspect");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
@@ -107,7 +106,7 @@ export async function execute (game, message, command, args, player) {
 
     if (fixture !== null) {
         // Make sure the player can only inspect the fixture they're hiding in, if they're hidden.
-        if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+        if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         action.performInspect(fixture);
         return;
     }
@@ -180,7 +179,7 @@ export async function execute (game, message, command, args, player) {
                 topContainer = topContainer.parentFixture;
 
             if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
-                return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+                return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         }
 
         action.performInspect(item);
@@ -202,18 +201,18 @@ export async function execute (game, message, command, args, player) {
         const occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && occupant.hasBehaviorAttribute("hidden") && occupant.hidingSpot !== player.hidingSpot)
-            return addReply(game, message, `Couldn't find "${input}".`);
+            return game.communicationHandler.reply(message, `Couldn't find "${input}".`);
         else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
-            return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+            return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
         if (occupant.displayName.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.name === player.name) return addReply(game, message, `You can't inspect yourself.`);
+            if (occupant.name === player.name) return game.communicationHandler.reply(message, `You can't inspect yourself.`);
             action.performInspect(occupant);
             return;
         }
         else if (parsedInput.startsWith(possessive)) {
             // Don't let the player inspect their own items this way.
-            if (occupant.name === player.name) return addReply(game, message, `You can't inspect your own items this way. Use "my" instead of your name.`);
+            if (occupant.name === player.name) return game.communicationHandler.reply(message, `You can't inspect your own items this way. Use "my" instead of your name.`);
             parsedInput = parsedInput.replace(possessive, "");
             // Only equipped items should be an option.
             const inventory = game.inventoryItems.filter(item => item.player.name === occupant.name && item.prefab !== null && item.containerName === "" && item.container === null);
@@ -234,5 +233,5 @@ export async function execute (game, message, command, args, player) {
         }
     }
 
-    return addReply(game, message, `Couldn't find "${input}".`);
+    return game.communicationHandler.reply(message, `Couldn't find "${input}".`);
 }

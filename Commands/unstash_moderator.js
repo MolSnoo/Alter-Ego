@@ -1,6 +1,5 @@
 import UnstashAction from '../Data/Actions/UnstashAction.js';
 import InventoryItem from '../Data/InventoryItem.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -22,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}unstash vivian's laptop\n`
         + `${settings.commandPrefix}retrieve nero sword from sheath\n`
         + `${settings.commandPrefix}unstash antimony's old key from right pocket of pants\n`
@@ -35,17 +34,17 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to retrieve an item.`);
+    if (hand === undefined) return game.communicationHandler.reply(message, `${player.name} does not have a free hand to retrieve an item.`);
 
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -122,13 +121,13 @@ export async function execute (game, message, command, args) {
         if (parsedInput.includes(" FROM ")) {
             const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return addReply(game, message, `Couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
+            return game.communicationHandler.reply(message, `Couldn't find "${containerName}" in ${player.name}'s inventory containing "${itemName}".`);
         }
-        else return addReply(game, message, `Couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
+        else return game.communicationHandler.reply(message, `Couldn't find item "${parsedInput}" in ${player.name}'s inventory.`);
     }
-    if (item !== null && container === null) return addReply(game, message, `${item.getIdentifier()} is not contained in another item and cannot be unstashed.`);
+    if (item !== null && container === null) return game.communicationHandler.reply(message, `${item.getIdentifier()} is not contained in another item and cannot be unstashed.`);
 
     const action = new UnstashAction(game, message, player, player.location, true);
     action.performUnstash(item, hand, container, slot);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully unstashed ${item.getIdentifier()} from ${slotName} of ${container.identifier} for ${player.name}.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully unstashed ${item.getIdentifier()} from ${slotName} of ${container.identifier} for ${player.name}.`);
 }

@@ -44,7 +44,7 @@ export default class CureAction extends Action {
 			this.player.setPronouns(this.player.pronouns, this.player.pronounString);
 			this.player.location.occupantsString = this.player.location.generateOccupantsString(this.player.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
 		}
-		if (narrate) this.getGame().narrationHandler.narrateCure(status, this.player, item);
+		if (narrate) this.getGame().narrationHandler.narrateCure(this, status, this.player, item);
 		if (status.curedCondition && doCuredCondition) {
 			const curedConditionAction = new InflictAction(this.getGame(), undefined, this.player, this.player.location, true);
 			curedConditionAction.performInflict(status.curedCondition, false, false, true);

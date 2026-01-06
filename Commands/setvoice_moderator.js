@@ -1,5 +1,3 @@
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
@@ -26,7 +24,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}setvoice kyra a deep modulated voice\n`
         + `${settings.commandPrefix}setvoice spektrum a high digitized voice\n`
         + `${settings.commandPrefix}setvoice persephone multiple overlapping voices\n`
@@ -42,21 +40,21 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(" ");
     if (input === "" || input === null || input === undefined) {
         if (player.voiceString !== player.originalVoiceString) {
             player.voiceString = player.originalVoiceString;
-            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully reverted ${player.name}'s voice descriptor.`);
+            game.communicationHandler.sendToCommandChannel(`Successfully reverted ${player.name}'s voice descriptor.`);
         }
-        else return addReply(game, message, `The player's voice is unchanged. Please supply a voice descriptor or the name of another player.`);
+        else return game.communicationHandler.reply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of another player.`);
     }
     else {
         if (args.length === 1) {
@@ -64,12 +62,12 @@ export async function execute (game, message, command, args) {
             if (fetchedPlayer) {
                 if (fetchedPlayer.name !== player.name) {
                     player.voiceString = fetchedPlayer.name;
-                    return addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${fetchedPlayer.name}.`);
+                    return game.communicationHandler.sendToCommandChannel(`Successfully updated ${player.name}'s voice descriptor. ${player.originalPronouns.Sbj} will now impersonate ${fetchedPlayer.name}.`);
                 } else
-                    return addReply(game, message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${game.settings.commandPrefix}setvoice ${player.name}`);
+                    return game.communicationHandler.reply(message, `The player's voice is unchanged. Please supply a voice descriptor or the name of a different player. To reset ${player.originalPronouns.dpos} voice, send ${game.settings.commandPrefix}setvoice ${player.name}`);
             }
         }
         player.voiceString = input;
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s voice descriptor.`);
+        game.communicationHandler.sendToCommandChannel(`Successfully updated ${player.name}'s voice descriptor.`);
     }
 }

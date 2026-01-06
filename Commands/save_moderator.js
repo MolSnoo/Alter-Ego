@@ -1,5 +1,3 @@
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
@@ -32,10 +30,10 @@ export function usage(settings) {
 export async function execute(game, message, command, args) {
     try {
         await game.entitySaver.saveGame();
-        addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully saved game data to the spreadsheet.");
+        game.communicationHandler.sendToCommandChannel("Successfully saved game data to the spreadsheet.");
     }
     catch (err) {
         console.log(err);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+        game.communicationHandler.sendToCommandChannel("There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
     }
 }

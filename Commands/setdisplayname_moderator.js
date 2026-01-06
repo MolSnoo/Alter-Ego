@@ -1,5 +1,3 @@
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
@@ -34,16 +32,16 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and a display name. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and a display name. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(" ");
-    if (input.length > 32) return addReply(game, message, `A name cannot exceed 32 characters.`);
+    if (input.length > 32) return game.communicationHandler.reply(message, `A name cannot exceed 32 characters.`);
 
     player.displayName = input;
     player.location.occupantsString = player.location.generateOccupantsString(player.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully updated ${player.name}'s display name.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully updated ${player.name}'s display name.`);
 }

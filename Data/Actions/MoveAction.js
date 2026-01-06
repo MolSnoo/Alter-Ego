@@ -1,4 +1,6 @@
 import { default as Action, ActionType } from "../Action.js";
+import EnterAction from "./EnterAction.js";
+import ExitAction from "./ExitAction.js";
 import SolveAction from "./SolveAction.js";
 
 /** @typedef {import("../Exit.js").default} Exit */
@@ -41,15 +43,12 @@ export default class MoveAction extends Action {
 		}
 
 		// Exit the current room.
-		this.getGame().narrationHandler.narrateExit(currentRoom, exit, this.player);
-		currentRoom.removePlayer(this.player);
-		const whisperRemovalMessage = this.getGame().notificationGenerator.generateExitLeaveWhisperNotification(this.player.displayName);
-		this.player.removeFromWhispers(whisperRemovalMessage);
-		
+		const exitAction = new ExitAction(this.getGame(), this.message, this.player, this.location, this.forced, this.whisper);
+		exitAction.performExit(currentRoom, exit);
 		// Enter the destination room.
-		destinationRoom.addPlayer(this.player, entrance);
-		this.getGame().narrationHandler.narrateEnter(destinationRoom, entrance, this.player);
-
+		const enterAction = new EnterAction(this.getGame(), this.message, this.player, this.location, this.forced, this.whisper);
+		enterAction.performEnter(destinationRoom, entrance);
+		// Send log message.
 		this.getGame().logHandler.logMove(isRunning, destinationRoom, this.player, this.forced);
 	}
 }

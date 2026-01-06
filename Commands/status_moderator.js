@@ -1,6 +1,5 @@
 import CureAction from '../Data/Actions/CureAction.js';
 import InflictAction from '../Data/Actions/InflictAction.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -56,13 +55,13 @@ export async function execute(game, message, command, args) {
         else if (args[0] === "view") {
             command = "view";
             if (!args[1])
-                return addReply(game, message, `You need to input a player. Usage:\n${usage(game.settings)}`);
+                return game.communicationHandler.reply(message, `You need to input a player. Usage:\n${usage(game.settings)}`);
         }
         args.splice(0, 1);
     }
 
     if (args.length === 0)
-        return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
     // Get all listed players first.
     /**
@@ -82,17 +81,17 @@ export async function execute(game, message, command, args) {
             }
         }
     }
-    if (players.length === 0) return addReply(game, message, "You need to specify at least one player.");
-    if (players.length > 1 && command === "view") return addReply(game, message, "Cannot view status of more than one player at a time.");
+    if (players.length === 0) return game.communicationHandler.reply(message, "You need to specify at least one player.");
+    if (players.length > 1 && command === "view") return game.communicationHandler.reply(message, "Cannot view status of more than one player at a time.");
     const input = args.join(" ");
-    if (input === "" && command !== "view") return addReply(game, message, "You need to specify a status effect.");
+    if (input === "" && command !== "view") return game.communicationHandler.reply(message, "You need to specify a status effect.");
 
     /** @type {Status} */
     let status = null;
     if (command !== "view") {
         status = game.entityFinder.getStatusEffect(input);
-        if (status === null) return addReply(game, message, `Couldn't find status effect "${input}".`);
-        if (status.id === "hidden") return addReply(game, message, `To inflict or cure "hidden", use the hide/unhide command instead.`);
+        if (status === null) return game.communicationHandler.reply(message, `Couldn't find status effect "${input}".`);
+        if (status.id === "hidden") return game.communicationHandler.reply(message, `To inflict or cure "hidden", use the hide/unhide command instead.`);
     }
 
     if (command === "inflict") {
@@ -101,12 +100,12 @@ export async function execute(game, message, command, args) {
                 const action = new InflictAction(game, undefined, players[i], players[i].location, true);
                 action.performInflict(status, true, true, true);
             }
-            addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added to the listed players.");
+            game.communicationHandler.sendToCommandChannel("Status successfully added to the listed players.");
         }
         else {
             const action = new InflictAction(game, message, players[0], players[0].location, true);
             const doResponse = action.performInflict(status, true, true, true);
-            if (doResponse) addGameMechanicMessage(game, game.guildContext.commandChannel, "Status successfully added.");
+            if (doResponse) game.communicationHandler.sendToCommandChannel("Status successfully added.");
         }
     }
     else if (command === "cure") {
@@ -115,16 +114,16 @@ export async function execute(game, message, command, args) {
                 const action = new CureAction(game, undefined, players[i], players[i].location, true);
                 action.performCure(status, true, true, true);
             }
-            addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully removed status effect from the listed players.");
+            game.communicationHandler.sendToCommandChannel("Successfully removed status effect from the listed players.");
         }
         else {
             const action = new CureAction(game, message, players[0], players[0].location, true);
             const doResponse = action.performCure(status, true, true, true);
-            if (doResponse) addGameMechanicMessage(game, game.guildContext.commandChannel, "Successfully removed status effect.");
+            if (doResponse) game.communicationHandler.sendToCommandChannel("Successfully removed status effect.");
         }
     }
     else if (command === "view") {
         const response = `${players[0].name}'s status:\n${players[0].getStatusList(true, true)}`;
-        addGameMechanicMessage(game, game.guildContext.commandChannel, response);
+        game.communicationHandler.sendToCommandChannel(response);
     }
 }

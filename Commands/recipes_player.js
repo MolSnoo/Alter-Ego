@@ -1,7 +1,6 @@
 import InventoryItem from '../Data/InventoryItem.js';
 import humanize from 'humanize-duration';
 import { createPaginatedEmbed } from '../Modules/helpers.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -31,7 +30,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}recipes\n`
         + `${settings.commandPrefix}recipes glass\n`
         + `${settings.commandPrefix}recipes pot of rice`;
@@ -48,9 +47,9 @@ var fixtureRecipesDescription = "";
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable recipes");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     const recipes = [];
     if (args.length > 0) {
@@ -66,7 +65,7 @@ export async function execute (game, message, command, args, player) {
                 break;
             }
         }
-        if (item === null) return addReply(game, message, `Couldn't find item "${input}" in your inventory.`);
+        if (item === null) return game.communicationHandler.reply(message, `Couldn't find item "${input}" in your inventory.`);
 
         for (let i = 0; i < game.recipes.length; i++) { // TODO: optimize this ENTIRE for block later!
             for (let j = 0; j < game.recipes[i].ingredients.length; j++) {
@@ -93,7 +92,7 @@ export async function execute (game, message, command, args, player) {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: "", duration: humanize(game.recipes[i].duration.as('milliseconds')), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return addReply(game, message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
+        if (recipes.length === 0) return game.communicationHandler.reply(message, `There are no recipes that can be carried out with ${item.singleContainingPhrase}.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command with your ${item.name} as an ingredient. The other ingredient may not be available in this room, or you may need to create it yourself.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command with your ${item.name} as an ingredient.`;
@@ -175,7 +174,7 @@ export async function execute (game, message, command, args, player) {
                 recipes.push({ ingredients: ingredients.join(', '), products: products.join(', '), fixtures: "", duration: humanize(game.recipes[i].duration.as('milliseconds')), uncraftable: true });
             }
         }
-        if (recipes.length === 0) return addReply(game, message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
+        if (recipes.length === 0) return game.communicationHandler.reply(message, `There are no recipes you can carry out with the items currently in your inventory and the items in this room.`);
 
         craftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}craft\` command. Note that only recipes whose ingredients include at least one item currently in your inventory are listed.`;
         uncraftingRecipesDescription = `These are recipes you can carry out using the \`${game.settings.commandPrefix}uncraft\` command. Note that only recipes whose sole product is an item currently in your inventory are listed.`;

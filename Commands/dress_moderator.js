@@ -3,7 +3,6 @@ import Fixture from "../Data/Fixture.js";
 import InventorySlot from '../Data/InventorySlot.js';
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -26,7 +25,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}dress ezekiel wardrobe\n`
         + `${settings.commandPrefix}dress kelly laundry basket\n`
         + `${settings.commandPrefix}redress luna main pocket of backpack`;
@@ -38,17 +37,17 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and a container with items. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and a container with items. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
     let hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to take an item.`);
+    if (hand === undefined) return game.communicationHandler.reply(message, `${player.name} does not have a free hand to take an item.`);
 
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -64,7 +63,7 @@ export async function execute (game, message, command, args) {
             container = fixtures[i];
             // Check if the fixture has a puzzle attached to it.
             if (container.childPuzzle !== null && container.childPuzzle.type !== "weight" && container.childPuzzle.type !== "container" && (!container.childPuzzle.accessible || !container.childPuzzle.solved) && player.hidingSpot !== container.name)
-                return addReply(game, message, `Items cannot be taken from ${container.name} right now.`);
+                return game.communicationHandler.reply(message, `Items cannot be taken from ${container.name} right now.`);
             else if (container.childPuzzle !== null)
                 container = fixtures[i].childPuzzle;
             break;
@@ -88,13 +87,13 @@ export async function execute (game, message, command, args) {
                             break;
                         }
                     }
-                    if (inventorySlot === null) return addReply(game, message, `Couldn't find "${parsedInput}" of ${container.name}.`);
+                    if (inventorySlot === null) return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}" of ${container.name}.`);
                 }
                 break;
             }
         }
     }
-    if (container === null) return addReply(game, message, `Couldn't find a container in the room named "${input}".`);
+    if (container === null) return game.communicationHandler.reply(message, `Couldn't find a container in the room named "${input}".`);
 
     let topContainer = container;
     while (topContainer !== null && topContainer instanceof RoomItem)
@@ -102,7 +101,7 @@ export async function execute (game, message, command, args) {
 
     if (topContainer !== null) {
         if (topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
-            return addReply(game, message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
+            return game.communicationHandler.reply(message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
     }
 
     // Get all items in this container.
@@ -119,9 +118,9 @@ export async function execute (game, message, command, args) {
     else if (container instanceof RoomItem && !inventorySlot)
         containerItems = items.filter(item => item.containerName.startsWith(`Item: ${container.identifier}/`) && item.prefab.equippable);
     if (containerItems.length === 0)
-        return addReply(game, message, `${container.name} has no equippable items.`);
+        return game.communicationHandler.reply(message, `${container.name} has no equippable items.`);
 
     const action = new DressAction(game, message, player, player.location, true);
     action.performDress(containerItems, hand, container, inventorySlot);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully dressed ${player.name}.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully dressed ${player.name}.`);
 }

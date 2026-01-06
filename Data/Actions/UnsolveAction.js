@@ -31,7 +31,7 @@ export default class UnsolveAction extends Action {
 		super.perform();
 		const doUnsolvedCommands = !callee || !(callee instanceof Puzzle);
 		puzzle.unsolve(this.player, doUnsolvedCommands);
-		this.getGame().narrationHandler.narrateUnsolve(puzzle, this.player, customNarration);
+		this.getGame().narrationHandler.narrateUnsolve(this, puzzle, this.player, customNarration);
 		this.getGame().logHandler.logUnsolve(puzzle, this.player, this.forced);
 	}
 }

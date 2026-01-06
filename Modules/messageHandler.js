@@ -36,7 +36,7 @@ export async function processIncomingMessage(game, message) {
         const location = isInAnnouncementChannel ? player.location : room;
         const dialog = new Dialog(game, message, player, location, isInAnnouncementChannel, whisper);
         if (dialog.isAnnouncement) {
-            const announceAction = new AnnounceAction(game, message, dialog.player, dialog.location, false, dialog.whisper);
+            const announceAction = new AnnounceAction(game, message, dialog.speaker, dialog.location, false, dialog.whisper);
             announceAction.performAnnounce(dialog);
         }
     }
@@ -451,7 +451,7 @@ export async function sendDialogSpectateMessage(player, dialog, webhookUsername)
     if (player.spectateChannel !== null) {
         const messageText =
             dialog.whisper && dialog.whisper.playersCollection.size > 1
-                ? `*(Whispered to ${dialog.whisper.generatePlayerListStringExcluding(dialog.player)}):*\n${dialog.content || ""}`
+                ? `*(Whispered to ${dialog.whisper.generatePlayerListStringExcluding(dialog.speaker)}):*\n${dialog.content || ""}`
                 : dialog.whisper
                     ? `*(Whispered):*\n${dialog.content || ""}`
                     : dialog.content || "";

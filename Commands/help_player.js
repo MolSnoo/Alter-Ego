@@ -1,5 +1,4 @@
 ﻿import { createPaginatedEmbed } from '../Modules/helpers.js';
-import { addCommandHelp, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -19,7 +18,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}help\n` +
         `${settings.commandPrefix}help move`;
 }
@@ -31,7 +30,7 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     // Get all commands available to the user and sort them alphabetically.
     const roleCommands = game.botContext.playerCommands;
     roleCommands.sort(function (a, b) {
@@ -94,7 +93,7 @@ export async function execute (game, message, command, args, player) {
     }
     else {
         const command = roleCommands.find(command => command.config.aliases.includes(args[0]));
-        if (!command) return addReply(game, message, `Couldn't find command "${args[0]}".`);
-        addCommandHelp(game, message.author.dmChannel, command);
+        if (!command) return game.communicationHandler.reply(message, `Couldn't find command "${args[0]}".`);
+        game.communicationHandler.sendCommandHelp(message, command);
     }
 }
