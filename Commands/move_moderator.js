@@ -1,5 +1,5 @@
 import MoveAction from '../Data/Actions/MoveAction.js';
-import { addGameMechanicMessage, addLogMessage, addReply } from '../Modules/messageHandler.js';
+import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */

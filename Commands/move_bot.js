@@ -1,6 +1,6 @@
 import Event from "../Data/Event.js";
 import MoveAction from "../Data/Actions/MoveAction.js";
-import { addGameMechanicMessage, addLogMessage } from "../Modules/messageHandler.js";
+import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */

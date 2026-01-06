@@ -1,7 +1,6 @@
 import GameEntity from './GameEntity.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { default as evaluateScript } from '../Modules/scriptParser.js';
-import { addLogMessage } from '../Modules/messageHandler.js';
 
 /** @typedef {import('./Game.js').default} Game */
 /** @typedef {import('./Player.js').default} Player */
@@ -77,14 +76,7 @@ export default class Flag extends GameEntity {
 	 */
 	setValue(value, doSetCommands, player) {
 		this.value = value;
-
-		// Post log message.
-		const valueDisplay =
-			typeof this.value === "string" ? `"${this.value}"` :
-				typeof this.value === "boolean" ? `\`${this.value}\`` :
-					this.value;
-		const time = new Date().toLocaleTimeString();
-		addLogMessage(this.getGame(), `${time} - ${this.id} was set with value ${valueDisplay}`);
+		this.getGame().logHandler.logSetFlag(this);
 
 		if (doSetCommands === true) {
 			// Find commandSet.
@@ -119,10 +111,7 @@ export default class Flag extends GameEntity {
 		const originalValue = this.value;
 		this.value = null;
 		this.valueScript = '';
-
-		// Post log message.
-		const time = new Date().toLocaleTimeString();
-		addLogMessage(this.getGame(), `${time} - ${this.id} was cleared`);
+		this.getGame().logHandler.logClearFlag(this);
 
 		if (doClearedCommands === true) {
 			// Find commandSet.
