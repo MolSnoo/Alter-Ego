@@ -35,7 +35,7 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
-	 * Generates a notification indicating that dialog was spoken.
+	 * Generates a notification indicating that a player heard spoken dialog.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {Dialog} dialog - The dialog that was spoken.
 	 */
@@ -59,7 +59,7 @@ export default class GameNotificationGenerator {
 	}
 
 	/**
-	 * Generates a notification indicating that someone whispered to a player.
+	 * Generates a notification indicating that a player heard whispered dialog.
 	 * @param {Player} player - The player referred to in this notification.
 	 * @param {Dialog} dialog - The dialog that was whispered.
 	 */

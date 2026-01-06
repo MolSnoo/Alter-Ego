@@ -5,6 +5,7 @@ import { Collection } from "discord.js";
 
 /** @typedef {import("../Data/Dialog.js").default} Dialog */
 /** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Player.js").default} Player */
 /** @typedef {import("discord.js").Snowflake} Snowflake */
 /** @typedef {import("discord.js").TextChannel} TextChannel */
 
@@ -124,16 +125,32 @@ export default class GameCommunicationHandler {
 	}
 
 	/**
-	 * Mirrors an announcement in spectate channels.
-	 * @param {Action} action - The action associated with the announcement. 
-	 * @param {Dialog} dialog - The dialog of the announcement. 
+	 * Sends a notification to a player.
+	 * @param {Player} player - The player to send the notification to.
+	 * @param {Action} action - The action that triggered the notification.
+	 * @param {string} notification - The text of the notification to send.
+	 * @param {boolean} [mirrorInSpectateChannel] - Whether or not to mirror the notification in their spectate channel. Defaults to true.
 	 */
-	mirrorAnnouncement(action, dialog) {
-		this.#game.livingPlayersCollection.forEach(livingPlayer => {
-			if (!this.#actionHasBeenCommunicatedInChannel(livingPlayer.spectateChannel, action)) {
-				this.#cacheChannelFor(action, livingPlayer.spectateChannel.id);
-				sendDialogSpectateMessage(livingPlayer, dialog);
-			}
-		});
+	notifyPlayer(player, action, notification, mirrorInSpectateChannel = true) {
+		if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
+			this.#cacheChannelFor(action, player.spectateChannel.id);
+			player.notify(notification, mirrorInSpectateChannel);
+		}
+	}
+
+	/**
+	 * Mirrors dialog in a player's spectate channel.
+	 * @param {Player} player - The player whose spectate channel this dialog will be mirrored in.
+	 * @param {Action} action - The action associated with the dialog.
+	 * @param {Dialog} dialog - The dialog that was spoken.
+	 * @param {string} [webhookUsername] - A custom username to use for the webhook that will send the spectate message. Optional.
+	 * @param {string} [notification] - A custom notification that will be sent to the player afterwards. Optional. This notification will not be mirrored in the spectate channel.
+	 */
+	mirrorDialogInSpectateChannel(player, action, dialog, webhookUsername, notification) {
+		if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
+			this.#cacheChannelFor(action, player.spectateChannel.id);
+			sendDialogSpectateMessage(player, dialog, webhookUsername);
+			if (notification) this.notifyPlayer(player, action, notification, false);
+		}
 	}
 }
