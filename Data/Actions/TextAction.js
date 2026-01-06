@@ -1,5 +1,4 @@
 import { default as Action, ActionType } from "../Action.js";
-import { addDirectNarrationWithAttachments } from "../../Modules/messageHandler.js";
 
 /** @typedef {import("../Player.js").default} Player */
 
@@ -28,7 +27,7 @@ export default class TextAction extends Action {
 		super.perform();
 		const senderText = this.getGame().notificationGenerator.generateTextNotification(messageText, this.player.name, recipient.name);
 		const recipientText = this.getGame().notificationGenerator.generateTextNotification(messageText, this.player.name);
-		addDirectNarrationWithAttachments(this.player, senderText, this.message.attachments);
-		addDirectNarrationWithAttachments(recipient, recipientText, this.message.attachments);
+		this.getGame().communicationHandler.notifyPlayerWithAttachments(this.player, this, senderText, this.message.attachments);
+		this.getGame().communicationHandler.notifyPlayerWithAttachments(recipient, this, recipientText, this.message.attachments);
 	}
 }

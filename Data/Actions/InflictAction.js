@@ -65,11 +65,11 @@ export default class InflictAction extends Action {
 		if (status.behaviorAttributes.includes("no channel")) {
 			this.location.leaveChannel(this.player);
 			const narration = this.getGame().notificationGenerator.generateNoChannelLeaveWhisperNotification(this.player, status.id);
-			this.player.removeFromWhispers(narration);
+			this.player.removeFromWhispers(narration, this);
 		}
 		if (status.behaviorAttributes.includes("no hearing")) {
 			const narration = this.getGame().notificationGenerator.generateNoHearingLeaveWhisperNotification(this.player.displayName);
-			this.player.removeFromWhispers(narration);
+			this.player.removeFromWhispers(narration, this);
 		}
 		if (status.behaviorAttributes.includes("concealed")) {
 			const maskName = item ? item.singleContainingPhrase : "a MASK";

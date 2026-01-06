@@ -1,5 +1,4 @@
-﻿import { addNarration, addNarrationToWhisper } from "../Modules/messageHandler.js";
-import GameConstruct from "./GameConstruct.js";
+﻿import GameConstruct from "./GameConstruct.js";
 
 /** @typedef {import("./Action.js").default} Action */
 /** @typedef {import("./Game.js").default} Game */
@@ -34,7 +33,6 @@ export default class Narration extends GameConstruct {
     location;
     /**
      * The text content for the narration.
-     * @readonly
      * @type {string}
      */
     message;
@@ -64,23 +62,23 @@ export default class Narration extends GameConstruct {
                 // Players with the see room attribute should receive all narrations besides their own via DM.
                 if (occupant.hasBehaviorAttribute("see room") && !occupant.hasBehaviorAttribute("no sight") && !occupant.hasBehaviorAttribute("hidden")) {
                     if (!this.player || occupant.name !== this.player.name)
-                        occupant.notify(this.message, false);
+                        this.getGame().communicationHandler.notifyPlayer(occupant, this.action, this.message, false);
                 }
             }
-            addNarration(this.location, this.message, true);
+            this.getGame().communicationHandler.narrateInRoom(this);
 
             if (this.location.tags.includes("video surveilled")) {
                 let roomDisplayName = this.location.tags.includes("secret") ? "Surveillance feed" : this.location.id;
-                let message = `\`[${roomDisplayName}] ${this.message}\``;
+                this.message = `\`[${roomDisplayName}] ${this.message}\``;
                 const rooms = this.getGame().entityFinder.getRooms(null, "video monitoring", true);
                 for (let room of rooms) {
                     if (room.id !== this.location.id) {
                         for (let occupant of room.occupants) {
                             if (occupant.hasBehaviorAttribute("see room") && !occupant.hasBehaviorAttribute("no sight") && !occupant.hasBehaviorAttribute("hidden")) {
-                                occupant.notify(message, false);
+                                this.getGame().communicationHandler.notifyPlayer(occupant, this.action, this.message, false);
                             }
                         }
-                        addNarration(room, message, true);
+                        this.getGame().communicationHandler.narrateInRoom(this);
                     }
                 }
             }
@@ -104,10 +102,10 @@ export default class Narration extends GameConstruct {
                     if (!occupant.hasBehaviorAttribute("no sight") && !occupant.isNPC
                         && (occupant.hasBehaviorAttribute("see room") || !occupant.member.permissionsIn(whisper.channel).has("ViewChannel"))) {
                         if (!this.player || occupant.name !== this.player.name)
-                            occupant.notify(this.message, false);
+                            this.getGame().communicationHandler.notifyPlayer(occupant, this.action, this.message, false);
                     }
                 }
-                addNarrationToWhisper(whisper, this.message, true);
+                this.getGame().communicationHandler.narrateInWhisper(whisper, this.action, this.message);
             }
         }
     }

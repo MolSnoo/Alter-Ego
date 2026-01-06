@@ -29,6 +29,6 @@ export default class ExitAction extends Action {
 		this.getGame().narrationHandler.narrateExit(this, currentRoom, exit, this.player);
 		currentRoom.removePlayer(this.player);
 		const whisperRemovalMessage = this.getGame().notificationGenerator.generateExitLeaveWhisperNotification(this.player.displayName);
-		this.player.removeFromWhispers(whisperRemovalMessage);
+		this.player.removeFromWhispers(whisperRemovalMessage, this);
 	}
 }

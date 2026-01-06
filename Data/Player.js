@@ -21,6 +21,7 @@ import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { Collection } from 'discord.js';
 import { addDirectNarration, addRoomDescription } from '../Modules/messageHandler.js';
 
+/** @typedef {import('./Action.js').default} Action */
 /** @typedef {import('./Exit.js').default} Exit */
 /** @typedef {import('./Recipe.js').default} Recipe */
 /** @typedef {import('./EquipmentSlot.js').default} EquipmentSlot */
@@ -1444,11 +1445,12 @@ export default class Player extends ItemContainer {
 
     /**
      * Kills the player.
+     * @param {Action} action - The action that caused the player to die.
      */
-    die() {
+    die(action) {
         this.location.removePlayer(this);
         const whisperRemovalMessage = this.getGame().notificationGenerator.generateDieNotification(this, false);
-		this.removeFromWhispers(whisperRemovalMessage);
+		this.removeFromWhispers(whisperRemovalMessage, action);
         // Update various data.
         this.alive = false;
         this.location = null;
@@ -1469,11 +1471,12 @@ export default class Player extends ItemContainer {
     /**
      * Removes the player from all whispers they're in.
      * @param {string} narration - The text of the narration to send in the whisper channel when the player is removed.
+     * @param {Action} [action] - The action that caused the player to be removed. If a narration is supplied, this is required.
      */
-    removeFromWhispers(narration) {
+    removeFromWhispers(narration, action) {
         for (const whisper of this.getGame().whispersCollection.values()) {
             if (whisper.playersCollection.has(this.name))
-                whisper.removePlayer(this, narration);
+                whisper.removePlayer(this, narration, action);
         }
     }
 

@@ -24,6 +24,6 @@ export default class DieAction extends Action {
 		super.perform();
 		this.getGame().narrationHandler.narrateDie(this, this.player, customNarration);
 		this.getGame().logHandler.logDie(this.player);
-		this.player.die();
+		this.player.die(this);
 	}
 }

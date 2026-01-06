@@ -1,13 +1,14 @@
 import Action from "../Data/Action.js";
-import { sendDialogSpectateMessage } from "../Modules/messageHandler.js";
+import { addDirectNarrationWithAttachments, addNarration, addNarrationToWhisper, sendDialogSpectateMessage } from "../Modules/messageHandler.js";
 
-import { Collection } from "discord.js";
+import { Attachment, Collection } from "discord.js";
 
 /** @typedef {import("../Data/Dialog.js").default} Dialog */
 /** @typedef {import("../Data/Game.js").default} Game */
+/** @typedef {import("../Data/Narration.js").default} Narration */
 /** @typedef {import("../Data/Player.js").default} Player */
+/** @typedef {import("../Data/Whisper.js").default} Whisper */
 /** @typedef {import("discord.js").Snowflake} Snowflake */
-/** @typedef {import("discord.js").TextChannel} TextChannel */
 
 /**
  * @class GameCommunicationHandler
@@ -86,7 +87,7 @@ export default class GameCommunicationHandler {
 	/**
 	 * Returns true if the action has already been communicated in the given channel.
 	 * Also returns true if the channel does not exist (e.g. for a player with no spectate channel).
-	 * @param {TextChannel} channel - The channel to check for.
+	 * @param {Messageable} channel - The channel to check for.
 	 * @param {Action} action - The action to check for.
 	 */
 	#actionHasBeenCommunicatedInChannel(channel, action) {
@@ -132,9 +133,24 @@ export default class GameCommunicationHandler {
 	 * @param {boolean} [mirrorInSpectateChannel] - Whether or not to mirror the notification in their spectate channel. Defaults to true.
 	 */
 	notifyPlayer(player, action, notification, mirrorInSpectateChannel = true) {
-		if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
-			this.#cacheChannelFor(action, player.spectateChannel.id);
+		if (!this.#actionHasBeenCommunicatedInChannel(player.member.dmChannel, action)) {
+			this.#cacheChannelFor(action, player.member.dmChannel.id);
 			player.notify(notification, mirrorInSpectateChannel);
+		}
+	}
+
+	/**
+	 * Sends a notification to a player with attachments.
+	 * @param {Player} player - The player to send the notification to.
+	 * @param {Action} action - The action that triggered the notification.
+	 * @param {string} notification - The text of the notification to send.
+	 * @param {Collection<string, Attachment>} attachments - The attachments to send.
+	 * @param {boolean} [mirrorInSpectateChannel] - Whether or not to mirror the notification in their spectate channel. Defaults to true.
+	 */
+	notifyPlayerWithAttachments(player, action, notification, attachments, mirrorInSpectateChannel = true) {
+		if (!this.#actionHasBeenCommunicatedInChannel(player.member.dmChannel, action)) {
+			this.#cacheChannelFor(action, player.member.dmChannel.id);
+			addDirectNarrationWithAttachments(player, notification, attachments, mirrorInSpectateChannel);
 		}
 	}
 
@@ -151,6 +167,30 @@ export default class GameCommunicationHandler {
 			this.#cacheChannelFor(action, player.spectateChannel.id);
 			sendDialogSpectateMessage(player, dialog, webhookUsername);
 			if (notification) this.notifyPlayer(player, action, notification, false);
+		}
+	}
+
+	/**
+	 * Sends a narration to a room channel and mirrors it in the spectate channels of all of the room's occupants.
+	 * @param {Narration} narration - The narration to send.
+	 */
+	narrateInRoom(narration) {
+		if (!narration.action || !this.#actionHasBeenCommunicatedInChannel(narration.location.channel, narration.action)) {
+			if (narration.action) this.#cacheChannelFor(narration.action, narration.location.channel.id);
+			addNarration(narration.location, narration.message, true, narration.player);
+		}
+	}
+
+	/**
+	 * Sends a narration to a whisper channel and mirrors it in the spectate channels of all the whisper's players.
+	 * @param {Whisper} whisper - The whisper to send the narration to.
+	 * @param {Action} action - The action that initiated this narration.
+	 * @param {string} narrationText - The text of the narration to send.
+	 */
+	narrateInWhisper(whisper, action, narrationText) {
+		if (!this.#actionHasBeenCommunicatedInChannel(whisper.channel, action)) {
+			this.#cacheChannelFor(action, whisper.channel.id);
+			addNarrationToWhisper(whisper, narrationText);
 		}
 	}
 }
