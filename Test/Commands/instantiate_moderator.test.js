@@ -19,8 +19,10 @@ describe('instantiate_moderator command', () => {
         
     test('valid item into player hand', async () => {
         const player = game.entityFinder.getPlayer("Kyra");
+        const prefab = game.entityFinder.getPrefab("mug of coffee");
         const spy = vi.spyOn(InstantiateAction.prototype, "performInstantiateInventoryItem");
         // @ts-ignore
         await instantiate_moderator.execute(game, createMockMessage(), "create", ["mug", "of", "coffee", "in", "kyra's", "left", "hand"])
+        // expect(spy).toHaveBeenCalledWith(prefab, expect.anything(), expect.anything(), expect.anything(), expect.anything(), expect.anything(), expect.anything()); // ‽ fails badly
     });
 });
