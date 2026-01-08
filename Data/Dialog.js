@@ -49,6 +49,11 @@ export default class Dialog extends GameConstruct {
 	 */
 	content;
 	/**
+	 * The cleanContent of the message, but only including alphanumeric characters, cast to lowercase.
+	 * @type {string}
+	 */
+	cleanContent;
+	/**
 	 * A collection of attachments sent with the original message.
 	 * @type {Collection<string, Attachment>}
 	 */
@@ -136,6 +141,12 @@ export default class Dialog extends GameConstruct {
 	 * @type {Collection<string, InventoryItem>}
 	 */
 	receivers;
+	/**
+	 * Whether or not the speaker's display name is different from the name that they'll be recognized by.
+	 * @readonly
+	 * @type {boolean}
+	 */
+	speakerDisplayNameIsDifferent;
 	
 	/**
 	 * @constructor
@@ -154,6 +165,7 @@ export default class Dialog extends GameConstruct {
 		this.isAnnouncement = isAnnouncement;
 		this.whisper = whisper;
 		this.content = this.message.content;
+		this.cleanContent = this.message.cleanContent.replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
 		this.attachments = this.message.attachments;
 		this.embeds = this.message.embeds;
 		this.speakerDisplayName = this.speaker.displayName;
@@ -180,6 +192,7 @@ export default class Dialog extends GameConstruct {
 		this.neighboringAudioSurveilledRooms = [];
 		this.audioMonitoringRooms = [];
 		this.receivers = new Collection();
+		this.speakerDisplayNameIsDifferent = this.speakerDisplayName !== this.speakerRecognitionName;
 		// The remaining properties only need to be initialized if the dialog isn't an out-of-character message.
 		if (!this.isOOCMessage) {
 			const contentWithoutEmotes = message.cleanContent.replace(/<?:.*?:\d*>?/g, '');
@@ -216,5 +229,13 @@ export default class Dialog extends GameConstruct {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns true if this dialog is mimicking the given player.
+	 * @param {Player} player - The player to check. 
+	 */
+	isMimicking(player) {
+		return this.speakerRecognitionName === player.name;
 	}
 }
