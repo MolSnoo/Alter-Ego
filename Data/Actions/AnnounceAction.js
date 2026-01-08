@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../Dialog.js").default} Dialog */
 
@@ -9,14 +9,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/announce-action.html
  */
 export default class AnnounceAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Announce;
-
 	/**
 	 * Performs an announce action.
 	 * @param {Dialog} announcement - The announcement that was made.

@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import { destroyRoomItem, destroyInventoryItem } from "../../Modules/itemManager.js";
 import ItemInstance from "../ItemInstance.js";
 
@@ -12,14 +12,6 @@ import ItemInstance from "../ItemInstance.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/destroy-action.html
  */
 export default class DestroyAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Destroy;
-
 	/**
 	 * Performs a destroy action for a room item.
 	 * @param {RoomItem} item - The item to destroy. 

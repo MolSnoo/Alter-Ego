@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import Die from "../Die.js";
 import InventoryItem from "../InventoryItem.js";
 import InventorySlot from "../InventorySlot.js";
@@ -13,14 +13,6 @@ import InventorySlot from "../InventorySlot.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/steal-action.html
  */
 export default class StealAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Steal;
-
 	/**
 	 * Performs a steal action.
 	 * @param {EquipmentSlot} handEquipmentSlot - The hand equipment slot to put the inventory item in.

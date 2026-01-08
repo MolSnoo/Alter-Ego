@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import EnterAction from "./EnterAction.js";
 import ExitAction from "./ExitAction.js";
 import SolveAction from "./SolveAction.js";
@@ -13,14 +13,6 @@ import SolveAction from "./SolveAction.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/move-action.html
  */
 export default class MoveAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Move;
-
 	/**
 	 * Performs a move action.
 	 * @param {boolean} isRunning - Whether the player is running.

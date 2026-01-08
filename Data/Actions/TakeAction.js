@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import AttemptAction from "./AttemptAction.js";
 import InventorySlot from "../InventorySlot.js";
 import Puzzle from "../Puzzle.js";
@@ -15,14 +15,6 @@ import { getSortedItemsString } from "../../Modules/helpers.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/take-action.html
  */
 export default class TakeAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Take;
-
 	/**
 	 * Performs a take action.
 	 * @param {RoomItem} item - The room item to take. 

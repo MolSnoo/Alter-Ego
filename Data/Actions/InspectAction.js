@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import Fixture from "../Fixture.js";
 import InventoryItem from "../InventoryItem.js";
 
@@ -13,14 +13,6 @@ import InventoryItem from "../InventoryItem.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/inspect-action.html
  */
 export default class InspectAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Inspect;
-
 	/**
 	 * Performs an inspect action.
 	 * @param {Room|Fixture|RoomItem|InventoryItem|Player} target - The entity to inspect.

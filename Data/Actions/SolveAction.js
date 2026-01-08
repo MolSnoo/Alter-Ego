@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import Puzzle from "../Puzzle.js";
 
 /** @typedef {import("../Event.js").default} Event */
@@ -14,14 +14,6 @@ import Puzzle from "../Puzzle.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/solve-action.html
  */
 export default class SolveAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Solve;
-
 	/**
 	 * Performs a solve action.
 	 * @param {Puzzle} puzzle - The puzzle to solve.

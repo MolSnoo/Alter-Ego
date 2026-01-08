@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import CureAction from "./CureAction.js";
 
 /** @typedef {import("../HidingSpot.js").default} HidingSpot */
@@ -10,14 +10,6 @@ import CureAction from "./CureAction.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/unhide-action.html
  */
 export default class UnhideAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Unhide;
-
 	/**
 	 * Performs an unhide action.
 	 * @param {HidingSpot} [hidingSpot] - The hiding spot to unhide from. If one is not specified, it will be searched for.

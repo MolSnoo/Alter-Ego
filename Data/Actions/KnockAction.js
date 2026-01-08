@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../Exit.js").default} Exit */
 
@@ -9,14 +9,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/knock-action.html
  */
 export default class KnockAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Knock;
-
 	/**
 	 * Performs a knock action.
 	 * @param {Exit} exit - The exit to knock on.

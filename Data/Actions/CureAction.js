@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import InflictAction from "./InflictAction.js";
 /** @typedef {import("../InventoryItem.js").default} InventoryItem */
 /** @typedef {import("../Status.js").default} Status */
@@ -10,14 +10,6 @@ import InflictAction from "./InflictAction.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/cure-action.html
  */
 export default class CureAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Cure;
-
 	/**
 	 * Performs a cure action.
 	 * @param {Status} status - The status to cure.

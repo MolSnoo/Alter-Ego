@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import InflictAction from "./InflictAction.js";
 
 /** @typedef {import("../HidingSpot.js").default} HidingSpot */
@@ -10,14 +10,6 @@ import InflictAction from "./InflictAction.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/hide-action.html
  */
 export default class HideAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Hide;
-
 	/**
 	 * Performs a hide action.
 	 * @param {HidingSpot} hidingSpot - The hiding spot to hide in. 
