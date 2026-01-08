@@ -54,7 +54,7 @@ export default class StealAction extends Action {
 		if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 
 		if (dieRoll.result > failMax && item instanceof InventoryItem) {
-			const victimAware = dieRoll.result <= partialMax && !victim.hasBehaviorAttribute("unconscious");
+			const victimAware = dieRoll.result <= partialMax && !victim.isConscious();
 			this.getGame().narrationHandler.narrateSteal(this, item, this.player, victim, container, inventorySlot, victimAware);
 			this.getGame().logHandler.logSteal(item, this.player, victim, container, inventorySlot, true, this.forced);
 			this.player.steal(item, handEquipmentSlot, victim, container, inventorySlot);

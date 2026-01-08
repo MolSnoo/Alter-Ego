@@ -58,13 +58,13 @@ export async function execute(game, message, command, args, player) {
         if (livingFetch) {
             if (livingFetch.location.id === player.location.id) {
                 // Check attributes that would prohibit the player from whispering to someone in the room.
-                if (livingFetch.hasBehaviorAttribute("hidden"))
+                if (livingFetch.isHidden())
                     return game.communicationHandler.reply(message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} ` + (livingFetch.pronouns.plural ? `aren't` : `isn't`) + ` in the room with you.`);
                 if (livingFetch.hasBehaviorAttribute("concealed"))
                     return game.communicationHandler.reply(message, `You can't whisper to ${livingFetch.displayName} because it would reveal ${livingFetch.pronouns.dpos} identity.`);
                 if (livingFetch.hasBehaviorAttribute("no hearing"))
                     return game.communicationHandler.reply(message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} can't hear you.`);
-                if (livingFetch.hasBehaviorAttribute("unconscious"))
+                if (!livingFetch.isConscious())
                     return game.communicationHandler.reply(message, `You can't whisper to ${livingFetch.displayName} because ${livingFetch.pronouns.sbj} ` + (livingFetch.pronouns.plural ? `are` : `is`) + ` not awake.`);
                 recipients.push(livingFetch);
             } else if (livingFetch.name.toLowerCase() === args[i].toLowerCase())

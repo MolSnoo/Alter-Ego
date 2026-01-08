@@ -64,8 +64,8 @@ export async function addNarration(room, messageText, addSpectate = true, speake
                 if (
                     (speaker === null || speaker.name !== player.name) &&
                     (!player.hasBehaviorAttribute("no channel") || player.hasBehaviorAttribute("see room")) &&
-                    !player.hasBehaviorAttribute("no sight") &&
-                    !player.hasBehaviorAttribute("unconscious") &&
+                    player.canSee() &&
+                    player.isConscious() &&
                     player.spectateChannel !== null
                 ) {
                     room.getGame().messageQueue.enqueue(
@@ -102,8 +102,8 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
             whisper.playersCollection.forEach((player) => {
                 let spectateMessageText = `*(In a whisper with ${whisper.generatePlayerListString()}):*\n${messageText}`;
                 if (
-                    !player.hasBehaviorAttribute("no sight") &&
-                    !player.hasBehaviorAttribute("unconscious") &&
+                    player.canSee() &&
+                    player.isConscious() &&
                     player.spectateChannel !== null
                 ) {
                     whisper.getGame().messageQueue.enqueue(
@@ -200,11 +200,11 @@ export async function addRoomDescription(player, location, descriptionText, defa
     if (!player.isNPC || (addSpectate && player.spectateChannel !== null)) {
         let constructedString = "";
         const generatedString = location.generateOccupantsString(
-            location.occupants.filter((occupant) => !occupant.hasBehaviorAttribute("hidden") && occupant.name !== player.name)
+            location.occupants.filter((occupant) => !occupant.isHidden() && occupant.name !== player.name)
         );
         const generatedSleepingString = location.generateOccupantsString(
             location.occupants.filter(
-                (occupant) => occupant.hasBehaviorAttribute("unconscious") && !occupant.hasBehaviorAttribute("hidden")
+                (occupant) => !occupant.isConscious() && !occupant.isHidden()
             )
         );
 

@@ -68,7 +68,7 @@ export async function execute(game, message, command, args) {
     if (room === undefined) return game.communicationHandler.reply(message, `Couldn't find room "${input}".`);
 
     if (command === "tags") {
-        const tags = room.tags.join(", ");
+        const tags = Array.from(room.tags).join(", ");
         game.communicationHandler.sendToCommandChannel(`__Tags in ${room.id}:__\n${tags}`);
     }
     else {
@@ -79,10 +79,10 @@ export async function execute(game, message, command, args) {
         if (command === "addtag") {
             const addedTags = [];
             for (let i = 0; i < tags.length; i++) {
-                if (room.tags.includes(tags[i].trim()) || tags[i].trim() === "")
+                if (room.tags.has(tags[i].trim()) || tags[i].trim() === "")
                     continue;
                 addedTags.push(tags[i].trim());
-                room.tags.push(tags[i].trim());
+                room.tags.add(tags[i].trim());
             }
             if (addedTags.length === 0) return game.communicationHandler.reply(message, `${room.id} already has the given tag(s).`);
             const addedTagsString = addedTags.join(", ");
@@ -93,9 +93,9 @@ export async function execute(game, message, command, args) {
             for (let i = 0; i < tags.length; i++) {
                 if (tags[i].trim() === "")
                     continue;
-                if (room.tags.includes(tags[i].trim())) {
+                if (room.tags.has(tags[i].trim())) {
                     removedTags.push(tags[i].trim());
-                    room.tags.splice(room.tags.indexOf(tags[i].trim()), 1);
+                    room.tags.delete(tags[i].trim());
                 }
             }
             if (removedTags.length === 0) return game.communicationHandler.reply(message, `${room.id} doesn't have the given tag(s).`);

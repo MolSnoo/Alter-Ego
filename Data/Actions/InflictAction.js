@@ -62,23 +62,23 @@ export default class InflictAction extends Action {
 		// Apply the effects of behavior attributes.
 		if (status.id === "heated")
 			this.getGame().heated = true;
-		if (status.behaviorAttributes.includes("no channel")) {
+		if (status.behaviorAttributes.has("no channel")) {
 			this.location.leaveChannel(this.player);
 			const narration = this.getGame().notificationGenerator.generateNoChannelLeaveWhisperNotification(this.player, status.id);
 			this.player.removeFromWhispers(narration, this);
 		}
-		if (status.behaviorAttributes.includes("no hearing")) {
+		if (status.behaviorAttributes.has("no hearing")) {
 			const narration = this.getGame().notificationGenerator.generateNoHearingLeaveWhisperNotification(this.player.displayName);
 			this.player.removeFromWhispers(narration, this);
 		}
-		if (status.behaviorAttributes.includes("concealed")) {
+		if (status.behaviorAttributes.has("concealed")) {
 			const maskName = item ? item.singleContainingPhrase : "a MASK";
 			this.displayName = `An individual wearing ${maskName}`;
 			this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
 			this.player.setPronouns(this.player.pronouns, "neutral");
-			this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
+			this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.isHidden()));
 		}
-		if (status.behaviorAttributes.includes("disable all") || status.behaviorAttributes.includes("disable move") || status.behaviorAttributes.includes("disable run"))
+		if (status.behaviorAttributes.has("disable all") || status.behaviorAttributes.has("disable move") || status.behaviorAttributes.has("disable run"))
 			this.player.stopMoving();
 
 		this.player.inflict(status, duration);

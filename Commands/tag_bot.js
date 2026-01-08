@@ -65,11 +65,11 @@ export async function execute(game, command, args, player, callee) {
     if (input === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (command === "addtag") {
-        if (!room.tags.includes(input.trim()))
-            room.tags.push(input.trim());
+        if (!room.tags.has(input.trim()))
+            room.tags.add(input.trim());
     }
     else if (command === "removetag") {
-        if (room.tags.includes(input.trim()))
-            room.tags.splice(room.tags.indexOf(input.trim()), 1);
+        if (room.tags.has(input.trim()))
+            room.tags.delete(input.trim());
     }
 }

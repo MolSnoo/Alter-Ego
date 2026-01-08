@@ -152,7 +152,7 @@ export async function execute(game, message, command, args, player) {
                     for (const occupant of player.location.occupants) {
                         if (
                             occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 &&
-                            ((hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden")) ||
+                            ((hiddenStatus.length === 0 && !occupant.isHidden()) ||
                                 occupant.hidingSpot === player.hidingSpot)
                         ) {
                             if (occupant.name === player.name)
@@ -163,7 +163,7 @@ export async function execute(game, message, command, args, player) {
                         } else if (
                             occupant.displayName.toLowerCase().replace(/\'/g, "") === input2 &&
                             hiddenStatus.length > 0 &&
-                            !occupant.hasBehaviorAttribute("hidden")
+                            !occupant.isHidden()
                         )
                             return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
                     }

@@ -35,14 +35,14 @@ export default class CureAction extends Action {
 			if (this.message) this.message.reply(`Specified player doesn't have that status effect.`);
 			return false;
 		}
-		if (status.behaviorAttributes.includes("no channel") && this.player.getBehaviorAttributeStatusEffects("no channel").length - 1 === 0)
+		if (status.behaviorAttributes.has("no channel") && this.player.getBehaviorAttributeStatusEffects("no channel").length - 1 === 0)
 			this.player.location.joinChannel(this.player);
-		if (status.behaviorAttributes.includes("concealed")) {
+		if (status.behaviorAttributes.has("concealed")) {
 			this.player.displayName = this.player.name;
 			if (this.player.isNPC) this.player.displayIcon = this.player.id;
 			else this.player.displayIcon = null;
 			this.player.setPronouns(this.player.pronouns, this.player.pronounString);
-			this.player.location.occupantsString = this.player.location.generateOccupantsString(this.player.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
+			this.player.location.occupantsString = this.player.location.generateOccupantsString(this.player.location.occupants.filter(occupant => !occupant.isHidden()));
 		}
 		if (narrate) this.getGame().narrationHandler.narrateCure(this, status, this.player, item);
 		if (status.curedCondition && doCuredCondition) {
@@ -54,7 +54,7 @@ export default class CureAction extends Action {
 		if (notify) {
 			this.player.sendDescription(status.curedDescription, status);
 			// If the player is waking up, send them the description of the room they wake up in.
-			if (status.behaviorAttributes.includes("unconscious"))
+			if (status.behaviorAttributes.has("unconscious"))
 				this.player.sendDescription(this.player.location.description, this.player.location);
 		}
 		this.getGame().logHandler.logCure(status, this.player);

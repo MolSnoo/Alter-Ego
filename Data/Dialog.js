@@ -49,6 +49,11 @@ export default class Dialog extends GameConstruct {
 	 */
 	content;
 	/**
+	 * The cleanContent of the message, but only including alphanumeric characters, cast to lowercase.
+	 * @type {string}
+	 */
+	cleanContent;
+	/**
 	 * A collection of attachments sent with the original message.
 	 * @type {Collection<string, Attachment>}
 	 */
@@ -136,6 +141,12 @@ export default class Dialog extends GameConstruct {
 	 * @type {Collection<string, InventoryItem>}
 	 */
 	receivers;
+	/**
+	 * Whether or not the speaker's display name is different from the name that they'll be recognized by.
+	 * @readonly
+	 * @type {boolean}
+	 */
+	speakerDisplayNameIsDifferent;
 	
 	/**
 	 * @constructor
@@ -154,6 +165,7 @@ export default class Dialog extends GameConstruct {
 		this.isAnnouncement = isAnnouncement;
 		this.whisper = whisper;
 		this.content = this.message.content;
+		this.cleanContent = this.message.cleanContent.replace(/[^a-zA-Z0-9 ]+/g, "").toLowerCase().trim();
 		this.attachments = this.message.attachments;
 		this.embeds = this.message.embeds;
 		this.speakerDisplayName = this.speaker.displayName;
@@ -180,19 +192,20 @@ export default class Dialog extends GameConstruct {
 		this.neighboringAudioSurveilledRooms = [];
 		this.audioMonitoringRooms = [];
 		this.receivers = new Collection();
+		this.speakerDisplayNameIsDifferent = this.speakerDisplayName !== this.speakerRecognitionName;
 		// The remaining properties only need to be initialized if the dialog isn't an out-of-character message.
 		if (!this.isOOCMessage) {
 			const contentWithoutEmotes = message.cleanContent.replace(/<?:.*?:\d*>?/g, '');
 			this.isShouted = RegExp("[a-zA-Z](?=(.*)[a-zA-Z])", 'g').test(contentWithoutEmotes) && contentWithoutEmotes === contentWithoutEmotes.toLocaleUpperCase();
 			this.neighboringRooms = [];
-			if (!this.location.tags.includes("soundproof")) {
+			if (!this.location.tags.has("soundproof")) {
 				for (const exit of this.location.exitCollection.values()) {
 					const neighboringRoom = exit.dest;
 					// Prevent duplication when two rooms are connected by multiple exits.
 					if (this.neighboringRooms.includes(neighboringRoom)) continue;
-					if (!neighboringRoom.tags.includes("soundproof") && neighboringRoom.occupants.length > 0 && neighboringRoom.id !== this.location.id) {
+					if (!neighboringRoom.tags.has("soundproof") && neighboringRoom.occupants.length > 0 && neighboringRoom.id !== this.location.id) {
 						this.neighboringRooms.push(neighboringRoom);
-						if (neighboringRoom.tags.includes("audio surveilled"))
+						if (neighboringRoom.tags.has("audio surveilled"))
 							this.neighboringAudioSurveilledRooms.push(neighboringRoom);
 						if (!this.whisper)
 							this.acuteHearingContext.push(neighboringRoom);
@@ -200,8 +213,8 @@ export default class Dialog extends GameConstruct {
 				}
 			}
 			if (this.whisper) this.acuteHearingContext.push(this.location);
-			this.locationIsAudioSurveilled = this.location.tags.includes("audio surveilled");
-			this.locationIsVideoSurveilled = this.location.tags.includes("video surveilled");
+			this.locationIsAudioSurveilled = this.location.tags.has("audio surveilled");
+			this.locationIsVideoSurveilled = this.location.tags.has("video surveilled");
 			if (this.locationIsAudioSurveilled || this.neighboringAudioSurveilledRooms.length > 0)
 				this.audioMonitoringRooms = game.entityFinder.getRooms(undefined, "audio monitoring", true);
 			if (this.speaker.hasBehaviorAttribute("sender")) {
@@ -216,5 +229,13 @@ export default class Dialog extends GameConstruct {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns true if this dialog is mimicking the given player.
+	 * @param {Player} player - The player to check. 
+	 */
+	isMimicking(player) {
+		return this.speakerRecognitionName === player.name;
 	}
 }

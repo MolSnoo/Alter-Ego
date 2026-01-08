@@ -803,7 +803,7 @@ export default class Player extends ItemContainer {
      */
     hasBehaviorAttribute(behaviorAttribute) {
         for (const status of this.statusCollection.values())
-            if (status.behaviorAttributes.includes(behaviorAttribute)) return true;
+            if (status.behaviorAttributes.has(behaviorAttribute)) return true;
         return false;
     }
 
@@ -817,7 +817,7 @@ export default class Player extends ItemContainer {
     hasAttribute(attribute) {
         let hasAttribute = false;
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].behaviorAttributes.includes(attribute)) {
+            if (this.status[i].behaviorAttributes.has(attribute)) {
                 hasAttribute = true;
                 break;
             }
@@ -834,7 +834,7 @@ export default class Player extends ItemContainer {
         /** @type {Status[]} */
         let statusEffects = [];
         for (const status of this.statusCollection.values()) {
-            if (status.behaviorAttributes.includes(behaviorAttribute))
+            if (status.behaviorAttributes.has(behaviorAttribute))
                 statusEffects.push(status);
         }
         return statusEffects;
@@ -851,10 +851,39 @@ export default class Player extends ItemContainer {
         /** @type {Status[]} */
         let statusEffects = [];
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].behaviorAttributes.includes(attribute))
+            if (this.status[i].behaviorAttributes.has(attribute))
                 statusEffects.push(this.status[i]);
         }
         return statusEffects;
+    }
+
+    /**
+     * Returns true if the player doesn't have the `no sight` behavior attribute.
+     */
+    canSee() {
+        return !this.hasBehaviorAttribute("no sight");
+    }
+    
+    /**
+     * Returns true if the player has the `knows ${playerName}` behavior attribute.
+     * @param {string} playerName - The name of a player.
+     */
+    knows(playerName) {
+        return this.hasBehaviorAttribute(`knows ${playerName}`);
+    }
+
+    /**
+     * Returns true if the player doesn't have the `unconscious` behavior attribute.
+     */
+    isConscious() {
+        return !this.hasBehaviorAttribute("unconscious");
+    }
+
+    /**
+     * Returns true if the player has the `hidden` behavior attribute.
+     */
+    isHidden() {
+        return this.hasBehaviorAttribute("hidden");
     }
 
     /**
@@ -1484,7 +1513,7 @@ export default class Player extends ItemContainer {
      * @param {GameEntity} container - The game entity the description belongs to.
      */
     sendDescription(description, container) {
-        if (description && !this.isNPC && (!this.hasBehaviorAttribute("unconscious") || container instanceof Status))
+        if (description && !this.isNPC && (this.isConscious() || container instanceof Status))
             this.getGame().communicationHandler.sendDescriptionToPlayer(this, description, container);
     }
 
@@ -1494,7 +1523,7 @@ export default class Player extends ItemContainer {
      * @param {boolean} [addSpectate=true] - Whether or not to mirror this message in the player's spectateChannel. Defaults to true.
      */
     notify(messageText, addSpectate = true) {
-        if (!this.hasBehaviorAttribute("unconscious") && !this.isNPC)
+        if (this.isConscious() && !this.isNPC)
             this.getGame().communicationHandler.sendMessageToPlayer(this, messageText, addSpectate);
     }
 

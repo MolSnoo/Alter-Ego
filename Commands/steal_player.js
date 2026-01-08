@@ -64,7 +64,7 @@ export async function execute(game, message, command, args, player) {
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
         const possessive = occupant.displayName.toUpperCase() + "S ";
-        if (parsedInput.startsWith(possessive) && (hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
+        if (parsedInput.startsWith(possessive) && (hiddenStatus.length === 0 && !occupant.isHidden() || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot steal from themselves.
             if (occupant.name === player.name) return game.communicationHandler.reply(message, "You can't steal from yourself.");
 
@@ -72,7 +72,7 @@ export async function execute(game, message, command, args, player) {
             parsedInput = parsedInput.substring(possessive.length).trim();
             break;
         }
-        else if (parsedInput.startsWith(possessive) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
+        else if (parsedInput.startsWith(possessive) && hiddenStatus.length > 0 && !occupant.isHidden())
             return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
     if (victim === null) return game.communicationHandler.reply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);

@@ -57,24 +57,24 @@ export default class Narration extends GameConstruct {
      * Send the narration. This should always be called when instantiating a narration.
      */
     send() {
-        if (!this.player || !this.player.hasBehaviorAttribute("hidden") || this.message === `${this.player.displayName} comes out of the ${this.player.hidingSpot}.`) {
+        if (!this.player || !this.player.isHidden() || this.message === `${this.player.displayName} comes out of the ${this.player.hidingSpot}.`) {
             for (let occupant of this.location.occupants) {
                 // Players with the see room attribute should receive all narrations besides their own via DM.
-                if (occupant.hasBehaviorAttribute("see room") && !occupant.hasBehaviorAttribute("no sight") && !occupant.hasBehaviorAttribute("hidden")) {
+                if (occupant.hasBehaviorAttribute("see room") && occupant.canSee() && !occupant.isHidden()) {
                     if (!this.player || occupant.name !== this.player.name)
                         this.getGame().communicationHandler.notifyPlayer(occupant, this.action, this.message, false);
                 }
             }
             this.getGame().communicationHandler.narrateInRoom(this);
 
-            if (this.location.tags.includes("video surveilled")) {
-                let roomDisplayName = this.location.tags.includes("secret") ? "Surveillance feed" : this.location.id;
+            if (this.location.tags.has("video surveilled")) {
+                let roomDisplayName = this.location.tags.has("secret") ? "Surveillance feed" : this.location.id;
                 this.message = `\`[${roomDisplayName}] ${this.message}\``;
                 const rooms = this.getGame().entityFinder.getRooms(null, "video monitoring", true);
                 for (let room of rooms) {
                     if (room.id !== this.location.id) {
                         for (let occupant of room.occupants) {
-                            if (occupant.hasBehaviorAttribute("see room") && !occupant.hasBehaviorAttribute("no sight") && !occupant.hasBehaviorAttribute("hidden")) {
+                            if (occupant.hasBehaviorAttribute("see room") && occupant.canSee() && !occupant.isHidden()) {
                                 this.getGame().communicationHandler.notifyPlayer(occupant, this.action, this.message, false);
                             }
                         }
@@ -83,7 +83,7 @@ export default class Narration extends GameConstruct {
                 }
             }
         }
-        else if (this.player.hasBehaviorAttribute("hidden")) {
+        else if (this.player.isHidden()) {
             // Find the whisper channel the player is in, if there is one.
             /** @type {Whisper} */
             let whisper = null;
@@ -99,7 +99,7 @@ export default class Narration extends GameConstruct {
             if (whisper) {
                 for (let occupant of whisper.playersCollection.values()) {
                     // Players who don't have access to the whisper channel should receive all narrations besides their own via DM.
-                    if (!occupant.hasBehaviorAttribute("no sight") && !occupant.isNPC
+                    if (occupant.canSee() && !occupant.isNPC
                         && (occupant.hasBehaviorAttribute("see room") || !occupant.member.permissionsIn(whisper.channel).has("ViewChannel"))) {
                         if (!this.player || occupant.name !== this.player.name)
                             this.getGame().communicationHandler.notifyPlayer(occupant, this.action, this.message, false);

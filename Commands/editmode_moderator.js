@@ -39,7 +39,7 @@ export async function execute(game, message, command, args) {
             game.editMode = true;
             game.livingPlayersCollection.forEach(player => {
                 player.stopMoving();
-                if (!player.hasBehaviorAttribute('unconscious'))
+                if (player.isConscious())
                     game.communicationHandler.sendMessageToPlayer(player, "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
             });
             game.communicationHandler.sendToCommandChannel("Edit mode has been enabled.");
@@ -54,7 +54,7 @@ export async function execute(game, message, command, args) {
             return game.communicationHandler.reply(message, `Edit mode can't be disabled while there are errors on the sheet. Fix the errors found by the load command and then try again.`);
         game.editMode = false;
         game.livingPlayersCollection.forEach(player => {
-            if (!player.hasBehaviorAttribute('unconscious'))
+            if (player.isConscious())
                 game.communicationHandler.sendMessageToPlayer(player, "Edit mode has been disabled. You are free to resume normal gameplay.", false);
         });
         game.communicationHandler.sendToCommandChannel("Edit mode has been disabled.");

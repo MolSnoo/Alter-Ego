@@ -42,6 +42,6 @@ export async function execute(game, message, command, args) {
     if (input.length > 32) return game.communicationHandler.reply(message, `A name cannot exceed 32 characters.`);
 
     player.displayName = input;
-    player.location.occupantsString = player.location.generateOccupantsString(player.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
+    player.location.occupantsString = player.location.generateOccupantsString(player.location.occupants.filter(occupant => !occupant.isHidden()));
     game.communicationHandler.sendToCommandChannel(`Successfully updated ${player.name}'s display name.`);
 }

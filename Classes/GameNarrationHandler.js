@@ -7,6 +7,7 @@ import { parseDescription } from "../Modules/parser.js";
 import { generateListString } from "../Modules/helpers.js";
 
 /** @typedef {import("../Data/Action.js").default} Action */
+/** @typedef {import("../Data/Dialog.js").default} Dialog */
 /** @typedef {import("../Data/Exit.js").default} Exit */
 /** @typedef {import("../Data/Game.js").default} Game */
 /** @typedef {import("../Data/Gesture.js").default} Gesture */
@@ -53,6 +54,18 @@ export default class GameNarrationHandler {
 		if (narrationText.charAt(0) === narrationText.charAt(0).toLocaleLowerCase())
 			narrationText = narrationText.charAt(0).toLocaleUpperCase() + narrationText.substring(1);
 		new Narration(this.#game, action, player, location, narrationText).send();
+	}
+
+	/**
+	 * Narrates a say action in the specified room.
+	 * Does not send any notifications.
+	 * @param {Action} action - The action being narrated. 
+	 * @param {Dialog} dialog - The dialog that was spoken.
+	 * @param {Room} location - The room to narrate the action in.
+	 * @param {string} narrationText - The text of the narration to send.
+	 */
+	narrateSay(action, dialog, location, narrationText) {
+		this.#sendNarration(action, dialog.speaker, narrationText, location);
 	}
 
 	/**
@@ -149,7 +162,7 @@ export default class GameNarrationHandler {
 		const narration = playerCanMoveFreely ? this.#game.notificationGenerator.generateSuddenEnterNotification(player, false, destinationRoom.displayName, appendString)
 			: this.#game.notificationGenerator.generateEnterNotification(player, false, entrance.name, appendString);
 		this.#sendNarration(action, player, narration, destinationRoom);
-		if (player.hasBehaviorAttribute("no sight")) {
+		if (!player.canSee()) {
 			const notification = this.#game.notificationGenerator.generateNoSightEnterNotification();
 			this.#game.communicationHandler.notifyPlayer(player, action, notification);
 		}
@@ -190,13 +203,13 @@ export default class GameNarrationHandler {
 			// If there are any players hidden in the fixture, notify them that they were found, and notify the player who found them.
 			// However, don't notify anyone if the player is inspecting the fixture that they're hiding in.
 			// Also ensure that the fixture isn't locked.
-			if (target instanceof Fixture && !player.hasBehaviorAttribute("hidden") && player.hidingSpot !== target.name
+			if (target instanceof Fixture && !player.isHidden() && player.hidingSpot !== target.name
 			&&  (target.childPuzzle === null || !target.childPuzzle.type.endsWith("lock") || target.childPuzzle.solved)) {
 				for (const occupant of target.hidingSpot.occupants) {
-					const notification = this.#game.notificationGenerator.generateHiddenPlayerFoundNotification(occupant.hasBehaviorAttribute("no sight") ? "someone" : player.displayName);
+					const notification = this.#game.notificationGenerator.generateHiddenPlayerFoundNotification(occupant.canSee() ? player.displayName : "someone");
 					this.#game.communicationHandler.notifyPlayer(occupant, action, notification);
 				}
-				const hiddenPlayersList = target.hidingSpot.generateOccupantsString(player.hasBehaviorAttribute("no sight"));
+				const hiddenPlayersList = target.hidingSpot.generateOccupantsString(!player.canSee());
 				if (hiddenPlayersList) {
 					const notification = this.#game.notificationGenerator.generateFoundHiddenPlayersNotification(hiddenPlayersList, target.hidingSpot.getContainingPhrase());
 					this.#game.communicationHandler.notifyPlayer(player, action, notification);
@@ -249,7 +262,7 @@ export default class GameNarrationHandler {
 		const hidingSpotPhrase = hidingSpot.getContainingPhrase();
 		let playerNotification = "";
 		const narration = this.#game.notificationGenerator.generateHideNotification(player, false, hidingSpotPhrase);
-		const hiddenPlayersList = hidingSpot.generateOccupantsString(player.hasBehaviorAttribute("no sight"));
+		const hiddenPlayersList = hidingSpot.generateOccupantsString(!player.canSee());
 		if (hidingSpot.occupants.length + 1 > hidingSpot.capacity)
 			playerNotification = this.#game.notificationGenerator.generateHidingSpotFullNotification(hidingSpotPhrase, hiddenPlayersList);
 		else {
@@ -289,7 +302,7 @@ export default class GameNarrationHandler {
 		let narration = "";
 		if (status.id === "asleep") narration = this.#game.notificationGenerator.generateFallAsleepNotification(player.displayName);
 		else if (status.id === "blacked out") narration = this.#game.notificationGenerator.generateBlackOutNotification(player.displayName);
-		else if (status.behaviorAttributes.includes("unconscious")) narration = this.#game.notificationGenerator.generateUnconsciousNotification(player.displayName);
+		else if (status.behaviorAttributes.has("unconscious")) narration = this.#game.notificationGenerator.generateUnconsciousNotification(player.displayName);
 		if (narration) this.#sendNarration(action, player, narration);
 	}
 
@@ -301,12 +314,12 @@ export default class GameNarrationHandler {
 	 * @param {InventoryItem} [item] - The inventory item that caused the status to be cured, if applicable.
 	 */
 	narrateCure(action, status, player, item) {
-		if (status.behaviorAttributes.includes("concealed")) {
+		if (status.behaviorAttributes.has("concealed")) {
 			const maskName = item ? item.name : "MASK";
 			const unmaskedNarration = this.#game.notificationGenerator.generateConcealedCuredNotification(maskName, player.displayName);
 			this.#sendNarration(action, player, unmaskedNarration);
 		}
-		else if (status.behaviorAttributes.includes("unconscious")) {
+		else if (status.behaviorAttributes.has("unconscious")) {
 			let awakenNarration = "";
 			if (status.id === "asleep" || status.id === "blacked out") awakenNarration = this.#game.notificationGenerator.generateWakeUpNotification(player.displayName);
 			else awakenNarration = this.#game.notificationGenerator.generateRegainConsciousnessNotification(player.displayName);
@@ -702,7 +715,7 @@ export default class GameNarrationHandler {
 	 */
 	narrateDie(action, player, customNarration) {
 		this.#game.communicationHandler.notifyPlayer(player, action, this.#game.notificationGenerator.generateDieNotification(player, true));
-		if (!player.hasBehaviorAttribute("hidden")) {
+		if (!player.isHidden()) {
 			if (customNarration) this.#sendNarration(action, player, customNarration);
 			else {
 				const narration = this.#game.notificationGenerator.generateDieNotification(player, false);

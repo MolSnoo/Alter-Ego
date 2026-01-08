@@ -48,7 +48,7 @@ export async function execute(game, message, command, args, player) {
     let recipient = null;
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
-        if (parsedInput.startsWith(occupant.displayName.toUpperCase() + ' ') && (hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden") || occupant.hidingSpot === player.hidingSpot)) {
+        if (parsedInput.startsWith(occupant.displayName.toUpperCase() + ' ') && (hiddenStatus.length === 0 && !occupant.isHidden() || occupant.hidingSpot === player.hidingSpot)) {
             // Player cannot give to themselves.
             if (occupant.name === player.name) return game.communicationHandler.reply(message, "You can't give to yourself.");
 
@@ -56,7 +56,7 @@ export async function execute(game, message, command, args, player) {
             parsedInput = parsedInput.substring(occupant.displayName.length + 1).trim();
             break;
         }
-        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.hasBehaviorAttribute("hidden"))
+        else if (parsedInput.startsWith(occupant.displayName.toUpperCase()) && hiddenStatus.length > 0 && !occupant.isHidden())
             return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
     if (recipient === null) return game.communicationHandler.reply(message, `Couldn't find player "${args[0]}" in the room with you. Make sure you spelled it right.`);

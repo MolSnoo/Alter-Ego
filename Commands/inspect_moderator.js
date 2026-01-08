@@ -189,7 +189,7 @@ export async function execute(game, message, command, args) {
     for (let i = 0; i < player.location.occupants.length; i++) {
         const occupant = player.location.occupants[i];
         const possessive = occupant.name.toUpperCase() + "S ";
-        if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasBehaviorAttribute("hidden"))
+        if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.isHidden())
             return game.communicationHandler.reply(message, `Couldn't find "${input}".`);
         if (occupant.name.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
