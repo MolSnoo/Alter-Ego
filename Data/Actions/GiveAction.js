@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../EquipmentSlot.js").default} EquipmentSlot */
 /** @typedef {import("../InventoryItem.js").default} InventoryItem */
@@ -11,14 +11,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/give-action.html
  */
 export default class GiveAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Give;
-
 	/**
 	 * Performs a give action.
 	 * @param {InventoryItem} item - The inventory item to give.

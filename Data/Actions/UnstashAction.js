@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import InventorySlot from "../InventorySlot.js";
 
 /** @typedef {import("../EquipmentSlot.js").default} EquipmentSlot */
@@ -11,14 +11,6 @@ import InventorySlot from "../InventorySlot.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/unstash-action.html
  */
 export default class UnstashAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Unstash;
-
 	/**
      * Performs an unstash action.
      * @param {InventoryItem} item - The inventory item to unstash. 

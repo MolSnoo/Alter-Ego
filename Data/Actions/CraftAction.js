@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../InventoryItem.js").default} InventoryItem */
 /** @typedef {import("../Recipe.js").default} Recipe */
@@ -10,14 +10,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/craft-action.html
  */
 export default class CraftAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Craft;
-
 	/**
      * Crafts two ingredients into one or two products according to a recipe.
      * @param {InventoryItem} item1 - The first ingredient.

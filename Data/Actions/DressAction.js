@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import AttemptAction from "./AttemptAction.js";
 import InventorySlot from "../InventorySlot.js";
 import Puzzle from "../Puzzle.js";
@@ -16,14 +16,6 @@ import { getSortedItemsString } from "../../Modules/helpers.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/dress-action.html
  */
 export default class DressAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Dress;
-
 	/**
 	 * Performs a dress action.
 	 * @param {RoomItem[]} items - All of the equippable items in the given container.

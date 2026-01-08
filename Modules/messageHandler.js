@@ -131,7 +131,7 @@ export async function addDirectNarration(player, messageText, addSpectate = true
         player.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
-                    await player.member.send(messageText);
+                    await player.notificationChannel.send(messageText);
                 },
             },
             "tell"
@@ -164,7 +164,7 @@ export async function addDirectNarrationWithAttachments(player, messageText, att
             {
                 fire: async () =>
                     {
-                        await player.member.send({
+                        await player.notificationChannel.send({
                             content: messageText,
                             files: files,
                         });
@@ -253,7 +253,7 @@ export async function addRoomDescription(player, location, descriptionText, defa
             location.getGame().messageQueue.enqueue(
                 {
                     fire: async () => {
-                        await player.member.send({
+                        await player.notificationChannel.send({
                             components: components,
                             flags: MessageFlags.IsComponentsV2,
                         });

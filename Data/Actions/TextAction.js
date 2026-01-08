@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../Player.js").default} Player */
 
@@ -9,14 +9,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/text-action.html
  */
 export default class TextAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Text;
-
 	/**
 	 * Performs a text action.
 	 * @param {Player} recipient - The player who will receive the text.

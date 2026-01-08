@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import { instantiateRoomItem, instantiateInventoryItem } from "../../Modules/itemManager.js";
 import ItemInstance from "../ItemInstance.js";
 
@@ -15,14 +15,6 @@ import ItemInstance from "../ItemInstance.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/instantiate-action.html
  */
 export default class InstantiateAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Instantiate;
-
 	/**
 	 * Performs an instantiate action for a room item.
 	 * @param {Prefab} prefab - The prefab to instantiate as an item.

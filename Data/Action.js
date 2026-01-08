@@ -20,12 +20,6 @@ export default class Action extends GameConstruct {
 	 */
 	id;
 	/**
-	 * The type of action being performed.
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type;
-	/**
 	 * The message that initiated the action.
 	 * @readonly
 	 * @type {UserMessage}
@@ -84,14 +78,8 @@ export default class Action extends GameConstruct {
 		this.location = location;
 		this.forced = forced;
 		this.whisper = whisper;
-		this.id = this.#generateId();
+		this.id = randomUUID();
 		this.mirrors = new Set();
-	}
-
-	#generateId() {
-		const playerName = this.player ? this.player.name : `null`;
-		const id = randomUUID();
-		return `${this.type}-${playerName}-${id}`;
 	}
 
 	/**
@@ -118,47 +106,3 @@ export default class Action extends GameConstruct {
 		this.mirrors.add(channelId);
 	}
 }
-
-/**
- * @enum {string}
- */
-export const ActionType = {
-	Say: "say",
-	Whisper: "whisper",
-	Announce: "announce",
-	Text: "text",
-	Gesture: "gesture",
-	QueueMove: "queueMove",
-	StartMove: "startMove",
-	Exit: "exit",
-	Enter: "enter",
-	Move: "move",
-	Stop: "stop",
-	Inspect: "inspect",
-	Knock: "knock",
-	Hide: "hide",
-	Unhide: "unhide",
-	Inflict: "inflict",
-	Cure: "cure",
-	Use: "use",
-	Take: "take",
-	Steal: "steal",
-	Drop: "drop",
-	Give: "give",
-	Stash: "stash",
-	Unstash: "unstash",
-	Equip: "equip",
-	Unequip: "unequip",
-	Dress: "dress",
-	Undress: "undress",
-	Instantiate: "instantiate",
-	Destroy: "destroy",
-	Craft: "craft",
-	Uncraft: "uncraft",
-	Activate: "activate",
-	Deactivate: "deactivate",
-	Attempt: "attempt",
-	Solve: "solve",
-	Unsolve: "unsolve",
-	Die: "die"
-};

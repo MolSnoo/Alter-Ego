@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../Fixture.js").default} Fixture */
 
@@ -9,14 +9,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/deactivate-action.html
  */
 export default class DeactivateAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Deactivate;
-
 	/**
 	 * Performs a deactivate action.
 	 * @param {Fixture} fixture - The fixture to deactivate.

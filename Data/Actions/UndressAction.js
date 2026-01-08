@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import AttemptAction from "./AttemptAction.js";
 import InventorySlot from "../InventorySlot.js";
 import Puzzle from "../Puzzle.js";
@@ -16,14 +16,6 @@ import { getSortedItemsString } from "../../Modules/helpers.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/undress-action.html
  */
 export default class UndressAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Undress;
-
 	/**
 	 * Performs an undress action.
 	 * @param {Puzzle|Fixture|RoomItem} container - The container to put the items in.

@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import Game from "../Game.js";
 import Room from "../Room.js";
 import MoveAction from "./MoveAction.js";
@@ -13,14 +13,6 @@ import StartMoveAction from "./StartMoveAction.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/queue-move-action.html
  */
 export default class QueueMoveAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.QueueMove;
-
 	/**
 	 * Performs a queue move action.
 	 * @param {boolean} isRunning - Whether the player is running.

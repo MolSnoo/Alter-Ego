@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import Die from "../Die.js";
 import Player from "../Player.js";
 
@@ -12,14 +12,6 @@ import Player from "../Player.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/attempt-action.html
  */
 export default class AttemptAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Attempt;
-
 	/**
 	 * Performs an attempt action.
 	 * @param {Puzzle} puzzle - The puzzle to attempt.

@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import SolveAction from "./SolveAction.js";
 
 /** @typedef {import("../Dialog.js").default} Dialog */
@@ -13,13 +13,6 @@ import SolveAction from "./SolveAction.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/say-action.html
  */
 export default class SayAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Say;
 	/**
 	 * An array of all voice-type puzzles in the game. This will be accessed several times, so it's stored here to avoid iterating through the full list of puzzles repeatedly.
 	 * @type {Puzzle[]}

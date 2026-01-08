@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 import Gesture from "../Gesture.js";
 
 /** @typedef {import("../Exit.js").default} Exit */
@@ -14,14 +14,6 @@ import Gesture from "../Gesture.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/gesture-action.html
  */
 export default class GestureAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Gesture;
-
 	/**
 	 * Performs a gesture action.
 	 * @param {Gesture} gesture - The gesture to perform.

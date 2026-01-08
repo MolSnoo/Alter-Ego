@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../Exit.js").default} Exit */
 
@@ -9,14 +9,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/stop-action.html
  */
 export default class StopAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.Stop;
-
 	/**
 	 * Performs a stop action.
 	 * @param {boolean} [exitLocked] - Whether or not the action was initiated because the destination exit was locked. Defaults to false.

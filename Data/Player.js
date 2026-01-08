@@ -241,6 +241,11 @@ export default class Player extends ItemContainer {
      */
     inventoryCollection;
     /**
+     * The channel where notifications to the player will be sent. If the player is an NPC, this will be null.
+     * @type {Messageable | null}
+     */
+    notificationChannel;
+    /**
      * The spectate channel of the player.
      * @type {TextChannel | null}
      */
@@ -373,6 +378,7 @@ export default class Player extends ItemContainer {
         this.description = description;
         this.inventory = [];
         this.inventoryCollection = inventory;
+        this.notificationChannel = !this.isNPC && this.member ? this.member.dmChannel : null;
         this.spectateChannel = spectateChannel;
         this.maxCarryWeight = this.getMaxCarryWeight();
         this.carryWeight = 0;

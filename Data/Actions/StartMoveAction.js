@@ -1,4 +1,4 @@
-import { default as Action, ActionType } from "../Action.js";
+import Action from "../Action.js";
 
 /** @typedef {import("../Exit.js").default} Exit */
 /** @typedef {import("../Room.js").default} Room */
@@ -10,14 +10,6 @@ import { default as Action, ActionType } from "../Action.js";
  * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/start-move-action.html
  */
 export default class StartMoveAction extends Action {
-	/**
-	 * The type of action being performed.
-	 * @override
-	 * @readonly
-	 * @type {ActionType}
-	 */
-	type = ActionType.StartMove;
-
 	/**
 	 * Performs a start move action.
 	 * @param {boolean} isRunning - Whether the player is running.
