@@ -67,8 +67,8 @@ export default class Narration extends GameConstruct {
             }
             this.getGame().communicationHandler.narrateInRoom(this);
 
-            if (this.location.tags.includes("video surveilled")) {
-                let roomDisplayName = this.location.tags.includes("secret") ? "Surveillance feed" : this.location.id;
+            if (this.location.tags.has("video surveilled")) {
+                let roomDisplayName = this.location.tags.has("secret") ? "Surveillance feed" : this.location.id;
                 this.message = `\`[${roomDisplayName}] ${this.message}\``;
                 const rooms = this.getGame().entityFinder.getRooms(null, "video monitoring", true);
                 for (let room of rooms) {

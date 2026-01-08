@@ -42,7 +42,7 @@ export default class GameEntitySaver {
 					const firstExit = room.exitCollection.firstKey() === exit.name;
 					roomValues.push([
 						firstExit ? room.displayName : "",
-						firstExit ? room.tags.join(", ") : "",
+						firstExit ? Array.from(room.tags).join(", ") : "",
 						firstExit ? room.iconURL : "",
 						exit.name,
 						String(exit.pos.x),

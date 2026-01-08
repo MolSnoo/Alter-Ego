@@ -803,7 +803,7 @@ export default class Player extends ItemContainer {
      */
     hasBehaviorAttribute(behaviorAttribute) {
         for (const status of this.statusCollection.values())
-            if (status.behaviorAttributes.includes(behaviorAttribute)) return true;
+            if (status.behaviorAttributes.has(behaviorAttribute)) return true;
         return false;
     }
 
@@ -817,7 +817,7 @@ export default class Player extends ItemContainer {
     hasAttribute(attribute) {
         let hasAttribute = false;
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].behaviorAttributes.includes(attribute)) {
+            if (this.status[i].behaviorAttributes.has(attribute)) {
                 hasAttribute = true;
                 break;
             }
@@ -834,7 +834,7 @@ export default class Player extends ItemContainer {
         /** @type {Status[]} */
         let statusEffects = [];
         for (const status of this.statusCollection.values()) {
-            if (status.behaviorAttributes.includes(behaviorAttribute))
+            if (status.behaviorAttributes.has(behaviorAttribute))
                 statusEffects.push(status);
         }
         return statusEffects;
@@ -851,7 +851,7 @@ export default class Player extends ItemContainer {
         /** @type {Status[]} */
         let statusEffects = [];
         for (let i = 0; i < this.status.length; i++) {
-            if (this.status[i].behaviorAttributes.includes(attribute))
+            if (this.status[i].behaviorAttributes.has(attribute))
                 statusEffects.push(this.status[i]);
         }
         return statusEffects;

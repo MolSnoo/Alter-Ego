@@ -42,7 +42,7 @@ export default class Room extends GameEntity {
     /**
      * The tags associated with the room.
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/room.html#tags
-     * @type {string[]}
+     * @type {Set<string>}
      */
     tags;
     /**
@@ -83,7 +83,7 @@ export default class Room extends GameEntity {
      * @param {string} id - The unique ID of the room.
      * @param {string} displayName - The name of the room for display purposes. Can contain uppercase letters and special characters.
      * @param {TextChannel} channel - The channel associated with the room.
-     * @param {string[]} tags - The tags associated with the room. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/room.html#tags}
+     * @param {Set<string>} tags - The tags associated with the room. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/room.html#tags}
      * @param {string} iconURL - The URL of the icon associated with the room.
      * @param {Collection<string, Exit>} exits - The exits of the room.
      * @param {string} description - The default description of the room for when a player enters from the first listed exit or inspects the room.
