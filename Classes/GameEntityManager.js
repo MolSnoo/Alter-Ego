@@ -379,8 +379,8 @@ export default class GameEntityManager {
 			}).then(channel => {
 				whisper.playersCollection.forEach(player => {
 					const noChannel = player.isNPC
-						|| player.hasBehaviorAttribute("hidden") && player.getBehaviorAttributeStatusEffects("no channel").length > 1
-						|| !player.hasBehaviorAttribute("hidden") && player.hasBehaviorAttribute("no channel")
+						|| player.isHidden() && player.getBehaviorAttributeStatusEffects("no channel").length > 1
+						|| !player.isHidden() && player.hasBehaviorAttribute("no channel")
 						|| player.hasBehaviorAttribute("no hearing");
 					if (!noChannel) {
 						channel.permissionOverwrites.create(player.id, {

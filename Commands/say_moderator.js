@@ -60,7 +60,7 @@ export async function execute(game, message, command, args) {
 
         const displayName = player.displayName;
         const displayIcon = player.displayIcon;
-        if (player.hasBehaviorAttribute("hidden")) {
+        if (player.isHidden()) {
             player.displayName = "Someone in the room";
             player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
         }

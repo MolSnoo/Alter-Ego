@@ -51,7 +51,7 @@ export default class HidingSpot extends GameEntity {
 	 * @param {Player} player - The player to add to the hiding spot.
 	 */
 	async addPlayer(player) {
-		if (!player.hasBehaviorAttribute("no sight")) this.deleteWhisper();
+		if (player.canSee()) this.deleteWhisper();
 		this.occupants.push(player);
 		player.hidingSpot = this.name;
 		this.whisper = await this.getGame().entityLoader.createWhisper(this.occupants, this.name);

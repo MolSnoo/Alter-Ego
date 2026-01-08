@@ -141,7 +141,7 @@ export default class Room extends GameEntity {
             this.joinChannel(player);
 
         this.occupants.push(player);
-        this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
+        this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.isHidden()));
     }
 
     /**
@@ -151,7 +151,7 @@ export default class Room extends GameEntity {
     removePlayer(player) {
         this.leaveChannel(player);
         this.occupants.splice(this.occupants.indexOf(player), 1);
-        this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
+        this.occupantsString = this.generateOccupantsString(this.occupants.filter(occupant => !occupant.isHidden()));
     }
 
     /**

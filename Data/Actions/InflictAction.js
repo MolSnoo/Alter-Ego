@@ -76,7 +76,7 @@ export default class InflictAction extends Action {
 			this.displayName = `An individual wearing ${maskName}`;
 			this.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
 			this.player.setPronouns(this.player.pronouns, "neutral");
-			this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
+			this.location.occupantsString = this.location.generateOccupantsString(this.location.occupants.filter(occupant => !occupant.isHidden()));
 		}
 		if (status.behaviorAttributes.has("disable all") || status.behaviorAttributes.has("disable move") || status.behaviorAttributes.has("disable run"))
 			this.player.stopMoving();

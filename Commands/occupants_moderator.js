@@ -46,7 +46,7 @@ export async function execute(game, message, command, args) {
     for (let i = 0; i < occupants.length; i++)
         occupantsList.push(occupants[i].name);
     // Generate a string of all hidden occupants in the room.
-    const hidden = room.occupants.filter(occupant => occupant.hasBehaviorAttribute("hidden")).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
+    const hidden = room.occupants.filter(occupant => occupant.isHidden()).sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
     const hiddenList = [];
     for (let i = 0; i < hidden.length; i++)
         hiddenList.push(`${hidden[i].name} (${hidden[i].hidingSpot})`);

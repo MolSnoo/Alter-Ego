@@ -133,7 +133,7 @@ export async function execute(game, message, command, args) {
                     for (const occupant of player.location.occupants) {
                         if (
                             occupant.name.toLowerCase().replace(/\'/g, "") === input2 &&
-                            ((hiddenStatus.length === 0 && !occupant.hasBehaviorAttribute("hidden")) ||
+                            ((hiddenStatus.length === 0 && !occupant.isHidden()) ||
                                 occupant.hidingSpot === player.hidingSpot)
                         ) {
                             if (occupant.name === player.name)

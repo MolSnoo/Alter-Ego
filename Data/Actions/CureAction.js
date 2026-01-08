@@ -42,7 +42,7 @@ export default class CureAction extends Action {
 			if (this.player.isNPC) this.player.displayIcon = this.player.id;
 			else this.player.displayIcon = null;
 			this.player.setPronouns(this.player.pronouns, this.player.pronounString);
-			this.player.location.occupantsString = this.player.location.generateOccupantsString(this.player.location.occupants.filter(occupant => !occupant.hasBehaviorAttribute("hidden")));
+			this.player.location.occupantsString = this.player.location.generateOccupantsString(this.player.location.occupants.filter(occupant => !occupant.isHidden()));
 		}
 		if (narrate) this.getGame().narrationHandler.narrateCure(this, status, this.player, item);
 		if (status.curedCondition && doCuredCondition) {

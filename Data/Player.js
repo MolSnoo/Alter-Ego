@@ -858,6 +858,35 @@ export default class Player extends ItemContainer {
     }
 
     /**
+     * Returns true if the player doesn't have the `no sight` behavior attribute.
+     */
+    canSee() {
+        return !this.hasBehaviorAttribute("no sight");
+    }
+    
+    /**
+     * Returns true if the player has the `knows ${playerName}` behavior attribute.
+     * @param {string} playerName - The name of a player.
+     */
+    knows(playerName) {
+        return this.hasBehaviorAttribute(`knows ${playerName}`);
+    }
+
+    /**
+     * Returns true if the player doesn't have the `unconscious` behavior attribute.
+     */
+    isConscious() {
+        return !this.hasBehaviorAttribute("unconscious");
+    }
+
+    /**
+     * Returns true if the player has the `hidden` behavior attribute.
+     */
+    isHidden() {
+        return this.hasBehaviorAttribute("hidden");
+    }
+
+    /**
      * Calculates the player's stats based on their current status effects.
      */
     #recalculateStats() {
@@ -1484,7 +1513,7 @@ export default class Player extends ItemContainer {
      * @param {GameEntity} container - The game entity the description belongs to.
      */
     sendDescription(description, container) {
-        if (description && !this.isNPC && (!this.hasBehaviorAttribute("unconscious") || container instanceof Status))
+        if (description && !this.isNPC && (this.isConscious() || container instanceof Status))
             this.getGame().communicationHandler.sendDescriptionToPlayer(this, description, container);
     }
 
@@ -1494,7 +1523,7 @@ export default class Player extends ItemContainer {
      * @param {boolean} [addSpectate=true] - Whether or not to mirror this message in the player's spectateChannel. Defaults to true.
      */
     notify(messageText, addSpectate = true) {
-        if (!this.hasBehaviorAttribute("unconscious") && !this.isNPC)
+        if (this.isConscious() && !this.isNPC)
             this.getGame().communicationHandler.sendMessageToPlayer(this, messageText, addSpectate);
     }
 
