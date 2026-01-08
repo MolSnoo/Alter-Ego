@@ -181,8 +181,8 @@ export default class GameCommunicationHandler {
 	 * @param {boolean} [mirrorInSpectateChannel] - Whether or not to mirror the notification in their spectate channel. Defaults to true.
 	 */
 	notifyPlayer(player, action, notification, mirrorInSpectateChannel = true) {
-		if (!this.#actionHasBeenCommunicatedInChannel(player.member.dmChannel, action)) {
-			this.#cacheChannelFor(action, player.member.dmChannel.id);
+		if (!this.#actionHasBeenCommunicatedInChannel(player.notificationChannel, action)) {
+			this.#cacheChannelFor(action, player.notificationChannel.id);
 			player.notify(notification, mirrorInSpectateChannel);
 		}
 	}
@@ -196,8 +196,8 @@ export default class GameCommunicationHandler {
 	 * @param {boolean} [mirrorInSpectateChannel] - Whether or not to mirror the notification in their spectate channel. Defaults to true.
 	 */
 	notifyPlayerWithAttachments(player, action, notification, attachments, mirrorInSpectateChannel = true) {
-		if (!this.#actionHasBeenCommunicatedInChannel(player.member.dmChannel, action)) {
-			this.#cacheChannelFor(action, player.member.dmChannel.id);
+		if (!this.#actionHasBeenCommunicatedInChannel(player.notificationChannel, action)) {
+			this.#cacheChannelFor(action, player.notificationChannel.id);
 			messageHandler.addDirectNarrationWithAttachments(player, notification, attachments, mirrorInSpectateChannel);
 		}
 	}
