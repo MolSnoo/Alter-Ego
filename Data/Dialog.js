@@ -238,4 +238,21 @@ export default class Dialog extends GameConstruct {
 	isMimicking(player) {
 		return this.speakerRecognitionName === player.name;
 	}
+
+	/**
+	 * Returns the display name to use for the speaker in webhook messages. This depends on whether or not a given player can see the speaker.
+	 * @param {boolean} playerCanSeeSpeaker - Whether or not the given player can see the speaker.
+	 */
+	getDisplayNameForWebhook(playerCanSeeSpeaker) {
+		return this.speaker.isHidden() && !playerCanSeeSpeaker ? "Someone in the room" : this.speakerDisplayName;
+	}
+
+	/**
+	 * Returns the display icon to use for the speaker in webhook messages. This depends on whether or not a given player can see the speaker.
+	 * @param {boolean} playerCanSeeSpeaker - Whether or not the given player can see the speaker.
+	 */
+	getDisplayIconForWebhook(playerCanSeeSpeaker) {
+		const defaultHiddenIconURL = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
+		return this.speaker.isHidden() && !playerCanSeeSpeaker ? defaultHiddenIconURL : this.speakerDisplayIcon;
+	}
 }

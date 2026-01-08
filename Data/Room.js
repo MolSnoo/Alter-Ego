@@ -223,6 +223,16 @@ export default class Room extends GameEntity {
         this.getGame().logHandler.logLock(this, exit);
     }
 
+    /**
+     * Returns the display name to use for the room in rooms with the `audio monitoring` tag.
+     */
+    getSurveilledDisplayName() {
+        return this.tags.has("secret")
+            ? this.tags.has("video surveilled")
+                ? "Surveillance feed" : "Intercom"
+            : this.displayName;
+    }
+
     /** @returns {string} */
     descriptionCell() {
         return this.getGame().constants.roomSheetDescriptionColumn + this.row;
