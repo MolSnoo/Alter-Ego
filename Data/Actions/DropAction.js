@@ -35,7 +35,7 @@ export default class DropAction extends Action {
 	performDrop(item, handEquipmentSlot, container, inventorySlot, notify = true) {
 		if (this.performed) return;
 		super.perform();
-		this.getGame().narrationHandler.narrateDrop(item, container, this.player, notify);
+		this.getGame().narrationHandler.narrateDrop(this, item, container, this.player, notify);
 		this.getGame().logHandler.logDrop(item, this.player, container, inventorySlot, this.forced);
 		this.player.drop(item, handEquipmentSlot, container, inventorySlot);
 		// Container is a weight puzzle.

@@ -2,6 +2,7 @@ import GameEntity from "./GameEntity.js";
 import Whisper from "./Whisper.js";
 import { generatePlayerListString } from "../Modules/helpers.js";
 
+/** @typedef {import("./Action.js").default} Action */
 /** @typedef {import("./Fixture.js").default} Fixture */
 /** @typedef {import("./Game.js").default} Game */
 /** @typedef {import("./Player.js").default} Player */
@@ -59,11 +60,12 @@ export default class HidingSpot extends GameEntity {
 	/**
 	 * Removes a player from the hiding spot.
 	 * @param {Player} player - The player to remove from the hiding spot. 
+	 * @param {Action} action - The action that caused the player to be removed.
 	 */
-	removePlayer(player) {
+	removePlayer(player, action) {
 		this.occupants.splice(this.occupants.indexOf(player), 1);
 		const whisperNarration = this.getGame().notificationGenerator.generateUnhideNotification(player, false, this.getContainingPhrase());
-		player.removeFromWhispers(whisperNarration);
+		player.removeFromWhispers(whisperNarration, action);
 		player.hidingSpot = "";
 	}
 

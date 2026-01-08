@@ -1,6 +1,5 @@
 import Flag from '../Data/Flag.js';
 import Game from '../Data/Game.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 
@@ -55,7 +54,7 @@ export async function execute(game, message, command, args) {
 	}
 
 	if (args.length === 0)
-		return addReply(game, message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
+		return game.communicationHandler.reply(message, `You need to input all required arguments. Usage:\n${usage(game.settings)}`);
 
 	// The value, if it exists, is the easiest to find at the beginning. Look for that first.
 	let valueScript;
@@ -82,7 +81,7 @@ export async function execute(game, message, command, args) {
 			if (value !== undefined)
 				input = input.substring(0, input.toLowerCase().lastIndexOf(lastArg));
 		}
-		if (valueScript === undefined && value === undefined) return addReply(game, message, `Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
+		if (valueScript === undefined && value === undefined) return game.communicationHandler.reply(message, `Couldn't find a valid value in "${input}". The value must be a string, number, or boolean.`);
 
 		let flag = game.entityFinder.getFlag(input);
 		// If no flag was found, create a new one.
@@ -109,7 +108,7 @@ export async function execute(game, message, command, args) {
 				flag.setValue(value, true);
 			}
 			catch (err) {
-				return addReply(game, message, `The specified script returned an error. ${err}`);
+				return game.communicationHandler.reply(message, `The specified script returned an error. ${err}`);
 			}
 		}
 		else {
@@ -121,13 +120,13 @@ export async function execute(game, message, command, args) {
 			typeof flag.value === "string" ? `"${flag.value}"` :
 				typeof flag.value === "boolean" ? `\`${flag.value}\`` :
 					flag.value;
-		addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully set flag ${flag.id} with value ${valueDisplay}.`);
+		game.communicationHandler.sendToCommandChannel(`Successfully set flag ${flag.id} with value ${valueDisplay}.`);
 	}
 	else if (command === "clearflag") {
 		const flag = game.entityFinder.getFlag(input);
-		if (!flag) return addReply(game, message, `Couldn't find flag "${input}".`);
+		if (!flag) return game.communicationHandler.reply(message, `Couldn't find flag "${input}".`);
 
 		flag.clearValue(true);
-		addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully cleared flag ${flag.id}.`);
+		game.communicationHandler.sendToCommandChannel(`Successfully cleared flag ${flag.id}.`);
 	}
 }

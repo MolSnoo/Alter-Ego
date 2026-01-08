@@ -1,6 +1,4 @@
-﻿import { addReply, addGameMechanicMessage } from '../Modules/messageHandler.js';
-
-/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+﻿/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
@@ -47,7 +45,7 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args) {
     if (command !== "las" && command !== "lar" && args.length === 0)
-        return addReply(game, message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify what data to get. Usage:\n${usage(game.settings)}`);
 
     /** @type {Error[]} */
     let errors = [];
@@ -55,66 +53,66 @@ export async function execute(game, message, command, args) {
         const startGame = command === "las" || command === "lar" || args[1] && (args[1] === "resume" || args[1] === "start");
         const sendPlayerRoomDescriptions = startGame && (command === "las" || args[1] === "start");
         const message = await game.entityLoader.loadAll(startGame, sendPlayerRoomDescriptions);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, message);
+        game.communicationHandler.sendToCommandChannel(message);
     }
     else if (args[0] === "rooms") {
         const roomCount = await game.entityLoader.loadRooms(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${roomCount} rooms retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${roomCount} rooms retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "fixtures" || args[0] === "objects") {
         const fixtureCount = await game.entityLoader.loadFixtures(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${fixtureCount} fixtures retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${fixtureCount} fixtures retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "prefabs") {
         const prefabCount = await game.entityLoader.loadPrefabs(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${prefabCount} prefabs retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${prefabCount} prefabs retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "recipes") {
         const recipeCount = await game.entityLoader.loadRecipes(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${recipeCount} recipes retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${recipeCount} recipes retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "roomitems" || args[0] === "items" || args[0] === "room" && args[1] === "items") {
         const roomItemCount = await game.entityLoader.loadRoomItems(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${roomItemCount} room items retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${roomItemCount} room items retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "puzzles") {
         const puzzleCount = await game.entityLoader.loadPuzzles(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${puzzleCount} puzzles retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${puzzleCount} puzzles retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "events") {
         const eventCount = await game.entityLoader.loadEvents(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${eventCount} events retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${eventCount} events retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "statuses" || args[0] === "effects" || args[0] === "status" && args[1] === "effects") {
         const statusEffectCount = await game.entityLoader.loadStatusEffects(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${statusEffectCount} status effects retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${statusEffectCount} status effects retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "players") {
         const playerCount = await game.entityLoader.loadPlayers(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${playerCount} players retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${playerCount} players retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "inventoryitems" || args[0] === "inventories" || args[0] === "inventory" && args[1] === "items") {
         const inventoryItemCount = await game.entityLoader.loadInventoryItems(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${inventoryItemCount} inventory items retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${inventoryItemCount} inventory items retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "gestures") {
         const gestureCount = await game.entityLoader.loadGestures(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${gestureCount} gestures retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${gestureCount} gestures retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
     else if (args[0] === "flags") {
         const flagCount = await game.entityLoader.loadFlags(true, errors);
-        if (errors.length === 0) addGameMechanicMessage(game, game.guildContext.commandChannel, `${flagCount} flags retrieved.`);
-        else addGameMechanicMessage(game, game.guildContext.commandChannel, errors.join('\n'));
+        if (errors.length === 0) game.communicationHandler.sendToCommandChannel(`${flagCount} flags retrieved.`);
+        else game.communicationHandler.sendToCommandChannel(errors.join('\n'));
     }
 }

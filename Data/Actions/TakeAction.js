@@ -35,7 +35,7 @@ export default class TakeAction extends Action {
 		if (this.performed) return;
 		super.perform();
 		const successful = this.forced || this.player.carryWeight + item.weight <= this.player.carryWeight;
-		this.getGame().narrationHandler.narrateTake(item, this.player, notify);
+		this.getGame().narrationHandler.narrateTake(this, item, this.player, notify);
 		this.getGame().logHandler.logTake(item, this.player, container, inventorySlot, successful, this.forced);
 		if (!successful) return;
 		this.player.take(item, handEquipmentSlot, container, inventorySlot);

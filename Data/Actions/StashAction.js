@@ -29,7 +29,7 @@ export default class StashAction extends Action {
 	performStash(item, handEquipmentSlot, container, inventorySlot) {
 		if (this.performed) return;
 		super.perform();
-		this.getGame().narrationHandler.narrateStash(item, container, inventorySlot, this.player);
+		this.getGame().narrationHandler.narrateStash(this, item, container, inventorySlot, this.player);
 		this.getGame().logHandler.logStash(item, this.player, container, inventorySlot, this.forced);
 		this.player.stash(item, handEquipmentSlot, container, inventorySlot);
 	}

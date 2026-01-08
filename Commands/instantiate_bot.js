@@ -1,7 +1,5 @@
 import InstantiateAction from "../Data/Actions/InstantiateAction.js";
 import RoomItem from "../Data/RoomItem.js";
-import { instantiateRoomItem, instantiateInventoryItem } from '../Modules/itemManager.js';
-import { addGameMechanicMessage } from "../Modules/messageHandler.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -28,7 +26,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `instantiate raw fish on floor at beach\n`
         + `create pickaxe in locker 1 at mining hub\n`
         + `generate 3 empty drain cleaner in cupboards at kitchen\n`
@@ -49,10 +47,10 @@ export function usage (settings) {
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length < 4) {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -88,7 +86,7 @@ export async function execute (game, command, args, player, callee) {
         for (let procedural of proceduralList) {
             const proceduralAssignment = procedural.split('=');
             if (proceduralAssignment.length !== 2)
-                return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Procedural options must be separated with \`+\`, and the name of the poss to select must be assigned to the name of its containing procedural with \`=\`.`);
+                return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Procedural options must be separated with \`+\`, and the name of the poss to select must be assigned to the name of its containing procedural with \`=\`.`);
             proceduralSelections.set(proceduralAssignment[0].toLowerCase().trim(), proceduralAssignment[1].toLowerCase().trim());
         }
         parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')'));
@@ -100,9 +98,9 @@ export async function execute (game, command, args, player, callee) {
         let fixture = null;
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === room.id && fixture.accessible);
         for (let i = 0; i < fixtures.length; i++) {
-            if (fixtures[i].name === parsedInput) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
+            if (fixtures[i].name === parsedInput) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
             if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(`IN ${fixtures[i].name}`)) {
-                if (fixtures[i].preposition === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${fixtures[i].name} cannot hold items.`);
+                if (fixtures[i].preposition === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${fixtures[i].name} cannot hold items.`);
                 fixture = fixtures[i];
                 if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`)).trimEnd();
@@ -120,9 +118,9 @@ export async function execute (game, command, args, player, callee) {
             // Check if a container item was specified.
             const items = game.entityFinder.getRoomItems(null, room.id, true);
             for (let i = 0; i < items.length; i++) {
-                if (items[i].identifier === parsedInput || items[i].name === parsedInput) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
+                if (items[i].identifier === parsedInput || items[i].name === parsedInput) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
                 if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].name)) {
-                    if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
+                    if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
                     containerItem = items[i];
 
                     if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "")
@@ -141,7 +139,7 @@ export async function execute (game, command, args, player, callee) {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                        if (containerItemSlot === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
                     }
                     if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -179,16 +177,16 @@ export async function execute (game, command, args, player, callee) {
         if (prefab !== null && container === null) {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
-            return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
+            return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
         }
-        else if (prefab === null && container !== null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find prefab with id "${parsedInput}".`);
-        else if (prefab === null && container === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}".`);
+        else if (prefab === null && container !== null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find prefab with id "${parsedInput}".`);
+        else if (prefab === null && container === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}".`);
 
         if (containerItem !== null && container instanceof RoomItem) {
-            if (prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
-            else if (prefab.size > containerItemSlot.capacity) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${container.name} because it is too large.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${container.name} because there isn't enough space left.`);
+            if (prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
+            else if (prefab.size > containerItemSlot.capacity) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${container.name} because it is too large.`);
+            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
+            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${container.name} because there isn't enough space left.`);
         }
 
         // Now instantiate the item.
@@ -236,7 +234,7 @@ export async function execute (game, command, args, player, callee) {
                 }
             }
         }
-        if (players.length === 0) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find a room or player in your input.`);
+        if (players.length === 0) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find a room or player in your input.`);
 
         parsedInput = args.join(" ").toUpperCase().replace(/\'/g, "");
 
@@ -248,9 +246,9 @@ export async function execute (game, command, args, player, callee) {
             let containerItemSlot = null;
             const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
             for (let i = 0; i < items.length; i++) {
-                if (items[i].identifier === parsedInput2 || items[i].name === parsedInput2) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
+                if (items[i].identifier === parsedInput2 || items[i].name === parsedInput2) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". You need to supply a prefab and a preposition.`);
                 if (parsedInput2.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput2.endsWith(items[i].name)) {
-                    if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
+                    if (items[i].inventoryCollection.size === 0 || items[i].prefab.preposition === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
                     containerItem = items[i];
 
                     if (parsedInput2.endsWith(items[i].identifier) && items[i].identifier !== "")
@@ -269,7 +267,7 @@ export async function execute (game, command, args, player, callee) {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                        if (containerItemSlot === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
 
                         if (parsedInput2.endsWith(containerItem.prefab.preposition.toUpperCase()))
                             parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -292,7 +290,7 @@ export async function execute (game, command, args, player, callee) {
                         const newArgs = parsedInput2.split(' ');
                         newArgs.splice(newArgs.length - 1, 1);
                         parsedInput2 = newArgs.join(' ');
-                        if (slot.equippedItem !== null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot equip items to ${id} because ${slot.equippedItem.name} is already equipped to it.`);
+                        if (slot.equippedItem !== null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Cannot equip items to ${id} because ${slot.equippedItem.name} is already equipped to it.`);
                         break;
                     }
                 }
@@ -312,21 +310,21 @@ export async function execute (game, command, args, player, callee) {
             if (prefab !== null && containerItem === null && equipmentSlotName === "") {
                 parsedInput2 = parsedInput2.substring(prefab.id.length).trimStart();
                 parsedInput2 = parsedInput2.substring(parsedInput2.indexOf(' ')).trimStart();
-                return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" to instantiate ${prefab.id} into.`);
+                return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}" to instantiate ${prefab.id} into.`);
             }
             else if (prefab === null && (containerItem !== null || equipmentSlotName !== "")) {
                 parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(' '));
-                return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find prefab with id "${parsedInput2}".`);
+                return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find prefab with id "${parsedInput2}".`);
             }
-            else if (prefab === null && containerItem === null && equipmentSlotName === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}".`);
+            else if (prefab === null && containerItem === null && equipmentSlotName === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}".`);
 
-            if (equipmentSlotName !== "" && quantity !== 1) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Cannot instantiate more than 1 item to a player's equipment slot.`);
+            if (equipmentSlotName !== "" && quantity !== 1) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Cannot instantiate more than 1 item to a player's equipment slot.`);
             if (containerItem !== null) {
                 equipmentSlotName = containerItem.equipmentSlot;
-                if (prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because it is too large.`);
-                else if (prefab.size > containerItemSlot.capacity) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because it is too large.`);
-                else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
-                else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
+                if (prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because it is too large.`);
+                else if (prefab.size > containerItemSlot.capacity) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because it is too large.`);
+                else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
+                else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
             }
 
             // Now instantiate the item.

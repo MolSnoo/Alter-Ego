@@ -1,5 +1,4 @@
 ﻿import { getChildItems } from '../Modules/itemManager.js';
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -25,7 +24,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `set accessible puzzle button\n`
         + `set inaccessible fixture terminal\n`
         + `set accessible fixture keypad tool shed\n`
@@ -40,11 +39,11 @@ export function usage (settings) {
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
 
     if (args.length < 2) {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -52,7 +51,7 @@ export async function execute (game, command, args, player, callee) {
     if (args[0] === "accessible") command = "accessible";
     else if (args[0] === "inaccessible") command = "inaccessible";
     else {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The first argument must be "accessible" or "inaccessible".`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". The first argument must be "accessible" or "inaccessible".`);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -63,7 +62,7 @@ export async function execute (game, command, args, player, callee) {
     if (args[0] === "fixture" || args[0] === "object") isFixture = true;
     else if (args[0] === "puzzle") isPuzzle = true;
     else {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". The second argument must be "fixture" or "puzzle".`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". The second argument must be "fixture" or "puzzle".`);
         return;
     }
     input = input.substring(input.indexOf(args[1]));
@@ -100,7 +99,7 @@ export async function execute (game, command, args, player, callee) {
             }
         }
         if (fixture === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-        else if (fixture === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
+        else if (fixture === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
     }
     else if (isPuzzle) {
         const puzzles = game.puzzles.filter(puzzle => puzzle.name === input.toUpperCase().replace(/\'/g, ""));
@@ -112,7 +111,7 @@ export async function execute (game, command, args, player, callee) {
             }
         }
         if (puzzle === null && room === null && puzzles.length > 0) puzzle = puzzles[0];
-        else if (puzzle === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
+        else if (puzzle === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find puzzle "${input}".`);
     }
 
     if (command === "accessible") {

@@ -16,11 +16,10 @@ import QueueMoveAction from './Actions/QueueMoveAction.js';
 import StopAction from './Actions/StopAction.js';
 import Timer from '../Classes/Timer.js';
 import * as itemManager from '../Modules/itemManager.js';
-import { parseDescription } from '../Modules/parser.js';
 import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
 import { Collection } from 'discord.js';
-import { addDirectNarration, addRoomDescription } from '../Modules/messageHandler.js';
 
+/** @typedef {import('./Action.js').default} Action */
 /** @typedef {import('./Exit.js').default} Exit */
 /** @typedef {import('./Recipe.js').default} Recipe */
 /** @typedef {import('./EquipmentSlot.js').default} EquipmentSlot */
@@ -531,7 +530,9 @@ export default class Player extends ItemContainer {
             // Be sure to check player.#reachedHalfStamina so that this message is only sent once.
             if (player.stamina <= player.maxStamina / 2 && !player.#reachedHalfStamina) {
                 player.#reachedHalfStamina = true;
-                player.getGame().narrationHandler.narrateReachedHalfStamina(player);
+                // The communication handler needs an action to prevent notification duplication, so create a dummy here.
+                const reachedHalfStaminaAction = new MoveAction(player.getGame(), undefined, player, player.location, true);
+                player.getGame().narrationHandler.narrateReachedHalfStamina(reachedHalfStaminaAction, player);
             }
             // If player runs out of stamina, stop them in their tracks.
             if (player.stamina <= 0) {
@@ -540,7 +541,7 @@ export default class Player extends ItemContainer {
                 const wearyStatus = player.getGame().entityFinder.getStatusEffect("weary");
                 const wearyAction = new InflictAction(player.getGame(), undefined, player, player.location, true);
                 wearyAction.performInflict(wearyStatus, false, true, true);
-                player.getGame().narrationHandler.narrateWeary(player);
+                player.getGame().narrationHandler.narrateWeary(wearyAction, player);
             }
             if (player.remainingTime <= 0 && player.stamina !== 0) {
                 clearInterval(player.moveTimer);
@@ -1442,11 +1443,12 @@ export default class Player extends ItemContainer {
 
     /**
      * Kills the player.
+     * @param {Action} action - The action that caused the player to die.
      */
-    die() {
+    die(action) {
         this.location.removePlayer(this);
         const whisperRemovalMessage = this.getGame().notificationGenerator.generateDieNotification(this, false);
-		this.removeFromWhispers(whisperRemovalMessage);
+		this.removeFromWhispers(whisperRemovalMessage, action);
         // Update various data.
         this.alive = false;
         this.location = null;
@@ -1467,11 +1469,12 @@ export default class Player extends ItemContainer {
     /**
      * Removes the player from all whispers they're in.
      * @param {string} narration - The text of the narration to send in the whisper channel when the player is removed.
+     * @param {Action} [action] - The action that caused the player to be removed. If a narration is supplied, this is required.
      */
-    removeFromWhispers(narration) {
+    removeFromWhispers(narration, action) {
         for (const whisper of this.getGame().whispersCollection.values()) {
             if (whisper.playersCollection.has(this.name))
-                whisper.removePlayer(this, narration);
+                whisper.removePlayer(this, narration, action);
         }
     }
 
@@ -1481,17 +1484,8 @@ export default class Player extends ItemContainer {
      * @param {GameEntity} container - The game entity the description belongs to.
      */
     sendDescription(description, container) {
-        if (description) {
-            if (!this.hasBehaviorAttribute("unconscious") && (container && container instanceof Room)) {
-                let defaultDropFixtureString = "";
-                const defaultDropFixture = this.getGame().entityFinder.getFixture(this.getGame().settings.defaultDropFixture, container.id);
-                if (defaultDropFixture)
-                    defaultDropFixtureString = parseDescription(defaultDropFixture.description, defaultDropFixture, this);
-                addRoomDescription(this, container, parseDescription(description, container, this), defaultDropFixtureString);
-            }
-            else if (!this.hasBehaviorAttribute("unconscious") || (container && container instanceof Status))
-                addDirectNarration(this, parseDescription(description, container, this));
-        }
+        if (description && !this.isNPC && (!this.hasBehaviorAttribute("unconscious") || container instanceof Status))
+            this.getGame().communicationHandler.sendDescriptionToPlayer(this, description, container);
     }
 
     /**
@@ -1501,7 +1495,7 @@ export default class Player extends ItemContainer {
      */
     notify(messageText, addSpectate = true) {
         if (!this.hasBehaviorAttribute("unconscious") && !this.isNPC)
-            addDirectNarration(this, messageText, addSpectate);
+            this.getGame().communicationHandler.sendMessageToPlayer(this, messageText, addSpectate);
     }
 
     /**

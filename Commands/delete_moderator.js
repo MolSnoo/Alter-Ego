@@ -1,9 +1,7 @@
 ﻿import { ChannelType } from 'discord.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
-
 /** @type {CommandConfig} */
 export const config = {
     name: "delete_moderator",
@@ -22,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}delete 3\n`
         + `${settings.commandPrefix}delete 100\n`
         + `${settings.commandPrefix}delete @Alter Ego 5\n`
@@ -35,15 +33,14 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify an amount of messages to delete. Usage:\n${usage(game.settings)}`);
-
+        return game.communicationHandler.reply(message, `You need to specify an amount of messages to delete. Usage:\n${usage(game.settings)}`);
     const user = message.mentions.users.first();
     const amount = parseInt(args[args.length - 1]);
-    if (isNaN(amount)) return addReply(game, message, `Invalid amount specified.`);
-    if (amount < 1) return addReply(game, message, `At least one message must be deleted.`);
-    if (amount > 100) return addReply(game, message, `Only 100 messages can be deleted at a time.`);
+    if (isNaN(amount)) return game.communicationHandler.reply(message, `Invalid amount specified.`);
+    if (amount < 1) return game.communicationHandler.reply(message, `At least one message must be deleted.`);
+    if (amount > 100) return game.communicationHandler.reply(message, `Only 100 messages can be deleted at a time.`);
 
     const channel = message.channel;
     if (channel.type === ChannelType.GuildText) {

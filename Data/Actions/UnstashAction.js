@@ -29,7 +29,7 @@ export default class UnstashAction extends Action {
 	performUnstash(item, handEquipmentSlot, container, inventorySlot) {
 		if (this.performed) return;
 		super.perform();
-		this.getGame().narrationHandler.narrateUnstash(item, container, inventorySlot, this.player);
+		this.getGame().narrationHandler.narrateUnstash(this, item, container, inventorySlot, this.player);
 		this.getGame().logHandler.logUnstash(item, this.player, container, inventorySlot, this.forced);
 		this.player.unstash(item, handEquipmentSlot, container, inventorySlot);
 	}

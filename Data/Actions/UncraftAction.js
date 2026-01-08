@@ -30,7 +30,7 @@ export default class UncraftAction extends Action {
 		const itemId = item.getIdentifier();
 		const uncraftingResult = this.player.uncraft(item, recipe);
 		this.player.sendDescription(recipe.uncraftedDescription, recipe);
-		this.getGame().narrationHandler.narrateUncraft(recipe, originalItemPrefab, item, uncraftingResult, this.player);
+		this.getGame().narrationHandler.narrateUncraft(this, recipe, originalItemPrefab, item, uncraftingResult, this.player);
 		this.getGame().logHandler.logUncraft(itemId, uncraftingResult, this.player, this.forced);
 	}
 }

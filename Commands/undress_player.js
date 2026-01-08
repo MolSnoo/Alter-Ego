@@ -2,7 +2,6 @@ import UndressAction from '../Data/Actions/UndressAction.js';
 import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -24,7 +23,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}undress\n`
         + `${settings.commandPrefix}undress wardrobe\n`
         + `${settings.commandPrefix}undress laundry basket\n`
@@ -38,9 +37,9 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable undress");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -55,10 +54,10 @@ export async function execute (game, message, command, args, player) {
                 parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(fixtures[i].name)).trimEnd();
                 // Check if the fixture has a puzzle attached to it.
                 if (fixture.childPuzzle !== null && fixture.childPuzzle.type !== "weight" && fixture.childPuzzle.type !== "container" && (!fixture.childPuzzle.accessible || !fixture.childPuzzle.solved) && player.hidingSpot !== fixture.name)
-                    return addReply(game, message, `You cannot put items ${fixture.preposition} ${fixture.name} right now.`);
+                    return game.communicationHandler.reply(message, `You cannot put items ${fixture.preposition} ${fixture.name} right now.`);
                 break;
             }
-            else if (fixtures[i].name === parsedInput) return addReply(game, message, `${fixtures[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+            else if (fixtures[i].name === parsedInput) return game.communicationHandler.reply(message, `${fixtures[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
         }
     }
 
@@ -71,7 +70,7 @@ export async function execute (game, message, command, args, player) {
             if (parsedInput.endsWith(items[i].name)) {
                 const itemContainer = items[i].container;
                 if (fixture === null || fixture !== null && itemContainer !== null && (itemContainer.name === fixture.name || itemContainer instanceof Puzzle && itemContainer.parentFixture.name === fixture.name)) {
-                    if (items[i].inventoryCollection.size === 0) return addReply(game, message, `${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+                    if (items[i].inventoryCollection.size === 0) return game.communicationHandler.reply(message, `${items[i].name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
                     containerItem = items[i];
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(items[i].name)).trimEnd();
                     // Check if a slot was specified.
@@ -84,7 +83,7 @@ export async function execute (game, message, command, args, player) {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return addReply(game, message, `Couldn't find "${parsedInput}" of ${containerItem.name}.`);
+                        if (containerItemSlot === null) return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}" of ${containerItem.name}.`);
                     }
                     break;
                 }
@@ -106,15 +105,15 @@ export async function execute (game, message, command, args, player) {
         const totalSize = player.inventoryCollection.values().reduce((sum, item) => {
             return item.equippedItem !== null ? sum + item.equippedItem.prefab.size : sum;
         }, 0);
-        if (totalSize > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `Your inventory will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
-        else if (totalSize > containerItemSlot.capacity) return addReply(game, message, `Your inventory will not fit in ${container.name} because it is too large.`);
-        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return addReply(game, message, `Your inventory will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
-        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity) return addReply(game, message, `Your inventory will not fit in ${container.name} because there isn't enough space left.`);
+        if (totalSize > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return game.communicationHandler.reply(message, `Your inventory will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
+        else if (totalSize > containerItemSlot.capacity) return game.communicationHandler.reply(message, `Your inventory will not fit in ${container.name} because it is too large.`);
+        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity && container.inventoryCollection.size !== 1) return game.communicationHandler.reply(message, `Your inventory will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
+        else if (containerItemSlot.takenSpace + totalSize > containerItemSlot.capacity) return game.communicationHandler.reply(message, `Your inventory will not fit in ${container.name} because there isn't enough space left.`);
     }
     else {
-        if (parsedInput !== "") return addReply(game, message, `Couldn't find "${parsedInput}" to drop item into.`);
+        if (parsedInput !== "") return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}" to drop item into.`);
         const defaultDropObject = fixtures.find(fixture => fixture.name === game.settings.defaultDropFixture);
-        if (defaultDropObject === null || defaultDropObject === undefined) return addReply(game, message, `You cannot drop items in this room.`);
+        if (defaultDropObject === null || defaultDropObject === undefined) return game.communicationHandler.reply(message, `You cannot drop items in this room.`);
         container = defaultDropObject;
     }
 
@@ -126,7 +125,7 @@ export async function execute (game, message, command, args, player) {
         let topContainerPreposition = "in";
         if (topContainer instanceof Fixture && topContainer.preposition !== "") topContainerPreposition = topContainer.preposition;
         if (topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
-            return addReply(game, message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
+            return game.communicationHandler.reply(message, `You cannot put items ${topContainerPreposition} ${topContainer.name} while it is turned on.`);
     }
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
     if (hiddenStatus.length > 0) {
@@ -134,7 +133,7 @@ export async function execute (game, message, command, args, player) {
             topContainer = topContainer.parentFixture;
 
         if (topContainer === null || topContainer instanceof Fixture && topContainer.name !== player.hidingSpot)
-            return addReply(game, message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+            return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
     }
 
     const action = new UndressAction(game, message, player, player.location, false);

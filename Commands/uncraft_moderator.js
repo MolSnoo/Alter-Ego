@@ -1,5 +1,4 @@
 import UncraftAction from '../Data/Actions/UncraftAction.js';
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -21,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}uncraft olavi shovel\n`
         + `${settings.commandPrefix}dismantle avani crossbow\n`
         + `${settings.commandPrefix}disassemble juno pistol`;
@@ -33,12 +32,12 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and an inventory item in their hand. Usage:\n${usage(game.settings)}`);
 
 	const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(' ');
@@ -65,7 +64,7 @@ export async function execute (game, message, command, args) {
     }
 
     if (item === null) {
-        return addReply(game, message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
+        return game.communicationHandler.reply(message, `Couldn't find item "${parsedInput}" in either of ${player.name}'s hands.`);
     }
 
     // Locate uncrafting recipe.
@@ -77,15 +76,15 @@ export async function execute (game, message, command, args) {
             break;
         }
     }
-    if (recipe === null) return addReply(game, message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
+    if (recipe === null) return game.communicationHandler.reply(message, `Couldn't find an uncraftable recipe that produces ${item.prefab.id}.`);
 
 	if (!rightEmpty && !leftEmpty) {
-        return addReply(game, message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
+        return game.communicationHandler.reply(message, `${player.name} does not have an empty hand to uncraft ${item.prefab.id}.`);
     }
 
     const itemIdentifier = item.getIdentifier();
 
     const action = new UncraftAction(game, message, player, player.location, true);
     action.performUncraft(item, recipe);
-	addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully uncrafted ${itemIdentifier} for ${player.name}.`);
+	game.communicationHandler.sendToCommandChannel(`Successfully uncrafted ${itemIdentifier} for ${player.name}.`);
 }

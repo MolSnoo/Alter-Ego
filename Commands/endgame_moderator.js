@@ -2,7 +2,6 @@
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
-
 /** @type {CommandConfig} */
 export const config = {
     name: "endgame_moderator",
@@ -18,7 +17,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}endgame`;
 }
 
@@ -28,7 +27,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     // Remove all living players from whatever room channel they're in.
     game.entityFinder.getLivingPlayers(null, false).map((player) => {
         if (player.location.channel)
@@ -58,7 +57,6 @@ export async function execute (game, message, command, args) {
     if (!game.settings.debug)
         game.botContext.updatePresence();
     game.entityLoader.clearAll();
-
     let channel;
     if (game.settings.debug) channel = game.guildContext.testingChannel;
     else channel = game.guildContext.generalChannel;

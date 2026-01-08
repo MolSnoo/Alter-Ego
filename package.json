@@ -1,6 +1,6 @@
 {
   "name": "alter-ego",
-  "version": "1.10.1",
+  "version": "2.0.0d",
   "description": "An in-depth, multiplayer text adventure role-playing game for Discord.",
   "main": "bot.js",
   "type": "module",

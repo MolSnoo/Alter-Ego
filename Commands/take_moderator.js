@@ -2,7 +2,6 @@
 import Fixture from "../Data/Fixture.js";
 import RoomItem from "../Data/RoomItem.js";
 import Puzzle from "../Data/Puzzle.js";
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -23,7 +22,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}take nero food\n`
         + `${settings.commandPrefix}take livida food from floor\n`
         + `${settings.commandPrefix}take cleo sword from desk\n`
@@ -38,17 +37,17 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return addReply(game, message, `${player.name} does not have a free hand to take an item.`);
+    if (hand === undefined) return game.communicationHandler.reply(message, `${player.name} does not have a free hand to take an item.`);
 
     const input = args.join(" ");
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -139,15 +138,15 @@ export async function execute (game, message, command, args) {
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id && fixture.accessible);
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput)
-                return addReply(game, message, `The ${fixtures[i].name} is not an item.`);
+                return game.communicationHandler.reply(message, `The ${fixtures[i].name} is not an item.`);
         }
         // Otherwise, the item wasn't found.
         if (parsedInput.includes(" FROM ")) {
             const itemName = parsedInput.substring(0, parsedInput.indexOf(" FROM "));
             const containerName = parsedInput.substring(parsedInput.indexOf(" FROM ") + " FROM ".length);
-            return addReply(game, message, `Couldn't find "${containerName}" containing "${itemName}".`);
+            return game.communicationHandler.reply(message, `Couldn't find "${containerName}" containing "${itemName}".`);
         }
-        else return addReply(game, message, `Couldn't find item "${parsedInput}" in the room.`);
+        else return game.communicationHandler.reply(message, `Couldn't find item "${parsedInput}" in the room.`);
     }
 
     let topContainer = container;
@@ -155,9 +154,9 @@ export async function execute (game, message, command, args) {
         topContainer = topContainer.container;
 
     if (topContainer !== null && topContainer instanceof Fixture && topContainer.autoDeactivate && topContainer.activated)
-        return addReply(game, message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
+        return game.communicationHandler.reply(message, `Items cannot be taken from ${topContainer.name} while it is turned on.`);
 
     const action = new TakeAction(game, message, player, player.location, true);
     action.performTake(item, hand, container, slot);
-    addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully took ${item.getIdentifier()} for ${player.name}.`);
+    game.communicationHandler.sendToCommandChannel(`Successfully took ${item.getIdentifier()} for ${player.name}.`);
 }

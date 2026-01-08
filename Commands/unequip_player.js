@@ -1,6 +1,5 @@
 import UnequipAction from '../Data/Actions/UnequipAction.js';
 import Game from '../Data/Game.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/InventoryItem.js').default} InventoryItem */
@@ -22,7 +21,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}unequip sweater\n`
         + `${settings.commandPrefix}unequip glasses from face`;
 }
@@ -34,16 +33,16 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable unequip");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     // First, check if the player has a free hand.
     const hand = game.entityFinder.getPlayerFreeHand(player);
-    if (hand === undefined) return addReply(game, message, "You do not have a free hand to unequip an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+    if (hand === undefined) return game.communicationHandler.reply(message, "You do not have a free hand to unequip an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
 
     const input = args.join(' ');
     const parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -51,16 +50,16 @@ export async function execute (game, message, command, args, player) {
     const slotRegex = / FROM (.+)$/
     let equipmentSlotId = parsedInput.match(slotRegex)[0];
     if (equipmentSlotId === "RIGHT HAND" || equipmentSlotId === "LEFT HAND")
-        return addReply(game, message, `You cannot unequip items from your hands. To get rid of this item, use the drop command.`);
+        return game.communicationHandler.reply(message, `You cannot unequip items from your hands. To get rid of this item, use the drop command.`);
     let equipmentSlot = player.inventoryCollection.get(Game.generateValidEntityName(equipmentSlotId));
     if (equipmentSlot === undefined && !equipmentSlotId) {
         equipmentSlotId = parsedInput.substring(parsedInput.lastIndexOf(" FROM ") + " FROM ".length).trim();
-        return addReply(game, message, `Couldn't find equipment slot "${equipmentSlotId}".`);
+        return game.communicationHandler.reply(message, `Couldn't find equipment slot "${equipmentSlotId}".`);
     }
 
     let itemName;
     if (equipmentSlot !== undefined) {
-        if (equipmentSlot.equippedItem === null) return addReply(game, message, `Nothing is equipped to ${equipmentSlotId}.`);
+        if (equipmentSlot.equippedItem === null) return game.communicationHandler.reply(message, `Nothing is equipped to ${equipmentSlotId}.`);
         itemName = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${equipmentSlotId}`)).trim();
         equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, itemName, equipmentSlot.id, "player");
     }
@@ -68,11 +67,11 @@ export async function execute (game, message, command, args, player) {
         equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, parsedInput, undefined, "player");
 
     if (equipmentSlot === undefined) {
-        if (itemName) return addReply(game, message, `Couldn't find "${itemName}" equipped to ${equipmentSlotId}.`);
-        else return addReply(game, message, `Couldn't find equipped item "${parsedInput}".`);
+        if (itemName) return game.communicationHandler.reply(message, `Couldn't find "${itemName}" equipped to ${equipmentSlotId}.`);
+        else return game.communicationHandler.reply(message, `Couldn't find equipped item "${parsedInput}".`);
     }
     else if (!equipmentSlot.equippedItem.prefab.equippable) 
-        return addReply(game, message, `You cannot unequip the ${equipmentSlot.equippedItem.name}.`);
+        return game.communicationHandler.reply(message, `You cannot unequip the ${equipmentSlot.equippedItem.name}.`);
 
     const action = new UnequipAction(game, message, player, player.location, false);
     action.performUnequip(equipmentSlot.equippedItem, equipmentSlot, hand);

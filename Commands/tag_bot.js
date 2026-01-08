@@ -1,5 +1,3 @@
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
-
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Player.js').default} Player */
@@ -22,7 +20,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `tag add kitchen video surveilled\n`
         + `tag remove kitchen audio surveilled\n`
         + `addtag vault soundproof\n`
@@ -36,7 +34,7 @@ export function usage (settings) {
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     let input = command + " " + args.join(" ");
     if (command === "tag") {
@@ -47,9 +45,9 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "addtag" && command !== "removetag") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
+    if (command !== "addtag" && command !== "removetag") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Invalid command given. Use "add" or "remove".`);
     if (args.length < 2)
-        return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     input = args.join(" ");
 
@@ -61,10 +59,10 @@ export async function execute (game, command, args, player, callee) {
             break;
         }
     }
-    if (room === undefined) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    if (room === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
 
     input = input.substring(room.id.length).trim();
-    if (input === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+    if (input === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
 
     if (command === "addtag") {
         if (!room.tags.includes(input.trim()))

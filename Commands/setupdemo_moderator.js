@@ -1,4 +1,3 @@
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 import { ChannelType } from 'discord.js';
 
@@ -39,7 +38,7 @@ export function usage(settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
 export async function execute(game, message, command, args) {
-    if (game.inProgress) return addReply(game, message, `You can't use this command while a game is in progress.`);
+    if (game.inProgress) return game.communicationHandler.reply(message, `You can't use this command while a game is in progress.`);
 
     try {
         const roomValues = await game.entitySaver.setupdemo();
@@ -53,7 +52,7 @@ export async function execute(game, message, command, args) {
                 await registerRoomCategory(roomCategory);
             }
             catch (err) {
-                addGameMechanicMessage(game, game.guildContext.commandChannel, err);
+                game.communicationHandler.sendToCommandChannel(err);
             }
         }
         else roomCategory = await game.guildContext.guild.channels.fetch(roomCategories[0].trim());
@@ -71,16 +70,16 @@ export async function execute(game, message, command, args) {
                 }
             }
 
-            addGameMechanicMessage(game, game.guildContext.commandChannel,
+            game.communicationHandler.sendToCommandChannel(
                 "The spreadsheet was populated with demo data. Once you've populated the Players sheet, either manually or with the "
                 + `${game.settings.commandPrefix}startgame command in conjunction with the ${game.settings.commandPrefix}play command, `
                 + `use ${game.settings.commandPrefix}load all start to begin the demo.`
             );
         }
-        else return addGameMechanicMessage(game, game.guildContext.commandChannel, "The spreadsheet was populated with demo data, but there was an error finding a room category to contain the new room channels.");
+        else return game.communicationHandler.sendToCommandChannel("The spreadsheet was populated with demo data, but there was an error finding a room category to contain the new room channels.");
     }
     catch (err) {
         console.log(err);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+        game.communicationHandler.sendToCommandChannel("There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
     }
 }

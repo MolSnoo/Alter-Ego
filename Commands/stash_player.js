@@ -1,5 +1,4 @@
 ﻿import StashAction from '../Data/Actions/StashAction.js';
-import { addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -23,7 +22,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}stash laptop in satchel\n`
         + `${settings.commandPrefix}store sword in sheath\n`
         + `${settings.commandPrefix}stash old key in right pocket of pants\n`
@@ -37,12 +36,12 @@ export function usage (settings) {
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  * @param {Player} player - The player who issued the command. 
  */
-export async function execute (game, message, command, args, player) {
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return addReply(game, message, `You need to specify two items. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify two items. Usage:\n${usage(game.settings)}`);
 
     const status = player.getBehaviorAttributeStatusEffects("disable stash");
-    if (status.length > 0) return addReply(game, message, `You cannot do that because you are **${status[1].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     const input = args.join(' ');
     let parsedInput = input.toUpperCase().replace(/\'/g, "");
@@ -68,7 +67,7 @@ export async function execute (game, message, command, args, player) {
                         break;
                     }
                 }
-                if (containerItemSlot === null) return addReply(game, message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
+                if (containerItemSlot === null) return game.communicationHandler.reply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.name}.`);
             }
             newArgs = parsedInput.split(' ');
             newArgs.splice(newArgs.length - 1, 1);
@@ -76,23 +75,23 @@ export async function execute (game, message, command, args, player) {
             break;
         }
         else if (parsedInput === items[i].name)
-            return addReply(game, message, `You need to specify two items. Usage:\n${usage(game.settings)}`);
+            return game.communicationHandler.reply(message, `You need to specify two items. Usage:\n${usage(game.settings)}`);
     }
-    if (containerItem === null) return addReply(game, message, `Couldn't find container item "${newArgs[newArgs.length - 1]}".`);
-    else if (containerItem.inventoryCollection.size === 0) return addReply(game, message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
+    if (containerItem === null) return game.communicationHandler.reply(message, `Couldn't find container item "${newArgs[newArgs.length - 1]}".`);
+    else if (containerItem.inventoryCollection.size === 0) return game.communicationHandler.reply(message, `${containerItem.name} cannot hold items. Contact a moderator if you believe this is a mistake.`);
 
     // Now find the item in the player's inventory.
     const hand = game.entityFinder.getPlayerHandHoldingItem(player, parsedInput, "player");
     const item = hand ? hand.equippedItem : undefined;
-    if (item === undefined) return addReply(game, message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
+    if (item === undefined) return game.communicationHandler.reply(message, `Couldn't find item "${parsedInput}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to stash it.`);
     // Make sure item and containerItem aren't the same item.
-    if (item.row === containerItem.row) return addReply(game, message, `You can't stash ${item.name} ${item.prefab.preposition} itself.`);
+    if (item.row === containerItem.row) return game.communicationHandler.reply(message, `You can't stash ${item.name} ${item.prefab.preposition} itself.`);
 
     if (containerItemSlot === null) [containerItemSlot] = containerItem.inventoryCollection.values();
-    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because it is too large.`);
-    else if (item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.name} will not fit in ${containerItem.name} because it is too large.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return addReply(game, message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because there isn't enough space left.`);
-    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return addReply(game, message, `${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
+    if (item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return game.communicationHandler.reply(message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because it is too large.`);
+    else if (item.prefab.size > containerItemSlot.capacity) return game.communicationHandler.reply(message, `${item.name} will not fit in ${containerItem.name} because it is too large.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity && containerItem.inventoryCollection.size !== 1) return game.communicationHandler.reply(message, `${item.name} will not fit in ${containerItemSlot.id} of ${containerItem.name} because there isn't enough space left.`);
+    else if (containerItemSlot.takenSpace + item.prefab.size > containerItemSlot.capacity) return game.communicationHandler.reply(message, `${item.name} will not fit in ${containerItem.name} because there isn't enough space left.`);
 
     const action = new StashAction(game, message, player, player.location, false);
     action.performStash(item, hand, containerItem, containerItemSlot);

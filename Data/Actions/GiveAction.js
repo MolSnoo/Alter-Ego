@@ -30,7 +30,7 @@ export default class GiveAction extends Action {
 		if (this.performed) return;
 		super.perform();
 		const successful = this.forced || recipient.carryWeight + item.weight <= recipient.maxCarryWeight;
-		this.getGame().narrationHandler.narrateGive(item, this.player, recipient);
+		this.getGame().narrationHandler.narrateGive(this, item, this.player, recipient);
 		this.getGame().logHandler.logGive(item, this.player, recipient, successful, this.forced);
 		if (successful) this.player.give(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot);
 	}

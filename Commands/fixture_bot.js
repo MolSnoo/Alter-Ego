@@ -1,7 +1,6 @@
 import ActivateAction from "../Data/Actions/ActivateAction.js";
 import DeactivateAction from "../Data/Actions/DeactivateAction.js";
 import Room from "../Data/Room.js";
-import { addGameMechanicMessage } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -28,7 +27,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `fixture activate blender\n`
         + `fixture deactivate microwave\n`
         + `activate keurig kyra\n`
@@ -46,7 +45,7 @@ export function usage (settings) {
  * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
  * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
  */
-export async function execute (game, command, args, player, callee) {
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     let input = cmdString;
     if (command === "fixture" || command === "object") {
@@ -57,9 +56,9 @@ export async function execute (game, command, args, player, callee) {
     }
     else input = args.join(" ");
 
-    if (command !== "activate" && command !== "deactivate") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
+    if (command !== "activate" && command !== "deactivate") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Invalid command given. Use "activate" or "deactivate".`);
     if (args.length === 0) {
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
@@ -125,8 +124,8 @@ export async function execute (game, command, args, player, callee) {
         }
     }
     if (fixture === null && player === null && room === null && fixtures.length > 0) fixture = fixtures[0];
-    else if (fixture === null) return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
-    if (fixture.recipeTag === "") return addGameMechanicMessage(game, game.guildContext.commandChannel, `Error: Couldn't execute command "${cmdString}". ${fixture.name} cannot be ${command}d because it has no recipe tag.`);
+    else if (fixture === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find fixture "${input}".`);
+    if (fixture.recipeTag === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${fixture.name} cannot be ${command}d because it has no recipe tag.`);
 
     let narrate = false;
     if (announcement === "" && player !== null) narrate = true;

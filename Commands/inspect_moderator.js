@@ -1,6 +1,5 @@
 import InspectAction from '../Data/Actions/InspectAction.js';
 import RoomItem from "../Data/RoomItem.js";
-import { addGameMechanicMessage, addReply } from '../Modules/messageHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -27,7 +26,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}inspect akio desk\n`
         + `${settings.commandPrefix}examine florian knife\n`
         + `${settings.commandPrefix}look florian knife on desk\n`
@@ -46,12 +45,12 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return addReply(game, message, `You need to specify a player and a fixture/item/player. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and a fixture/item/player. Usage:\n${usage(game.settings)}`);
 
     const player = game.entityFinder.getLivingPlayer(args[0]);
-    if (player === undefined) return addReply(game, message, `Player "${args[0]}" not found.`);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
     const input = args.join(" ");
@@ -63,7 +62,7 @@ export async function execute (game, message, command, args) {
     // Before anything else, check if the player is trying to inspect the room.
     if (parsedInput === "ROOM") {
         action.performInspect(player.location);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${player.location.id} for ${player.name}.`);
+        game.communicationHandler.sendToCommandChannel(`Successfully inspected ${player.location.id} for ${player.name}.`);
         return;
     }
 
@@ -101,7 +100,7 @@ export async function execute (game, message, command, args) {
 
     if (fixture !== null) {
         action.performInspect(fixture);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${fixture.name} for ${player.name}.`);
+        game.communicationHandler.sendToCommandChannel(`Successfully inspected ${fixture.name} for ${player.name}.`);
         return;
     }
 
@@ -170,7 +169,7 @@ export async function execute (game, message, command, args) {
 
     if (item !== null) {
         action.performInspect(item);
-        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${item.getIdentifier()} ${item.getContainerPreposition()} ${item.getContainerPhrase()} for ${player.name}.`);
+        game.communicationHandler.sendToCommandChannel(`Successfully inspected ${item.getIdentifier()} ${item.getContainerPreposition()} ${item.getContainerPhrase()} for ${player.name}.`);
         return;
     }
 
@@ -181,7 +180,7 @@ export async function execute (game, message, command, args) {
         if ((inventory[i].identifier !== "" && inventory[i].identifier === parsedInput || inventory[i].prefab.id === parsedInput || inventory[i].prefab.name === parsedInput)
             && inventory[i].quantity > 0) {
             action.performInspect(inventory[i]);
-            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${player.name}'s ` + (inventory[i].getIdentifier()) + ` for ${player.name}.`);
+            game.communicationHandler.sendToCommandChannel(`Successfully inspected ${player.name}'s ` + (inventory[i].getIdentifier()) + ` for ${player.name}.`);
             return;
         }
     }
@@ -191,12 +190,12 @@ export async function execute (game, message, command, args) {
         const occupant = player.location.occupants[i];
         const possessive = occupant.name.toUpperCase() + "S ";
         if (parsedInput.startsWith(occupant.name.toUpperCase()) && occupant.hasBehaviorAttribute("hidden"))
-            return addReply(game, message, `Couldn't find "${input}".`);
+            return game.communicationHandler.reply(message, `Couldn't find "${input}".`);
         if (occupant.name.toUpperCase() === parsedInput) {
             // Don't let player inspect themselves.
-            if (occupant.name === player.name) return addReply(game, message, `${player.name} can't inspect ${player.originalPronouns.ref}.`);
+            if (occupant.name === player.name) return game.communicationHandler.reply(message, `${player.name} can't inspect ${player.originalPronouns.ref}.`);
             action.performInspect(occupant);
-            addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${occupant.name} for ${player.name}.`);
+            game.communicationHandler.sendToCommandChannel(`Successfully inspected ${occupant.name} for ${player.name}.`);
             return;
         }
         else if (parsedInput.startsWith(possessive)) {
@@ -214,7 +213,7 @@ export async function execute (game, message, command, args) {
                     );
                     if (coveringItems.length === 0) {
                         action.performInspect(inventory[j]);
-                        addGameMechanicMessage(game, game.guildContext.commandChannel, `Successfully inspected ${occupant.name}'s ` + (inventory[j].getIdentifier()) + ` for ${player.name}.`);
+                        game.communicationHandler.sendToCommandChannel(`Successfully inspected ${occupant.name}'s ` + (inventory[j].getIdentifier()) + ` for ${player.name}.`);
                         return;
                     }
                 }
@@ -222,5 +221,5 @@ export async function execute (game, message, command, args) {
         }
     }
 
-    return addReply(game, message, `Couldn't find "${input}".`);
+    return game.communicationHandler.reply(message, `Couldn't find "${input}".`);
 }

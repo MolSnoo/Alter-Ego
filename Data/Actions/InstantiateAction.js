@@ -57,7 +57,7 @@ export default class InstantiateAction extends Action {
 		const equipmentSlot = this.player.inventoryCollection.get(equipmentSlotId);
 		const inventorySlot = createdItem.container instanceof ItemInstance ? createdItem.container.inventoryCollection.get(inventorySlotId) : undefined;
 		if (!container) {
-			if (notify) this.getGame().narrationHandler.narrateInstantiateEquippedInventoryItem(createdItem, this.player);
+			if (notify) this.getGame().narrationHandler.narrateInstantiateEquippedInventoryItem(this, createdItem, this.player);
 			this.getGame().logHandler.logInstantiateEquippedInventoryItem(createdItem, this.player, equipmentSlot);
 		}
 		else

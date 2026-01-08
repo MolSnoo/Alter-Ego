@@ -48,7 +48,7 @@ export default class DressAction extends Action {
 				}
 			}
 		}
-		this.getGame().narrationHandler.narrateDress(equippedItems, container, this.player);
+		this.getGame().narrationHandler.narrateDress(this, equippedItems, container, this.player);
 		this.getGame().logHandler.logDress(equippedItems, this.player, container, inventorySlot, this.forced);
 		// Container is a weight puzzle.
 		if (container instanceof Puzzle && container.type === "weight") {

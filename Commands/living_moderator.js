@@ -1,6 +1,4 @@
-﻿import { addGameMechanicMessage } from '../Modules/messageHandler.js';
-
-/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+﻿/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
 
 /** @type {CommandConfig} */
@@ -17,7 +15,7 @@ export const config = {
  * @param {GameSettings} settings 
  * @returns {string} 
  */
-export function usage (settings) {
+export function usage(settings) {
     return `${settings.commandPrefix}living\n`
         + `${settings.commandPrefix}alive`;
 }
@@ -28,7 +26,7 @@ export function usage (settings) {
  * @param {string} command - The command alias that was used. 
  * @param {string[]} args - A list of arguments passed to the command as individual words. 
  */
-export async function execute (game, message, command, args) {
+export async function execute(game, message, command, args) {
     let playerList = `Living players:\n${game.entityFinder.getLivingPlayers().map(player => player.name).join(" ")}`;
-    addGameMechanicMessage(game, game.guildContext.commandChannel, playerList);
+    game.communicationHandler.sendToCommandChannel(playerList);
 }

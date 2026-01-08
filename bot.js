@@ -62,15 +62,14 @@ let playerCommands = new Collection();
 let eligibleCommands = new Collection();
 async function loadCommands() {
     const commandsDir = `./Commands/`;
-    readdir(commandsDir, async (err, files) => {
-        if (err) console.log(err);
+    readdir(commandsDir, async (error, files) => {
+        if (error) console.log(error);
 
-        let commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
+        const commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
         if (commandFiles.length <= 0) {
-            console.log("Error: Couldn't find commands.");
+        console.log("Error: Couldn't find commands.");
             return process.exit(1);
         }
-
         await Promise.all(commandFiles.map(async file => {
             await import(`${commandsDir}${file}`).then(commandProps => {
                 const config = commandProps.config;
@@ -92,7 +91,6 @@ async function loadCommands() {
         });
     });
 }
-
 /** @returns {Promise<boolean>} */
 async function createGuildContext() {
     if (client.guilds.cache.size === 1) {
