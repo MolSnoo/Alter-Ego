@@ -23,7 +23,8 @@ describe('GameCommunicationHandler test', () => {
         const sendDialogSpectateMessageSpy = vi.spyOn(messageHandler, 'sendDialogSpectateMessage').mockImplementation(async (player, dialog, webHookUsername) => {});
 		const dialog = new Dialog(game, message, player, player.location, true);
 		const action = new AnnounceAction(game, message, player, player.location, false);
-		game.communicationHandler.mirrorAnnouncement(action, dialog);
+		for (const livingPlayer of game.livingPlayersCollection.values())
+			game.communicationHandler.mirrorDialogInSpectateChannel(livingPlayer, action, dialog);
 		expect(sendDialogSpectateMessageSpy).toHaveBeenCalledTimes(spectateChannelIds.length);
         for (const spectateChannelId of spectateChannelIds) {
             expect(action.hasBeenCommunicatedIn(spectateChannelId)).toBe(true);
@@ -38,20 +39,26 @@ describe('GameCommunicationHandler test', () => {
 		const actions = [];
 		for (let i = 0; i < actionCacheLimit; i++) {
 			actions.push(new AnnounceAction(game, message, player, player.location, false));
-			game.communicationHandler.mirrorAnnouncement(actions[i], new Dialog(game, message, player, player.location, true));
+			const dialog = new Dialog(game, message, player, player.location, true);
+			for (const livingPlayer of game.livingPlayersCollection.values())
+				game.communicationHandler.mirrorDialogInSpectateChannel(livingPlayer, actions[i], dialog);
 		}
 
 		// We should have sent messages for each initial action.
 		expect(sendDialogSpectateMessageSpy).toHaveBeenCalledTimes(actionCacheLimit * spectateChannelIds.length);
 
 		// Re-announcing the first action should NOT trigger another message (still in cache).
-		game.communicationHandler.mirrorAnnouncement(actions[0], new Dialog(game, message, player, player.location, true));
+		let dialog = new Dialog(game, message, player, player.location, true);
+		for (const livingPlayer of game.livingPlayersCollection.values())
+			game.communicationHandler.mirrorDialogInSpectateChannel(livingPlayer, actions[0], dialog);
 		expect(sendDialogSpectateMessageSpy).toHaveBeenCalledTimes(actionCacheLimit * spectateChannelIds.length);
 
 		// Add more actions to overflow the cache.
 		for (let i = actionCacheLimit; i < actionCacheLimit + 5; i++) {
 			actions.push(new AnnounceAction(game, message, player, player.location, false));
-			game.communicationHandler.mirrorAnnouncement(actions[i], new Dialog(game, message, player, player.location, true));
+			const dialog = new Dialog(game, message, player, player.location, true);
+			for (const livingPlayer of game.livingPlayersCollection.values())
+				game.communicationHandler.mirrorDialogInSpectateChannel(livingPlayer, actions[i], dialog);
 		}
         expect(game.communicationHandler.getActionCache().size).toBe(actionCacheLimit);
 
@@ -59,7 +66,9 @@ describe('GameCommunicationHandler test', () => {
 		expect(sendDialogSpectateMessageSpy).toHaveBeenCalledTimes((actionCacheLimit + 5) * spectateChannelIds.length);
 
 		// The oldest action (actions[0]) should have been removed from the cache, but the action has already been mirrored, so it shouldn't be mirrored again.
-		game.communicationHandler.mirrorAnnouncement(actions[0], new Dialog(game, message, player, player.location, true));
+		dialog = new Dialog(game, message, player, player.location, true);
+		for (const livingPlayer of game.livingPlayersCollection.values())
+			game.communicationHandler.mirrorDialogInSpectateChannel(livingPlayer, actions[0], dialog);
 		expect(sendDialogSpectateMessageSpy).toHaveBeenCalledTimes((actionCacheLimit + 5) * spectateChannelIds.length);
         expect(game.communicationHandler.getActionCache().size).toBe(actionCacheLimit);
         sendDialogSpectateMessageSpy.mockRestore();
