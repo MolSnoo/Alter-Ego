@@ -119,7 +119,7 @@ export default class Status extends GameEntity {
      * The behavior attributes this status applies to the player.
      * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes
      * @readonly
-     * @type {string[]}
+     * @type {Set<string>}
      */
     behaviorAttributes;
     /**
@@ -152,7 +152,7 @@ export default class Status extends GameEntity {
      * @param {string} duplicatedStatusId - The ID of the status that this Status will turn into if it is inflicted on a player who already has it.
      * @param {string} curedConditionId - The ID of the status that will be inflicted on the player if this one is cured.
      * @param {StatModifier[]} statModifiers - Stat modifiers to apply to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#stat-modifiers}
-     * @param {string[]} behaviorAttributes - The behavior attributes this status applies to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes}
+     * @param {Set<string>} behaviorAttributes - The behavior attributes this status applies to the player. {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/status.html#behavior-attributes}
      * @param {string} inflictedDescription - The description of the status when a player is inflicted with it.
      * @param {string} curedDescription - The description of the status when a player is cured of it.
      * @param {number} row - The row number of the status in the sheet.
@@ -178,7 +178,7 @@ export default class Status extends GameEntity {
         this.curedCondition = null;
         this.statModifiers = statModifiers;
         this.behaviorAttributes = behaviorAttributes;
-        this.attributes = behaviorAttributes;
+        this.attributes = Array.from(behaviorAttributes);
         this.inflictedDescription = inflictedDescription;
         this.curedDescription = curedDescription;
 

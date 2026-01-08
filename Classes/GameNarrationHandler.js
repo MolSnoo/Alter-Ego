@@ -289,7 +289,7 @@ export default class GameNarrationHandler {
 		let narration = "";
 		if (status.id === "asleep") narration = this.#game.notificationGenerator.generateFallAsleepNotification(player.displayName);
 		else if (status.id === "blacked out") narration = this.#game.notificationGenerator.generateBlackOutNotification(player.displayName);
-		else if (status.behaviorAttributes.includes("unconscious")) narration = this.#game.notificationGenerator.generateUnconsciousNotification(player.displayName);
+		else if (status.behaviorAttributes.has("unconscious")) narration = this.#game.notificationGenerator.generateUnconsciousNotification(player.displayName);
 		if (narration) this.#sendNarration(action, player, narration);
 	}
 
@@ -301,12 +301,12 @@ export default class GameNarrationHandler {
 	 * @param {InventoryItem} [item] - The inventory item that caused the status to be cured, if applicable.
 	 */
 	narrateCure(action, status, player, item) {
-		if (status.behaviorAttributes.includes("concealed")) {
+		if (status.behaviorAttributes.has("concealed")) {
 			const maskName = item ? item.name : "MASK";
 			const unmaskedNarration = this.#game.notificationGenerator.generateConcealedCuredNotification(maskName, player.displayName);
 			this.#sendNarration(action, player, unmaskedNarration);
 		}
-		else if (status.behaviorAttributes.includes("unconscious")) {
+		else if (status.behaviorAttributes.has("unconscious")) {
 			let awakenNarration = "";
 			if (status.id === "asleep" || status.id === "blacked out") awakenNarration = this.#game.notificationGenerator.generateWakeUpNotification(player.displayName);
 			else awakenNarration = this.#game.notificationGenerator.generateRegainConsciousnessNotification(player.displayName);

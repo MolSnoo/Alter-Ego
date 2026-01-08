@@ -128,7 +128,7 @@ export default class Die extends GameConstruct {
                     for (const modifier of status.statModifiers) {
                         // Get defender's modifiers that affect the attacker's roll.
                         if (!modifier.modifiesSelf) {
-                            const tempStatus = new Status(`${defender.name} ${status.id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: modifier.stat, assignValue: modifier.assignValue, value: modifier.value }], [], "", "", -1, this.getGame());
+                            const tempStatus = new Status(`${defender.name} ${status.id}`, null, false, false, [], [], null, null, null, [{ modifiesSelf: true, stat: modifier.stat, assignValue: modifier.assignValue, value: modifier.value }], new Set(), "", "", -1, this.getGame());
                             tempStatuses.push(tempStatus);
                             attacker.inflict(tempStatus);
                         }

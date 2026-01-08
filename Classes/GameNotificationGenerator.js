@@ -143,7 +143,7 @@ export default class GameNotificationGenerator {
 		const playerIsBeingMimicked = dialog.speakerRecognitionName === player.name;
 		const playerRecognizesSpeaker = player.hasBehaviorAttribute(`knows ${dialog.speakerRecognitionName}`);
 		const playerCanSee = !player.hasBehaviorAttribute("no sight");
-		const playerCanSeeSpeaker = playerCanSee && player.location.tags.includes("video monitoring") && dialog.location.tags.includes("video surveilled") && !dialog.speaker.hasBehaviorAttribute("hidden");
+		const playerCanSeeSpeaker = playerCanSee && player.location.tags.has("video monitoring") && dialog.location.tags.has("video surveilled") && !dialog.speaker.hasBehaviorAttribute("hidden");
 
 		let speakerString = "";
 		if (playerRecognizesSpeaker && !playerIsBeingMimicked)

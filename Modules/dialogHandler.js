@@ -198,7 +198,7 @@ export default async function execute(game, message, deletable, player = null, o
                 if (room.occupants.length === 1 && room.occupants[0].hasBehaviorAttribute("unconscious"))
                     deafPlayerInRoom = true;
                 // Handle messages in adjacent rooms.
-                if (!room.tags.includes("soundproof") && !message.content.startsWith('(')) {
+                if (!room.tags.has("soundproof") && !message.content.startsWith('(')) {
                     /** @type {string[]} */
                     let destinations = [];
                     for (let exit of room.exitCollection.values()) {
@@ -206,7 +206,7 @@ export default async function execute(game, message, deletable, player = null, o
                         // Prevent duplication when two rooms are connected by multiple exits.
                         if (destinations.includes(nextdoor.id)) continue;
                         destinations.push(nextdoor.id);
-                        if (!nextdoor.tags.includes("soundproof") && nextdoor.occupants.length > 0 && nextdoor.id !== room.id) {
+                        if (!nextdoor.tags.has("soundproof") && nextdoor.occupants.length > 0 && nextdoor.id !== room.id) {
                             let deafPlayerInNextdoor = false;
                             // Check if there are any deaf players in the next room.
                             for (let j = 0; j < nextdoor.occupants.length; j++) {
@@ -237,8 +237,8 @@ export default async function execute(game, message, deletable, player = null, o
                                 else if (!isShouting && occupant.hasBehaviorAttribute("acute hearing"))
                                     occupant.notify(`You hear ${speakerVoiceString} from a nearby room say "${message.content}".`);
                             }
-                            if (isShouting && nextdoor.tags.includes("audio surveilled")) {
-                                let roomDisplayName = nextdoor.tags.includes("secret") ? "Intercom" : nextdoor.id;
+                            if (isShouting && nextdoor.tags.has("audio surveilled")) {
+                                let roomDisplayName = nextdoor.tags.has("secret") ? "Intercom" : nextdoor.id;
                                 const monitoringRooms = game.entityFinder.getRooms(null, "audio monitoring", true);
                                 for (let monitoringRoom of monitoringRooms) {
                                     let deafPlayerInMonitoringRoom = false;
@@ -339,8 +339,8 @@ export default async function execute(game, message, deletable, player = null, o
                 }
 
                 // Handle surveillance behavior.
-                if (room.tags.includes("audio surveilled") && !message.content.startsWith('(')) {
-                    let roomDisplayName = room.tags.includes("secret") ? room.tags.includes("video surveilled") ? "Surveillance feed" : "Intercom" : room.id;
+                if (room.tags.has("audio surveilled") && !message.content.startsWith('(')) {
+                    let roomDisplayName = room.tags.has("secret") ? room.tags.has("video surveilled") ? "Surveillance feed" : "Intercom" : room.id;
                     const monitoringRooms = game.entityFinder.getRooms(null, "audio monitoring", true);
                     for (let monitoringRoom of monitoringRooms) {
                         if (monitoringRoom.id !== room.id) {
@@ -352,7 +352,7 @@ export default async function execute(game, message, deletable, player = null, o
                             if (monitoringRoom.occupants.length === 1 && monitoringRoom.occupants[0].hasBehaviorAttribute("unconscious"))
                                 deafPlayerInMonitoringRoom = true;
 
-                            if (room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !deafPlayerInMonitoringRoom) {
+                            if (room.tags.has("video surveilled") && monitoringRoom.tags.has("video monitoring") && !deafPlayerInMonitoringRoom) {
                                 // Create a webhook for this channel if necessary, or grab the existing one.
                                 let webHooks = await monitoringRoom.channel.fetchWebhooks();
                                 let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
@@ -377,7 +377,7 @@ export default async function execute(game, message, deletable, player = null, o
                                 let occupant = monitoringRoom.occupants[j];
                                 if (occupant.hasBehaviorAttribute("no hearing") || occupant.hasBehaviorAttribute("unconscious")) continue;
 
-                                if (occupant.hasBehaviorAttribute(`knows ${speakerRecognitionName}`) && room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !occupant.hasBehaviorAttribute("no sight")) {
+                                if (occupant.hasBehaviorAttribute(`knows ${speakerRecognitionName}`) && room.tags.has("video surveilled") && monitoringRoom.tags.has("video monitoring") && !occupant.hasBehaviorAttribute("no sight")) {
                                     if (player.displayName !== speakerRecognitionName) {
                                         occupant.notify(`\`[${roomDisplayName}]\` ${player.displayName}, with ${speakerVoiceString} you recognize to be ${speakerRecognitionName}'s, ${verb}s "${message.content}".`, false);
                                         addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName} (${speakerRecognitionName})`);
@@ -388,7 +388,7 @@ export default async function execute(game, message, deletable, player = null, o
                                     }
                                     else addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
                                 }
-                                else if (room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !occupant.hasBehaviorAttribute("no sight")) {
+                                else if (room.tags.has("video surveilled") && monitoringRoom.tags.has("video monitoring") && !occupant.hasBehaviorAttribute("no sight")) {
                                     if (occupant.hasBehaviorAttribute("hear room")) {
                                         if (occupant.name === speakerRecognitionName)
                                             occupant.notify(`\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}" in your voice!`);
@@ -401,7 +401,7 @@ export default async function execute(game, message, deletable, player = null, o
                                         occupant.notify(`\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}" in your voice!`);
                                     else addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${player.displayName}`);
                                 }
-                                else if (occupant.hasBehaviorAttribute(`knows ${speakerRecognitionName}`) && (!room.tags.includes("video surveilled") || !monitoringRoom.tags.includes("video monitoring"))) {
+                                else if (occupant.hasBehaviorAttribute(`knows ${speakerRecognitionName}`) && (!room.tags.has("video surveilled") || !monitoringRoom.tags.has("video monitoring"))) {
                                     occupant.notify(`\`[${roomDisplayName}]\` ${speakerRecognitionName} ${verb}s "${message.content}".`);
                                 }
                                 else if (occupant.hasBehaviorAttribute("hear room") || deafPlayerInMonitoringRoom) {
@@ -410,7 +410,7 @@ export default async function execute(game, message, deletable, player = null, o
                                         occupant.notify(`\`[${roomDisplayName}]\` ${speakerRecognitionName} ${verb}s "${message.content}".`, noSight);
                                         if (!noSight) addSpectatedPlayerMessage(occupant, speaker, message, null, `[${roomDisplayName}] ${speakerRecognitionName}`);
                                     }
-                                    else if (room.tags.includes("video surveilled") && monitoringRoom.tags.includes("video monitoring") && !occupant.hasBehaviorAttribute("no sight")) {
+                                    else if (room.tags.has("video surveilled") && monitoringRoom.tags.has("video monitoring") && !occupant.hasBehaviorAttribute("no sight")) {
                                         if (occupant.name === speakerRecognitionName)
                                             occupant.notify(`\`[${roomDisplayName}]\` ${player.displayName} ${verb}s "${message.content}" in your voice!`);
                                         else {
@@ -501,8 +501,8 @@ export default async function execute(game, message, deletable, player = null, o
                 else if (!occupant.hasBehaviorAttribute("no sight") && !occupant.hasBehaviorAttribute("unconscious") && !message.content.startsWith('('))
                     addSpectatedPlayerMessage(occupant, message.member, message, whisper, message.member.displayName);
             }
-            if (whisper === null && room.tags.includes("video surveilled")) {
-                let roomDisplayName = room.tags.includes("secret") ? "Surveillance feed" : room.displayName;
+            if (whisper === null && room.tags.has("video surveilled")) {
+                let roomDisplayName = room.tags.has("secret") ? "Surveillance feed" : room.displayName;
                 let messageText = `\`[${roomDisplayName}] ${message.content}\``;
                 let monitoringRooms = game.entityFinder.getRooms(null, "video monitoring", true);
                 for (let monitoringRoom of monitoringRooms) {
