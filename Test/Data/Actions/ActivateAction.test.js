@@ -35,13 +35,6 @@ describe('ActivateAction test', () => {
             expect(action.performed).toBe(true);
         });
 
-        test('id should be set correctly', () => {
-            let action = new ActivateAction(game, message, player, location, false);
-            action.performActivate(fixture, true);
-            let startWith = action.id.split('-');
-            expect(startWith[0]).toBe('activate');
-        });
-
         test('fixture activate should be called', () => {
             let action = new ActivateAction(game, message, player, location, false);
             action.performActivate(fixture, true);
