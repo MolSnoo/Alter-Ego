@@ -1,7 +1,7 @@
 import Dialog from '../Data/Dialog.js';
 import Player from '../Data/Player.js';
 import AnnounceAction from '../Data/Actions/AnnounceAction.js';
-import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection, GuildMember } from 'discord.js';
+import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection, GuildMember, TextChannel, Embed, Webhook } from 'discord.js';
 
 /** @typedef {import('../Data/Game.js').default} Game */
 /** @typedef {import('../Data/Room.js').default} Room */
@@ -412,27 +412,24 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
                     ? `*(Whispered):*\n${message.content || ""}`
                     : message.content || "";
 
-        const webhooks = await player.spectateChannel.fetchWebhooks();
-        let webhook = webhooks.find((wh) => wh.owner.id === message.client.user.id);
-        if ((webhook === null) || (webhook === undefined))
-            webhook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
-
+        const webhook = await getOrCreateWebhook(player.spectateChannel);
         const files = message.attachments.map((attachment) => attachment.url);
 
         player.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
-                    const webhookMessage = await webhook.send({
-                        content: messageText,
-                        username: displayName ? displayName : speaker.displayName,
-                        avatarURL: !(speaker instanceof GuildMember) && speaker.displayIcon
+                    const webhookMessage = await sendWebhookMessage(
+                        webhook,
+                        messageText,
+                        displayName ? displayName : speaker.displayName,
+                        !(speaker instanceof GuildMember) && speaker.displayIcon
                             ? speaker.displayIcon
                             : speaker instanceof Player && speaker.member
                                 ? speaker.member.displayAvatarURL()
                                 : message.author.avatarURL() || message.author.defaultAvatarURL,
-                        embeds: message.embeds,
-                        files: files,
-                    });
+                        message.embeds,
+                        files,
+                    );
                     player.getGame().communicationHandler.cacheSpectateMirrorForDialog(message, webhookMessage.id, webhook.id);
                 },
             },
@@ -446,8 +443,9 @@ export async function addSpectatedPlayerMessage(player, speaker, message, whispe
  * @param {Player} player - The player whose spectate channel this message is being sent to.
  * @param {Dialog} dialog - The dialog to mirror.
  * @param {string} [webhookUsername] - The username to use for the mirrored webhook message. If none is specified, the speaker's current displayName will be used.
+ * @param {string} [webhookAvatarURL] - The avatar URL to use for the mirrored webhook message. If none is specified, the speaker's current displayIcon will be used.
  */
-export async function sendDialogSpectateMessage(player, dialog, webhookUsername) {
+export async function sendDialogSpectateMessage(player, dialog, webhookUsername, webhookAvatarURL) {
     if (player.spectateChannel !== null) {
         const messageText =
             dialog.whisper && dialog.whisper.playersCollection.size > 1
@@ -456,21 +454,18 @@ export async function sendDialogSpectateMessage(player, dialog, webhookUsername)
                     ? `*(Whispered):*\n${dialog.content || ""}`
                     : dialog.content || "";
 
-        const webhooks = await player.spectateChannel.fetchWebhooks();
-        let webhook = webhooks.find((wh) => wh.owner.id === player.getGame().botContext.client.user.id);
-        if ((webhook === null) || (webhook === undefined))
-            webhook = await player.spectateChannel.createWebhook({ name: player.spectateChannel.name });
-
+        const webhook = await getOrCreateWebhook(player.spectateChannel);
         player.getGame().messageQueue.enqueue(
             {
                 fire: async () => {
-                    const webhookMessage = await webhook.send({
-                        content: messageText,
-                        username: webhookUsername ? webhookUsername : dialog.speakerDisplayName,
-                        avatarURL: dialog.speakerDisplayIcon,
-                        embeds: dialog.embeds,
-                        files: dialog.attachments.map((attachment) => attachment.url),
-                    });
+                    const webhookMessage = await sendWebhookMessage(
+                        webhook,
+                        messageText,
+                        webhookUsername ? webhookUsername : dialog.speakerDisplayName,
+                        webhookAvatarURL ? webhookAvatarURL : dialog.speakerDisplayIcon,
+                        dialog.embeds,
+                        dialog.attachments.map((attachment) => attachment.url)
+                    );
                     player.getGame().communicationHandler.cacheSpectateMirrorForDialog(dialog.message, webhookMessage.id, webhook.id);
                 },
             },
@@ -500,6 +495,38 @@ export async function editSpectatorMessage(game, messageOld, messageNew) {
             webhook.editMessage(mirror.messageId, { content: messageText });
         }
     });
+}
+
+/**
+ * Gets the client's webhook for the given channel, or creates one if it doesn't exist already.
+ * @param {TextChannel} channel - The channel to get or create a webhook for. 
+ */
+export async function getOrCreateWebhook(channel) {
+    const webhooks = await channel.fetchWebhooks();
+    let webhook = webhooks.find(webhook => webhook.owner.id === channel.client.user.id);
+    if (webhook === undefined)
+        webhook = await channel.createWebhook({ name: channel.name });
+    return webhook;
+}
+
+/**
+ * Sends a webhook message in the specified channel.
+ * @param {Webhook} webhook - The channel to send the webhook message to.
+ * @param {string} content - The content of the message to send. 
+ * @param {string} username - The username of the webhook message. 
+ * @param {string} avatarURL - The URL of the icon to use for the webhook message. 
+ * @param {Embed[]} embeds - An array of embeds to send in the message. Optional. 
+ * @param {string[]} files - An array of URLs to send as attachments. Optional.
+ */
+export async function sendWebhookMessage(webhook, content, username, avatarURL, embeds = [], files = []) {
+    const createdMessage = await webhook.send({
+        content: content,
+        username: username,
+        avatarURL: avatarURL,
+        embeds: embeds,
+        files: files
+    });
+    return createdMessage;
 }
 
 /**

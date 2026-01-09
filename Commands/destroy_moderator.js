@@ -71,7 +71,7 @@ export async function execute(game, message, command, args) {
     let item = null;
     let player = null;
     // Room was found. Look for the container in it.
-    if (room !== null) {
+    if (room !== undefined) {
         let containerItem = null;
         let containerItemSlot = null;
         // Check if a container item was specified.
@@ -302,7 +302,7 @@ export async function execute(game, message, command, args) {
             }
             else {
                 for (const [id, slot] of player.inventoryCollection) {
-                    if (slot.equippedItem !== null && slot.equippedItem.identifier === parsedInput || slot.equippedItem.prefab.id === parsedInput) {
+                    if (slot.equippedItem !== null && (slot.equippedItem.identifier === parsedInput || slot.equippedItem.prefab.id === parsedInput)) {
                         item = slot.equippedItem
                         equipmentSlotName = id
                         if (destroyAll) return game.communicationHandler.reply(message, `The "all" argument cannot be used when the container is an equipped item.`);

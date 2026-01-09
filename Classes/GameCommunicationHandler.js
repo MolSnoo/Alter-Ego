@@ -2,7 +2,7 @@ import Action from "../Data/Action.js";
 import Room from "../Data/Room.js";
 import * as messageHandler from "../Modules/messageHandler.js";
 import { parseDescription } from "../Modules/parser.js";
-import { Attachment, Collection } from "discord.js";
+import { Attachment, Collection, TextChannel } from "discord.js";
 
 /** @typedef {import("../Data/Dialog.js").default} Dialog */
 /** @typedef {import("../Data/Game.js").default} Game */
@@ -208,12 +208,13 @@ export default class GameCommunicationHandler {
 	 * @param {Action} action - The action associated with the dialog.
 	 * @param {Dialog} dialog - The dialog that was spoken.
 	 * @param {string} [webhookUsername] - A custom username to use for the webhook that will send the spectate message. Optional.
+	 * @param {string} [webhookAvatarURL] - A custom avatar URL to use for the webhook that will send the spectate message. Optional.
 	 * @param {string} [notification] - A custom notification that will be sent to the player afterwards. Optional. This notification will not be mirrored in the spectate channel.
 	 */
-	mirrorDialogInSpectateChannel(player, action, dialog, webhookUsername, notification) {
+	mirrorDialogInSpectateChannel(player, action, dialog, webhookUsername, webhookAvatarURL, notification) {
 		if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
 			this.#cacheChannelFor(action, player.spectateChannel.id);
-			messageHandler.sendDialogSpectateMessage(player, dialog, webhookUsername);
+			messageHandler.sendDialogSpectateMessage(player, dialog, webhookUsername, webhookAvatarURL);
 			if (notification) this.notifyPlayer(player, action, notification, false);
 		}
 	}
@@ -258,5 +259,26 @@ export default class GameCommunicationHandler {
 	 */
 	sendLogMessage(logText) {
 		messageHandler.addLogMessage(this.#game, logText);
+	}
+
+	/**
+	 * Sends dialog as a webhook message to the specified channel.
+	 * @param {Dialog} dialog - The dialog to send.
+	 * @param {TextChannel} channel - The channel to send the webhook message to.
+	 * @param {string} [webhookUsername] - A custom username to use for the webhook that will send the spectate message. Optional.
+	 * @param {string} [webhookAvatarURL] - A custom avatar URL to use for the webhook that will send the spectate message. Optional.
+	 * @returns The created webhook message.
+	 */
+	async sendDialogAsWebhook(channel, dialog, webhookUsername = dialog.speakerDisplayName, webhookAvatarURL = dialog.speakerDisplayIcon) {
+		const webhook = await messageHandler.getOrCreateWebhook(channel);
+		const webhookMessage = await messageHandler.sendWebhookMessage(
+			webhook,
+			dialog.content,
+			webhookUsername,
+			webhookAvatarURL,
+			dialog.embeds,
+			dialog.attachments.map(attachment => attachment.url)
+		);
+		return webhookMessage;
 	}
 }
