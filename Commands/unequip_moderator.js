@@ -37,7 +37,7 @@ export async function execute(game, message, command, args) {
     if (args.length < 2)
         return game.communicationHandler.reply(message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    const player = game.entityFinder.getLivingPlayer(args[0].toUpperCase().replace(/'S/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/gi, ""));
     if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -64,7 +64,7 @@ export async function execute(game, message, command, args) {
             return game.communicationHandler.reply(message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
         item = slot.equippedItem;
     } else {
-        slot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, itemName, null, "player");
+        slot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, itemName, null);
         if (slot === undefined)
             return game.communicationHandler.reply(message, `Couldn't find equipped item "${split[0]}".`);
         // slot.equippedItem will never be null, because slot.equippedItem.name resolves to itemName
