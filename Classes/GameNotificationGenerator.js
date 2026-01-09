@@ -144,21 +144,21 @@ export default class GameNotificationGenerator {
 	 * Generates a notification indicating that a player heard dialog through a player with the `receiver` behavior attribute. 
 	 * @param {Dialog} dialog - The dialog that was spoken.
 	 * @param {Player} player - The player referred to in this notification.
+	 * @param {boolean} secondPerson - Whether or not the player should be referred to in second person.
 	 * @param {string} [receiverName] - The name of the inventory item that gave the player the `receiver` behavior attribute. Defaults to "receiver".
-	 * @param {boolean} [receiverBelongsToPlayer] - Whether or not the receiver inventory item belongs to the player being notified.
 	 */
-	generateHearReceiverDialogNotification(dialog, player, receiverName = "receiver", receiverBelongsToPlayer) {
-		const receiverOwnerName = receiverBelongsToPlayer ? `your` : `${player.displayName}'s`;
+	generateHearReceiverDialogNotification(dialog, player, secondPerson, receiverName = "receiver") {
+		const receiverOwnerName = secondPerson ? `your` : `${player.displayName}'s`;
 		let speakerString = "";
 		let receiverString = "";
-		if (player.knows(dialog.speakerRecognitionName) && !dialog.isMimicking(player)) {
+		if (secondPerson && player.knows(dialog.speakerRecognitionName) && !dialog.isMimicking(player)) {
 			speakerString = `${dialog.speakerRecognitionName}`;
 			receiverString = ` through ${receiverOwnerName} ${receiverName}`;
 		}
 		else
-			speakerString = dialog.isMimicking(player) ? `someone speaking through ${receiverOwnerName} ${receiverName}` : `${dialog.speakerVoiceString} coming from ${receiverOwnerName} ${receiverName}`;
+			speakerString = secondPerson && dialog.isMimicking(player) ? `someone speaking through ${receiverOwnerName} ${receiverName}` : `${dialog.speakerVoiceString} coming from ${receiverOwnerName} ${receiverName}`;
 		const verb = dialog.isShouted ? `shouts` : `says`;
-		const punctuation = dialog.isMimicking(player) ? ` in your voice!` : `.`;
+		const punctuation = secondPerson && dialog.isMimicking(player) ? ` in your voice!` : `.`;
 		return `${speakerString} ${verb} "\`${dialog.content}\`"${receiverString}${punctuation}`;
 	}
 

@@ -32,6 +32,7 @@ export default class SayAction extends Action {
 		this.#solveVoicePuzzles(dialog.location, dialog);
 		this.#communicateDialogToNeighboringRooms(dialog);
 		this.#communicateDialogToAudioMonitoringRooms(dialog);
+		this.#communicateDialogToReceivers(dialog);
 	}
 
 	/**
@@ -247,6 +248,26 @@ export default class SayAction extends Action {
 				this.getGame().narrationHandler.narrateSay(this, dialog, audioMonitoringRoom, narration);
 			}
 			this.#solveVoicePuzzles(audioMonitoringRoom, dialog);
+		}
+	}
+
+	/**
+	 * Communicates dialog to players with the `receiver` behavior attribute.
+	 * @param {Dialog} dialog - The dialog that was spoken.
+	 */
+	#communicateDialogToReceivers(dialog) {
+		for (const [receiverPlayerName, receiverItem] of dialog.receivers) {
+			const receiverPlayer = this.getGame().entityFinder.getLivingPlayer(receiverPlayerName);
+			for (const player of receiverPlayer.location.occupants) {
+				if (this.#playerCannotReceiveCommunications(player)) continue;
+				if (this.#playerShouldReceiveNotification(dialog, player)) {
+					const notification = this.getGame().notificationGenerator.generateHearReceiverDialogNotification(dialog, player, receiverItem.player.name === player.name, receiverItem.name);
+					this.getGame().communicationHandler.notifyPlayer(player, this, notification);
+				}
+			}
+			const narration = this.getGame().notificationGenerator.generateHearReceiverDialogNotification(dialog, receiverPlayer, false, receiverItem.name);
+			this.getGame().narrationHandler.narrateSay(this, dialog, receiverPlayer.location, narration);
+			this.#solveVoicePuzzles(receiverPlayer.location, dialog);
 		}
 	}
 }
