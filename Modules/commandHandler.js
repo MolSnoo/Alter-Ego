@@ -32,7 +32,7 @@ export async function executeCommand(commandStr, game, message, player, callee) 
         else if (member && !game.settings.debug && member.roles.cache.has(game.guildContext.eligibleRole.id)) isEligible = true;
     }
 
-    const commandSplit = commandStr.split(" ");
+    const commandSplit = commandStr.split(/\s/).filter(arg => arg !== "");
     const commandAlias = commandSplit[0].toLocaleLowerCase();
     const args = commandSplit.slice(1);
 
