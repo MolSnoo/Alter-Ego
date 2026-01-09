@@ -115,7 +115,7 @@ export default class SayAction extends Action {
 	 * @param {string} narrationText - The text to narrate.
 	 */
 	#narrateDialogAndSolveVoicePuzzles(location, dialog, narrationText) {
-		if (location.tags.has("video monitoring") && dialog.locationIsVideoSurveilled)
+		if (location.tags.has("audio monitoring") && location.tags.has("video monitoring") && dialog.locationIsAudioSurveilled && dialog.locationIsVideoSurveilled)
 			this.getGame().communicationHandler.sendDialogAsWebhook(location.channel, dialog, dialog.getDisplayNameForWebhook(false), dialog.getDisplayIconForWebhook(false));
 		else
 			this.getGame().narrationHandler.narrateSay(this, dialog, location, narrationText);
