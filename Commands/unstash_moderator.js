@@ -61,9 +61,9 @@ export async function execute(game, message, command, args) {
             playerItems[i].name === parsedInput) {
             item = playerItems[i];
             container = playerItems[i].container;
+            if (playerItems[i].container === null) continue;
             slotName = playerItems[i].slot;
             slot = container.inventoryCollection.get(slotName);
-            if (playerItems[i].container === null) continue;
             break;
         }
         // A container was specified.
