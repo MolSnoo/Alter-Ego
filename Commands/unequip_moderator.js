@@ -74,7 +74,7 @@ export async function execute(game, message, command, args) {
     if (slot.id === "RIGHT HAND" || slot.id === "LEFT HAND")
         return game.communicationHandler.reply(message, `Cannot unequip items from either of ${player.name}'s hands. To get rid of this item, use the drop command.`);
 
-    const action = new UnequipAction(game, message, player, player.location, false);
+    const action = new UnequipAction(game, message, player, player.location, true);
     action.performUnequip(item, slot, hand);
     game.communicationHandler.sendToCommandChannel(`Successfully unequipped ${item.getIdentifier()} from ${player.name}'s ${slot}.`);
 }
