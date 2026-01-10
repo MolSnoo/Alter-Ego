@@ -1,5 +1,6 @@
-﻿import Narration from '../Data/Narration.js';
-import handleDialog from '../Modules/dialogHandler.js';
+﻿import Dialog from '../Data/Dialog.js';
+import NarrateAction from '../Data/Actions/NarrateAction.js';
+import SayAction from '../Data/Actions/SayAction.js';
 import { ChannelType } from 'discord.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -40,51 +41,26 @@ export async function execute(game, message, command, args) {
         return game.communicationHandler.reply(message, `You need to specify a channel or player and something to say. Usage:\n${usage(game.settings)}`);
 
     const channel = message.mentions.channels.first();
-    const string = args.slice(1).join(" ");
+    const content = args.slice(1).join(" ");
+    const player = game.entityFinder.getLivingPlayer(args[0]);
 
-    let player = game.entityFinder.getLivingPlayer(args[0]);
-    let room = null;
-    if (!player)
-        player = null;
-    else if (!player.isNPC)
-        return game.communicationHandler.reply(message, `You cannot speak for a player that isn't an NPC.`);
-    if (player !== null) {
-        // Create a webhook for this channel if necessary, or grab the existing one.
-        const webHooks = await player.location.channel.fetchWebhooks();
-        let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
-        if (webHook === null || webHook === undefined)
-            webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
-
-        const files = [];
-        [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
-
-        const displayName = player.displayName;
-        const displayIcon = player.displayIcon;
-        if (player.isHidden()) {
-            player.displayName = "Someone in the room";
-            player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
-        }
-
-        webHook.send({
-            content: string,
-            username: player.displayName,
-            avatarURL: player.displayIcon,
-            embeds: message.embeds,
-            files: files
-        }).then(message => {
-            handleDialog(game, message, true, player, displayName)
-                .then(() => {
-                    player.displayName = displayName;
-                    player.displayIcon = displayIcon;
-                });
-        });
+    if (player) {
+        if (!player.isNPC) return game.communicationHandler.reply(message, `You cannot speak for a player that isn't an NPC.`);
+        const dialog = new Dialog(game, message, player, player.location, content, false);
+        const dialogMessage = await game.communicationHandler.sendDialogAsWebhook(player.location.channel, dialog, dialog.getDisplayNameForWebhook(false), dialog.getDisplayIconForWebhook(false));
+        const sayAction = new SayAction(game, dialogMessage, player, player.location, true);
+        sayAction.performSay(dialog);
     }
     else if (channel.type === ChannelType.GuildText && game.guildContext.roomCategories.includes(channel.parentId)) {
-        room = game.entityFinder.getRoom(channel.name);
-        if (room !== null)
-            new Narration(game, null, room, string).send();
+        const room = game.entityFinder.getRoom(channel.name);
+        const whisper = game.entityFinder.getWhisperByChannelId(channel.id);
+        const location = whisper ? whisper.location : room;
+        if (room !== null) {
+            const narrateAction = new NarrateAction(game, message, undefined, location, true, whisper);
+            game.narrationHandler.sendNarration(narrateAction, content);
+        }
     }
     else if (channel.type === ChannelType.GuildText)
-        channel.send(string);
+        channel.send(content);
     else game.communicationHandler.reply(message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 }

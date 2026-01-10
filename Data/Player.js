@@ -327,11 +327,11 @@ export default class Player extends ItemContainer {
         this.id = id;
         this.member = member;
         this.name = name;
-        this.displayName = this.name;
-        this.displayIcon = null;
         this.title = title;
         this.talent = title;
         this.isNPC = this.title === "NPC";
+        this.displayName = this.name;
+        this.displayIcon = this.isNPC ? this.id : null;
         this.pronounString = pronounString;
         this.originalPronouns = {
             sbj: null, Sbj: null,

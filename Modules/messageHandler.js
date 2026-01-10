@@ -37,7 +37,7 @@ export async function processIncomingMessage(game, message) {
             return;
         }
         const location = isInAnnouncementChannel ? player.location : room;
-        const dialog = new Dialog(game, message, player, location, isInAnnouncementChannel, whisper);
+        const dialog = new Dialog(game, message, player, location, message.cleanContent, isInAnnouncementChannel, whisper);
         if (dialog.isAnnouncement) {
             const announceAction = new AnnounceAction(game, message, dialog.speaker, dialog.location, false, dialog.whisper);
             announceAction.performAnnounce(dialog);

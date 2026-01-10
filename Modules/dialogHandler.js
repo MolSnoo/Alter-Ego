@@ -8,6 +8,7 @@ import { addNarration, addSpectatedPlayerMessage } from './messageHandler.js';
 
 /**
  * Interprets a dialog message and executes behavior caused by it.
+ * @deprecated
  * @param {Game} game - The game in which the dialog was sent.
  * @param {UserMessage} message - The message which sent the dialog.
  * @param {boolean} deletable - Whether the dialog message can be deleted by the bot. If it was sent in a DM channel, it can't be deleted.
