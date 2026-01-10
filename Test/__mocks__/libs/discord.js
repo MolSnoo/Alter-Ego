@@ -23,17 +23,31 @@ export function createMockGuildChannelManager() {
 	return channelManager;
 }
 
-export function createMockChannel(id, name, type, parentId, parent) {
+export function createMockGuildMessageManager() {
 	const { Collection } = require('discord.js');
+	const messageManager = {
+		cache: new Collection(),
+		resolve: vi.fn((id) => messageManager.cache.get(id)),
+		fetch: vi.fn(async (id) => messageManager.cache.get(id)),
+		delete: vi.fn(async (id) => messageManager.cache.delete(id))
+	};
+	return messageManager;
+}
+
+export function createMockChannel(id, name, type, parentId, parent) {
+	const messageManager = createMockGuildMessageManager();
 	let channel = {
 		id: id,
 		name: name,
 		type: type,
 		parentId: parentId,
 		parent: parent,
-		messages: new Collection(),
-		bulkDelete: vi.fn((messages, filterOld) => {}),
-		send: vi.fn(async (content) => createMockMessage({ content: content, channel: channel })),
+		messages: messageManager,
+		bulkDelete: vi.fn((messages, filterOld) => messageManager.cache.clear()),
+		send: vi.fn(async (content) => {
+			const message = createMockMessage({ content: content, channel: channel });
+			channel.messages.cache.set(message.id, message);
+		}),
 		edit: vi.fn(({ name, lockPermissions }) => { channel.name = name; if (lockPermissions) for (const key of channel.permissionOverwrites.cache.keys()) channel.permissionOverwrites.delete(key) }),
 		fetchWebhooks: vi.fn(() => []),
 		createWebhook: vi.fn(({}) => {}),
@@ -79,12 +93,14 @@ export function createMockRoleManager() {
 
 export function createMockMember(id = generateSnowflake(), displayName = '') {
 	const permissionsInHasMock = vi.fn((permission) => true);
+	const mockUser = createMockUser(id, displayName);
 	const member = {
 		id: id,
 		displayName: displayName,
 		displayAvatarURL: vi.fn(() => ''),
 		avatarURL: vi.fn(() => ''),
 		user: createMockUser(id, displayName),
+		dmChannel: mockUser.dmChannel,
 		roles: createMockRoleManager(),
 		permissionsIn: vi.fn((channel) => {
 			has: permissionsInHasMock

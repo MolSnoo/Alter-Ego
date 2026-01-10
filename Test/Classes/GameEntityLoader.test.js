@@ -337,7 +337,7 @@ describe('GameEntityLoader test', () => {
             test('errorChecking true', async () => {
                 const statusEffectCount = await game.entityLoader.loadStatusEffects(true, errors);
                 expect(errors).toEqual([]);
-                expect(statusEffectCount).toBe(144);
+                expect(statusEffectCount).toBe(152);
             });
         });
     });
@@ -363,7 +363,7 @@ describe('GameEntityLoader test', () => {
                 if (game.playersCollection.size === 0) await game.entityLoader.loadPlayers(false);
                 const inventoryItemCount = await game.entityLoader.loadInventoryItems(true, errors);
                 expect(errors).toEqual([]);
-                expect(inventoryItemCount).toBe(127);
+                expect(inventoryItemCount).toBe(130);
                 for (const inventoryItem of game.inventoryItems) {
                     if (inventoryItem.prefabId !== "") {
                         expect(inventoryItem.prefab).toBeInstanceOf(Prefab);

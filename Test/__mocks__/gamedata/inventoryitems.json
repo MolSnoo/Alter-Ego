@@ -55,7 +55,7 @@
   [ "Nero", "NULL", "", "LEFT HAND" ],
   [ "Nero", "NULL", "", "HAT" ],
   [ "Nero", "NULL", "", "GLASSES" ],
-  [ "Nero", "NULL", "", "FACE" ],
+  [ "Nero", "WALKIE TALKIE", "", "FACE", "", "1", "", "<desc><s>It's a high-powered walkie talkie used to communicate from a distance.</s> <s>Look like you can switch it on and off pretty easily, though if you turn it off you'll have no idea if someone on the other line is trying to reach you.</s> <s>(Note: In order to turn it on, use the .equip command. While powered on, the person on the other line, and anyone in the room with them, will hear everything you say. To turn it off, use the .unequip command.)</s></desc>" ],
   [ "Nero", "NULL", "", "NECK" ],
   [ "Nero", "NULL", "", "CHEST" ],
   [ "Nero", "DEFAULT SHIRT", "", "SHIRT", "", "1", "", "<desc><s>It's a plain, white T-shirt.</s></desc>" ],
@@ -125,5 +125,8 @@
   [ "Kiara", "DEFAULT PANTS", "DEFAULT PANTS 6", "PANTS", "", "1", "", "<desc><s>It's a plain pair of blue jeans.</s> <s>It has two pockets on the front.</s> <s>In the right pocket, you find <il name=\"RIGHT POCKET\"></il>.</s> <s>In the left pocket, you find <il name=\"LEFT POCKET\"></il>.</s></desc>" ],
   [ "Kiara", "DEFAULT UNDERWEAR", "", "UNDERWEAR", "", "1", "", "<desc><s>It's a plain, white pair of underwear.</s></desc>" ],
   [ "Kiara", "DEFAULT SOCKS", "", "SOCKS", "", "1", "", "<desc><s>It's a pair of plain, white ankle socks.</s></desc>" ],
-  [ "Kiara", "DEFAULT SHOES", "", "SHOES", "", "1", "", "<desc><s>It's a pair of plain, white tennis shoes.</s></desc>" ]
+  [ "Kiara", "DEFAULT SHOES", "", "SHOES", "", "1", "", "<desc><s>It's a pair of plain, white tennis shoes.</s></desc>" ],
+  [ "???", "NULL", "", "RIGHT HAND" ],
+  [ "???", "NULL", "", "LEFT HAND" ],
+  [ "???", "WALKIE TALKIE", "", "FACE", "", "1", "", "<desc><s>It's a high-powered walkie talkie used to communicate from a distance.</s> <s>Look like you can switch it on and off pretty easily, though if you turn it off you'll have no idea if someone on the other line is trying to reach you.</s> <s>(Note: In order to turn it on, use the .equip command. While powered on, the person on the other line, and anyone in the room with them, will hear everything you say. To turn it off, use the .unequip command.)</s></desc>" ]
 ]

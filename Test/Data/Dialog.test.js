@@ -37,10 +37,10 @@ describe('Dialog test', () => {
         expect(dialog.neighboringRooms.at(0).id).toBe("floor-1-hall-2");
         expect(dialog.acuteHearingContext).toHaveLength(1);
         expect(dialog.acuteHearingContext.at(0).id).toBe("floor-1-hall-2");
-        expect(dialog.locationIsAudioSurveilled).toBe(false);
-        expect(dialog.locationIsVideoSurveilled).toBe(false);
+        expect(dialog.locationIsAudioSurveilled).toBe(true);
+        expect(dialog.locationIsVideoSurveilled).toBe(true);
         expect(dialog.neighboringAudioSurveilledRooms).toHaveLength(0);
-        expect(dialog.audioMonitoringRooms).toHaveLength(0);
+        expect(dialog.audioMonitoringRooms).toHaveLength(2);
         expect(dialog.receivers).toHaveLength(0);
     });
 

@@ -3,9 +3,14 @@ import * as DialogClass from "../../Data/Dialog.js";
 import AnnounceAction from "../../Data/Actions/AnnounceAction.js";
 import { processIncomingMessage } from "../../Modules/messageHandler.js";
 
+/**
+ * @import Player from "../../Data/Player.js"
+ * @import Room from "../../Data/Room.js"
+ */
+
 describe('messageHandler test', () => {
     beforeAll(async () => {
-        if (!game.inProgress) await game.entityLoader.loadAll();
+        await game.entityLoader.loadAll();
     });
 
     describe('processIncomingMessage tests', () => {
@@ -61,6 +66,100 @@ describe('messageHandler test', () => {
                 expect(dialogConstructorSpy).not.toHaveBeenCalled();
                 expect(announceActionSpy).not.toHaveBeenCalled();
             });
+        });
+
+        describe('say', () => {
+            /** @type {Player} */
+            let kyra;
+            /** @type {Player} */
+            let vivian;
+            /** @type {Player} */
+            let astrid;
+            /** @type {Player} */
+            let nero;
+            /** @type {Player} */
+            let asuka;
+            /** @type {Player} */
+            let luna;
+            /** @type {Player} */
+            let kiara;
+            /** @type {Player} */
+            let amadeus;
+            /** @type {Player} */
+            let qm;
+            /** @type {Room} */
+            let breakRoom;
+            /** @type {Room} */
+            let gmOffice;
+            /** @type {Room} */
+            let f1h1;
+            /** @type {Room} */
+            let f1h2;
+            /** @type {Room} */
+            let lobby;
+            /** @type {Room} */
+            let commandCenter;
+            /** @type {Room} */
+            let courtyard;
+            /** @type {Player[]} */
+            let players;
+            /** @type {Room[]} */
+            let rooms;
+
+            beforeAll(() => {
+                kyra = game.entityFinder.getLivingPlayer("Kyra");
+                vivian = game.entityFinder.getLivingPlayer("Vivian");
+                astrid = game.entityFinder.getLivingPlayer("Astrid");
+                nero = game.entityFinder.getLivingPlayer("Nero");
+                asuka = game.entityFinder.getLivingPlayer("Asuka");
+                luna = game.entityFinder.getLivingPlayer("Luna");
+                kiara = game.entityFinder.getLivingPlayer("Kiara");
+                amadeus = game.entityFinder.getLivingPlayer("Amadeus");
+                qm = game.entityFinder.getLivingPlayer("???");
+                breakRoom = game.entityFinder.getRoom("break-room");
+                gmOffice = game.entityFinder.getRoom("general-managers-office");
+                f1h1 = game.entityFinder.getRoom("floor-1-hall-1");
+                f1h2 = game.entityFinder.getRoom("floor-1-hall-2");
+                lobby = game.entityFinder.getRoom("lobby");
+                commandCenter = game.entityFinder.getRoom("command-center");
+                courtyard = game.entityFinder.getRoom("courtyard");
+                players = [kyra, vivian, astrid, nero, asuka, luna, kiara, amadeus, qm];
+                rooms = [breakRoom, gmOffice, f1h1, f1h2, lobby, commandCenter, courtyard];
+
+                kyra.location.removePlayer(kyra);
+                commandCenter.addPlayer(kyra);
+                amadeus.location.removePlayer(amadeus);
+                commandCenter.addPlayer(amadeus);
+
+                vivian.location.removePlayer(vivian);
+                gmOffice.addPlayer(vivian);
+
+                astrid.location.removePlayer(astrid);
+                f1h2.addPlayer(astrid);
+
+                kiara.location.removePlayer(kiara);
+                f1h1.addPlayer(kiara);
+                
+                luna.location.removePlayer(luna);
+                lobby.addPlayer(luna);
+                asuka.location.removePlayer(asuka);
+                lobby.addPlayer(asuka);
+
+                nero.location.removePlayer(nero);
+                courtyard.addPlayer(nero);
+            });
+
+            afterEach(() => {
+                for (const player of players) {
+                    if (player.isNPC) continue;
+                    player.spectateChannel.messages.cache.clear();
+                    player.notificationChannel.messages.cache.clear();
+                }
+                for (const room of rooms)
+                    room.channel.messages.cache.clear();
+            });
+
+            
         });
     });
 });
