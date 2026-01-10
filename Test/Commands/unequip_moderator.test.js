@@ -87,4 +87,24 @@ describe('unequip_moderator command', () => {
         expect(spy).not.toHaveBeenCalled();
         expect(author.send).toHaveBeenCalledWith(`Cannot unequip items from either of Kyra's hands. To get rid of this item, use the drop command.`);
     });
+    test('given no player', async () => {
+        const spy = vi.spyOn(UnequipAction.prototype, "performUnequip");
+        const message = createMockMessage();
+        const author = message.author;
+        // @ts-ignore
+        await unequip_moderator.execute(game, message, "unequip", ["glasses"]);
+        await sendQueuedMessages(game);
+        expect(spy).not.toHaveBeenCalled();
+        expect(author.send).toHaveBeenCalledWith(`You need to specify a player and an item. Usage:\n${unequip_moderator.usage(game.settings)}`);
+    });
+    test('given no player (alternate)', async () => {
+        const spy = vi.spyOn(UnequipAction.prototype, "performUnequip");
+        const message = createMockMessage();
+        const author = message.author;
+        // @ts-ignore
+        await unequip_moderator.execute(game, message, "unequip", ["kyras", "glasses", "from", "glasses"]);
+        await sendQueuedMessages(game);
+        expect(spy).not.toHaveBeenCalled();
+        expect(author.send).toHaveBeenCalledWith(`Player "kyras" not found.`);
+    });
 });
