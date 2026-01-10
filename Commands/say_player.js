@@ -1,4 +1,5 @@
-﻿import handleDialog from '../Modules/dialogHandler.js';
+﻿import Dialog from "../Data/Dialog.js";
+import SayAction from "../Data/Actions/SayAction.js";
 import { ChannelType } from "discord.js";
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
@@ -41,36 +42,11 @@ export async function execute(game, message, command, args, player) {
 
     const input = args.join(" ");
     if (!input.startsWith("(")) {
-        // Create a webhook for this channel if necessary, or grab the existing one.
-        const webHooks = await player.location.channel.fetchWebhooks();
-        let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
-        if (webHook === null || webHook === undefined)
-            webHook = await player.location.channel.createWebhook({ name: player.location.channel.name });
-
-        const files = [];
-        [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
-
-        const displayName = player.displayName;
-        const displayIcon = player.displayIcon;
-        if (player.isHidden()) {
-            player.displayName = "Someone in the room";
-            player.displayIcon = "https://cdn.discordapp.com/attachments/697623260736651335/911381958553128960/questionmark.png";
-        }
-
-        webHook.send({
-            content: input,
-            username: player.displayName,
-            avatarURL: player.displayIcon ? player.displayIcon : player.member.displayAvatarURL() || message.author.defaultAvatarURL,
-            embeds: message.embeds,
-            files: files
-        }).then(msg => {
-            handleDialog(game, msg, true, player, displayName)
-                .then(() => {
-                    player.displayName = displayName;
-                    player.displayIcon = displayIcon;
-                    // The say command isn't deleted by the commandHandler because it has necessary data. Delete it now.
-                    if (message.channel.type !== ChannelType.DM) message.delete().catch();
-                });
-        });
+        const dialog = new Dialog(game, message, player, player.location, input, false);
+        const dialogMessage = await game.communicationHandler.sendDialogAsWebhook(player.location.channel, dialog, dialog.getDisplayNameForWebhook(false), dialog.getDisplayIconForWebhook(false));
+        const sayAction = new SayAction(game, dialogMessage, player, player.location, false);
+        sayAction.performSay(dialog);
+        // The say command isn't deleted by the commandHandler because it has necessary data. Delete it now.
+        if (message.channel.type !== ChannelType.DM) message.delete().catch();
     }
 }

@@ -1,6 +1,7 @@
+import Dialog from '../Data/Dialog.js';
 import Whisper from '../Data/Whisper.js';
+import SayAction from '../Data/Actions/SayAction.js';
 import WhisperAction from '../Data/Actions/WhisperAction.js';
-import handleDialog from '../Modules/dialogHandler.js';
 
 /** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
 /** @typedef {import('../Data/Game.js').default} Game */
@@ -109,22 +110,8 @@ export async function execute(game, message, command, args) {
  * @param {Whisper} whisper - The whisper this is occurring in.
  */
 async function sendMessageToWhisper (game, message, messageText, npc, whisper) {
-    // Create a webhook for this channel if necessary, or grab the existing one.
-    const webHooks = await whisper.channel.fetchWebhooks();
-    let webHook = webHooks.find(webhook => webhook.owner.id === game.botContext.client.user.id);
-    if (webHook === null || webHook === undefined)
-        webHook = await whisper.channel.createWebhook({ name: whisper.channelName });
-
-    const files = [];
-    [...message.attachments.values()].forEach(attachment => files.push(attachment.url));
-
-    webHook.send({
-        content: messageText,
-        username: npc.displayName,
-        avatarURL: npc.id,
-        embeds: message.embeds,
-        files: files
-    }).then(message => {
-        handleDialog(game, message, true, npc);
-    });
+    const dialog = new Dialog(game, message, npc, npc.location, messageText, false, whisper);
+    const dialogMessage = await game.communicationHandler.sendDialogAsWebhook(whisper.channel, dialog, npc.displayName, npc.displayIcon);
+    const sayAction = new SayAction(game, dialogMessage, npc, npc.location, true, whisper);
+    sayAction.performSay(dialog);
 }

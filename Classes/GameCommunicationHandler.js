@@ -220,13 +220,30 @@ export default class GameCommunicationHandler {
 	}
 
 	/**
+	 * Mirrors a narration in a player's spectate channel as a webhook message.
+	 * @param {Player} player - The player whose spectate channel this narration will be mirrored in.
+	 * @param {Action} action - The action associated with the narration.
+	 * @param {Narration} narration - The narration that was written.
+	 * @param {string} webhookUsername - A custom username to use for the webhook that will send the spectate message.
+	 * @param {string} webhookAvatarURL - A custom avatar URL to use for the webhook that will send the spectate message.
+	 * @param {string} [narrationText] - The custom text of the narration to send. Optional.
+	 */
+	mirrorNarrationInSpectateChannel(player, action, narration, webhookUsername, webhookAvatarURL, narrationText = narration.content) {
+		if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
+			this.#cacheChannelFor(action, player.spectateChannel.id);
+			messageHandler.sendNarrationSpectateMessage(player, narration, webhookUsername, webhookAvatarURL, narrationText);
+		}
+	}
+
+	/**
 	 * Sends a narration to a room channel and mirrors it in the spectate channels of all of the room's occupants.
 	 * @param {Narration} narration - The narration to send.
+	 * @param {string} [narrationText] - The custom text of the narration to send. Optional.
 	 */
-	narrateInRoom(narration) {
+	narrateInRoom(narration, narrationText = narration.content) {
 		if (!narration.action || !this.#actionHasBeenCommunicatedInChannel(narration.location.channel, narration.action)) {
 			if (narration.action) this.#cacheChannelFor(narration.action, narration.location.channel.id);
-			messageHandler.addNarration(narration.location, narration.message, true, narration.player);
+			messageHandler.addNarration(narration.location, narrationText, true, narration.player);
 		}
 	}
 

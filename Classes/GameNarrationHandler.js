@@ -3,6 +3,7 @@ import InventoryItem from "../Data/InventoryItem.js";
 import Narration from "../Data/Narration.js";
 import Room from "../Data/Room.js";
 import RoomItem from "../Data/RoomItem.js";
+import NarrateAction from "../Data/Actions/NarrateAction.js";
 import { parseDescription } from "../Modules/parser.js";
 import { generateListString } from "../Modules/helpers.js";
 
@@ -21,6 +22,7 @@ import { generateListString } from "../Modules/helpers.js";
 /** @typedef {import("../Data/ItemInstance.js").default} ItemInstance */
 /** @typedef {import("../Data/Status.js").default} Status */
 /** @typedef {import("../Data/Whisper.js").default} Whisper */
+/** @typedef {import("discord.js").GuildMember} GuildMember */
 
 /**
  * @class GameNarrationHandler
@@ -43,17 +45,27 @@ export default class GameNarrationHandler {
 	}
 
 	/**
-	 * Sends the narration.
+	 * Creates a new narrate action and sends the narration.
+	 * @param {NarrateAction} narrateAction - The narrate action to send.
+	 * @param {string} narrationText - The text of the narration.
+	 * @param {Player|GuildMember} [narrator] - The player or guild member who wrote the narration.
+	 */
+	sendNarration(narrateAction, narrationText, narrator) {
+		const narration = new Narration(this.#game, narrateAction, narrateAction.player, narrateAction.location, narrationText, narrateAction.whisper, narrateAction.message, narrator);
+		narrateAction.performNarrate(narration);
+	}
+
+	/**
+	 * Sends the narration. Available only to methods of GameNarrationHandler. Assigns the original action to the narration instead of a narrate action.
 	 * @param {Action} action - The action being narrated.
 	 * @param {Player} player - The player whose action is being narrated.
 	 * @param {string} narrationText - The text of the narration.
 	 * @param {Room} [location] - The location in which the narration is occurring. Defaults to the player's location.
 	 */
 	#sendNarration(action, player, narrationText, location = player.location) {
-		// Capitalize the first letter, if necessary.
-		if (narrationText.charAt(0) === narrationText.charAt(0).toLocaleLowerCase())
-			narrationText = narrationText.charAt(0).toLocaleUpperCase() + narrationText.substring(1);
-		new Narration(this.#game, action, player, location, narrationText).send();
+		const narration = new Narration(this.#game, action, player, location, narrationText);
+		const narrateAction = new NarrateAction(this.#game, action.message, player, location, action.forced, action.whisper);
+		narrateAction.performNarrate(narration);
 	}
 
 	/**

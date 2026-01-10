@@ -1,9 +1,12 @@
 import Dialog from '../Data/Dialog.js';
 import Player from '../Data/Player.js';
 import AnnounceAction from '../Data/Actions/AnnounceAction.js';
+import NarrateAction from '../Data/Actions/NarrateAction.js';
+import SayAction from '../Data/Actions/SayAction.js';
 import { TextDisplayBuilder, ThumbnailBuilder, SectionBuilder, ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, MessageFlags, ChannelType, Attachment, Collection, GuildMember, TextChannel, Embed, Webhook } from 'discord.js';
 
 /** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Narration.js').default} Narration */
 /** @typedef {import('../Data/Room.js').default} Room */
 /** @typedef {import('../Data/Whisper.js').default} Whisper */
 
@@ -34,11 +37,20 @@ export async function processIncomingMessage(game, message) {
             return;
         }
         const location = isInAnnouncementChannel ? player.location : room;
-        const dialog = new Dialog(game, message, player, location, isInAnnouncementChannel, whisper);
+        const dialog = new Dialog(game, message, player, location, message.cleanContent, isInAnnouncementChannel, whisper);
         if (dialog.isAnnouncement) {
             const announceAction = new AnnounceAction(game, message, dialog.speaker, dialog.location, false, dialog.whisper);
             announceAction.performAnnounce(dialog);
         }
+        else {
+            const sayAction = new SayAction(game, message, dialog.speaker, dialog.location, false, dialog.whisper);
+            sayAction.performSay(dialog);
+        }
+    }
+    else if (isModerator && (room || whisper)) {
+        const location = whisper ? whisper.location : room;
+        const narrateAction = new NarrateAction(game, message, undefined, location, false, whisper);
+        game.narrationHandler.sendNarration(narrateAction, message.content, message.member);
     }
 }
 
@@ -100,7 +112,9 @@ export async function addNarrationToWhisper(whisper, messageText, addSpectate = 
         );
         if (addSpectate) {
             whisper.playersCollection.forEach((player) => {
-                let spectateMessageText = `*(In a whisper with ${whisper.generatePlayerListString()}):*\n${messageText}`;
+                const hidingSpot = whisper.getGame().entityFinder.getFixture(whisper.hidingSpotName, player.location.id);
+                const preposition = hidingSpot ? hidingSpot.getPreposition().charAt(0).toLocaleUpperCase() + hidingSpot.getPreposition().substring(1) : "In";
+                let spectateMessageText = `*(${preposition} ${hidingSpot ? hidingSpot.getContainingPhrase() : `a whisper`} with ${whisper.generatePlayerListString()}):*\n${messageText}`;
                 if (
                     player.canSee() &&
                     player.isConscious() &&
@@ -467,6 +481,39 @@ export async function sendDialogSpectateMessage(player, dialog, webhookUsername,
                         dialog.attachments.map((attachment) => attachment.url)
                     );
                     player.getGame().communicationHandler.cacheSpectateMirrorForDialog(dialog.message, webhookMessage.id, webhook.id);
+                },
+            },
+            "spectator"
+        );
+    }
+}
+
+/**
+ * Mirrors a dialog message in a spectate channel.
+ * @param {Player} player - The player whose spectate channel this message is being sent to.
+ * @param {Narration} narration - The narration to mirror.
+ * @param {string} webhookUsername - The username to use for the mirrored webhook message.
+ * @param {string} webhookAvatarURL - The avatar URL to use for the mirrored webhook message.
+ * @param {string} [messageText] - The custom text of the narration to send. Optional.
+ */
+export async function sendNarrationSpectateMessage(player, narration, webhookUsername, webhookAvatarURL, messageText = narration.content) {
+    if (player.spectateChannel !== null) {
+        const hidingSpot = narration.whisper?.getGame().entityFinder.getFixture(narration.whisper.hidingSpotName, player.location.id);
+        const preposition = hidingSpot ? hidingSpot.getPreposition().charAt(0).toLocaleUpperCase() + hidingSpot.getPreposition().substring(1) : "In";
+        if (narration.whisper) messageText = `*(${preposition} ${hidingSpot ? hidingSpot.getContainingPhrase() : `a whisper`} with ${narration.whisper.generatePlayerListString()}):*\n${messageText}`;
+        const webhook = await getOrCreateWebhook(player.spectateChannel);
+        player.getGame().messageQueue.enqueue(
+            {
+                fire: async () => {
+                    const webhookMessage = await sendWebhookMessage(
+                        webhook,
+                        messageText,
+                        webhookUsername,
+                        webhookAvatarURL,
+                        narration.message.embeds,
+                        narration.message.attachments.map((attachment) => attachment.url)
+                    );
+                    player.getGame().communicationHandler.cacheSpectateMirrorForDialog(narration.message, webhookMessage.id, webhook.id);
                 },
             },
             "spectator"
