@@ -55,7 +55,7 @@ describe("unstash_moderator command", () => {
         await unstash_moderator.execute(game, message, "retrieve", ["vivian", "hamburger", "from", "pack", "of", "toilet", "paper"]);
         await sendQueuedMessages(game);
         expect(spy).not.toHaveBeenCalled();
-        expect(author.send).toHaveBeenCalledWith("Couldn't find \"PACK OF TOILET PAPER\" in Kyra's inventory containing \"HAMBURGER\".");
+        expect(author.send).toHaveBeenCalledWith("Couldn't find \"PACK OF TOILET PAPER\" in Vivian's inventory containing \"HAMBURGER\".");
     });
     test("valid item from invalid container", async () => {
         const player = game.entityFinder.getPlayer("Vivian");
@@ -66,7 +66,7 @@ describe("unstash_moderator command", () => {
         await unstash_moderator.execute(game, message, "retrieve", ["vivian", "hamburger", "bun", "from", "bag", "of", "toilet", "paper"]);
         await sendQueuedMessages(game);
         expect(spy).not.toHaveBeenCalled();
-        expect(author.send).toHaveBeenCalledWith("Couldn't find \"BAG OF TOILET PAPER\" in Kyra's inventory containing \"HAMBURGER BUN\".");
+        expect(author.send).toHaveBeenCalledWith("Couldn't find \"BAG OF TOILET PAPER\" in Vivian's inventory containing \"HAMBURGER BUN\".");
     });
     test("no free hand", async () => {
         const player = game.entityFinder.getPlayer("Vivian");
@@ -81,7 +81,7 @@ describe("unstash_moderator command", () => {
         await unstash_moderator.execute(game, message, "retrieve", ["vivian", "pack", "of", "toilet", "paper", "from", "white", "jeans"]);
         await sendQueuedMessages(game);
         expect(spy).toHaveBeenCalledTimes(2);
-        expect(author.send).toHaveBeenCalledWith("You do not have a free hand to retrieve an item. Either drop an item you're currently holding or stash it in one of your equipped items.");
+        expect(author.send).toHaveBeenCalledWith("Vivian does not have a free hand to retrieve an item.");
     });
     test("valid item without container", async () => {
         const player = game.entityFinder.getPlayer("Kyra");
