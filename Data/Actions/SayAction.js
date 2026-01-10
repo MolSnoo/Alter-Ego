@@ -148,7 +148,7 @@ export default class SayAction extends Action {
 	}
 
 	/**
-	 * Communicates whispered dialog to players in the room.
+	 * Communicates dialog to players in the room.
 	 * @param {Dialog} dialog - The dialog that was spoken.
 	 */
 	#communicateDialogToRoomOccupants(dialog) {
@@ -235,7 +235,7 @@ export default class SayAction extends Action {
 					this.getGame().communicationHandler.notifyPlayer(player, this, notification);
 					continue;
 				}
-				const customWebhookUsername = this.#generateWebhookUsername(dialog, player, playerCanSeeSpeaker, roomDisplayName);
+				const customWebhookUsername = this.#generateWebhookUsername(dialog, player, playerCanSeeSpeaker, `[${roomDisplayName}]`);
 				const webhookAvatarURL = dialog.getDisplayIconForWebhook(playerCanSeeSpeaker);
 				if (customWebhookUsername || this.#playerShouldReceiveNotification(dialog, player))
 					this.getGame().communicationHandler.mirrorDialogInSpectateChannel(player, this, dialog, customWebhookUsername, webhookAvatarURL, notification);

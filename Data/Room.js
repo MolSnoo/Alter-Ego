@@ -224,7 +224,7 @@ export default class Room extends GameEntity {
     }
 
     /**
-     * Returns the display name to use for the room in rooms with the `audio monitoring` tag.
+     * Returns the display name to use for the room in rooms with the `audio monitoring` or `video monitoring` tag.
      */
     getSurveilledDisplayName() {
         return this.tags.has("secret")
