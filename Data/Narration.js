@@ -113,13 +113,15 @@ export default class Narration extends GameConstruct {
         }
         this.whisper = whisper;
         this.message = message;
+        this.isOOCMessage = false;
         this.narrator = narrator;
-        this.narratorDisplayName = this.narrator ? this.narrator.displayName : null;
-        if (this.narrator instanceof Player)
-            this.narratorDisplayIcon = this.narrator.displayIcon ? this.narrator.displayIcon : this.narrator.member.displayAvatarURL();
-        else
-            this.narratorDisplayIcon = this.narrator.displayAvatarURL();
-        this.isOOCMessage = this.narrator && this.content.startsWith('(');
+        if (this.narrator) {
+            this.narratorDisplayName = this.narrator.displayName;
+            if (this.narrator instanceof Player)
+                this.narratorDisplayIcon = this.narrator.displayIcon ? this.narrator.displayIcon : this.narrator.member.displayAvatarURL();
+            else this.narratorDisplayIcon = this.narrator.displayAvatarURL();
+            this.isOOCMessage = this.content.startsWith('(');
+        }
         this.locationIsVideoSurveilled = false;
         this.videoMonitoringRooms = [];
         if (!this.isOOCMessage) {

@@ -37,7 +37,7 @@ export async function execute(game, message, command, args) {
     if (args.length < 2)
         return game.communicationHandler.reply(message, `You need to specify a player and an item. Usage:\n${usage(game.settings)}`);
 
-    const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
+    const player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/gi, ""));
     if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
     args.splice(0, 1);
 
@@ -45,34 +45,36 @@ export async function execute(game, message, command, args) {
     const hand = game.entityFinder.getPlayerFreeHand(player);
     if (hand === undefined) return game.communicationHandler.reply(message, `${player.name} does not have a free hand to unequip an item.`);
 
-    const input = args.join(' ');
-    const parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const split = Game.generateValidEntityName(args.join(' ')).split(' FROM ');
+    let itemName = split[0].trim();
+    let slotName = "";
+    let item;
+    let slot;
+    if (split.length > 1) {
+        slotName = split[1].trim();
+    }
 
-    const slotRegex = / FROM (.+)$/
-    let equipmentSlotId = parsedInput.match(slotRegex)[0];
-    if (equipmentSlotId === "RIGHT HAND" || equipmentSlotId === "LEFT HAND")
+    if (slotName !== "") {
+        slot = player.inventoryCollection.get(split[1]);
+        if (slot === undefined)
+            return game.communicationHandler.reply(message, `Couldn't find equipment slot "${split[1]}".`);
+        else if (slot.equippedItem === null)
+            return game.communicationHandler.reply(message, `Nothing is equipped to "${split[1]}".`);
+        else if (slot.equippedItem.name !== itemName)
+            return game.communicationHandler.reply(message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
+        item = slot.equippedItem;
+    } else {
+        slot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, itemName, null);
+        if (slot === undefined)
+            return game.communicationHandler.reply(message, `Couldn't find equipped item "${split[0]}".`);
+        // slot.equippedItem will never be null, because slot.equippedItem.name resolves to itemName
+        item = slot.equippedItem;
+    }
+
+    if (slot.id === "RIGHT HAND" || slot.id === "LEFT HAND")
         return game.communicationHandler.reply(message, `Cannot unequip items from either of ${player.name}'s hands. To get rid of this item, use the drop command.`);
-    let equipmentSlot = player.inventoryCollection.get(Game.generateValidEntityName(equipmentSlotId));
-    if (equipmentSlot === undefined && !equipmentSlotId) {
-        equipmentSlotId = parsedInput.substring(parsedInput.lastIndexOf(" FROM ") + " FROM ".length).trim();
-        return game.communicationHandler.reply(message, `Couldn't find equipment slot "${equipmentSlotId}".`)
-    }
-
-    let itemIdentifier;
-    if (equipmentSlot !== undefined) {
-        if (equipmentSlot.equippedItem === null) return game.communicationHandler.reply(message, `Nothing is equipped to ${equipmentSlotId}.`);
-        itemIdentifier = parsedInput.substring(0, parsedInput.lastIndexOf(` FROM ${equipmentSlotId}`)).trim();
-        equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, itemIdentifier, equipmentSlot.id);
-    }
-    else
-        equipmentSlot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, parsedInput);
-
-    if (equipmentSlot === undefined) {
-        if (itemIdentifier) return game.communicationHandler.reply(message, `Couldn't find "${itemIdentifier}" equipped to ${equipmentSlotId}.`);
-        else return game.communicationHandler.reply(message, `Couldn't find equipped item "${parsedInput}".`);
-    }
 
     const action = new UnequipAction(game, message, player, player.location, true);
-    action.performUnequip(equipmentSlot.equippedItem, equipmentSlot, hand);
-    game.communicationHandler.sendToCommandChannel(`Successfully unequipped ${equipmentSlot.equippedItem.getIdentifier()} from ${player.name}'s ${equipmentSlotId}.`);
+    action.performUnequip(item, slot, hand);
+    game.communicationHandler.sendToCommandChannel(`Successfully unequipped ${item.getIdentifier()} from ${player.name}'s ${slot}.`);
 }
