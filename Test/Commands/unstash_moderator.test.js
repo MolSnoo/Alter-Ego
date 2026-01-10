@@ -74,7 +74,7 @@ describe("unstash_moderator command", () => {
         const author = message.author;
         const spy = vi.spyOn(UnstashAction.prototype, "performUnstash");
         // @ts-ignore
-        await unstash_moderator.execute(game, message, "retrieve", ["vivian", "hamburger", "bun", "from", "pack", "of", "toilet", "paper", "1"]);
+        await unstash_moderator.execute(game, message, "retrieve", ["vivian", "hamburger", "bun", "from", "pack", "of", "toilet", "paper"]);
         // @ts-ignore
         await unstash_moderator.execute(game, message, "retrieve", ["vivian", "detergent", "from", "pack", "of", "toilet", "paper"]);
         // @ts-ignore
@@ -89,9 +89,9 @@ describe("unstash_moderator command", () => {
         const author = message.author;
         const spy = vi.spyOn(UnstashAction.prototype, "performUnstash");
         // @ts-ignore
-        await unstash_moderator.execute(game, message, "retrieve", ["kyra", "coffee"]);
+        await unstash_moderator.execute(game, message, "retrieve", ["kyra", "mug", "of", "coffee"]);
         await sendQueuedMessages(game);
         expect(spy).not.toHaveBeenCalled();
-        expect(author.send).toHaveBeenCalledWith("COFFEE is not contained in another item and cannot be unstashed.");
+        expect(author.send).toHaveBeenCalledWith("MUG OF COFFEE is not contained in another item and cannot be unstashed.");
     });
 });
