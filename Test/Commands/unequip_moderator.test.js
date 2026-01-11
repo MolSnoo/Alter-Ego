@@ -107,4 +107,15 @@ describe('unequip_moderator command', () => {
         expect(spy).not.toHaveBeenCalled();
         expect(author.send).toHaveBeenCalledWith(`Player "kyras" not found.`);
     });
+    test('without free hand', async () => {
+        const spy = vi.spyOn(UnequipAction.prototype, "performUnequip");
+        const message = createMockMessage();
+        const author = message.author;
+        // @ts-ignore
+        await unequip_moderator.execute(game, message, "unequip", ["kyra's", "kyras", "glasses"]);
+        await unequip_moderator.execute(game, message, "unequip", ["kyra's", "kyras", "tie"]);
+        await sendQueuedMessages(game);
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(author.send).toHaveBeenCalledWith(`Kyra does not have a free hand to unequip an item.`);
+    });
 });

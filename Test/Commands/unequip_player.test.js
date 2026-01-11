@@ -92,4 +92,16 @@ describe('unequip_player command', () => {
         expect(spy).not.toHaveBeenCalled();
         expect(author.send).toHaveBeenCalledWith(`You cannot unequip items from your hands. To get rid of this item, use the drop command.`);
     });
+    test('without free hand', async () => {
+        const player = game.entityFinder.getPlayer("Kyra");
+        const spy = vi.spyOn(UnequipAction.prototype, "performUnequip");
+        const message = createMockMessage();
+        const author = message.author;
+        // @ts-ignore
+        await unequip_player.execute(game, message, "unequip", ["glasses"], player);
+        await unequip_player.execute(game, message, "unequip", ["tie"], player);
+        await sendQueuedMessages(game);
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(author.send).toHaveBeenCalledWith(`You do not have a free hand to unequip an item. Either drop an item you're currently holding or stash it in one of your equipped items.`);
+    });
 });
