@@ -39,7 +39,7 @@ export default class UndressAction extends Action {
 		const droppedItems = [];
 		for (const equipmentSlot of this.player.inventoryCollection.values()) {
 			if (equipmentSlot.equippedItem !== null && equipmentSlot.equippedItem.prefab.equippable) {
-				droppedItems.push(equipmentSlot.equippedItem)
+				droppedItems.push(equipmentSlot.equippedItem);
 				this.player.unequip(equipmentSlot.equippedItem, equipmentSlot, rightHand);
 				this.player.drop(rightHand.equippedItem, rightHand, container, inventorySlot);
 			}
