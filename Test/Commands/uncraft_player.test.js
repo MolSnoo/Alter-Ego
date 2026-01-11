@@ -1,6 +1,15 @@
+import PlayerCommand from '../../Classes/PlayerCommand.js';
 import { usage, execute, config } from '../../Commands/uncraft_player.js';
+import { clearQueue } from '../../Modules/messageHandler.js';
 
 describe('uncraft_player command', () => {
+    afterEach(async () => {
+        clearQueue(game);
+        vi.resetAllMocks();
+    });
+
+    const uncraft_player = new PlayerCommand(config, usage, execute);
+
     test('', () => {});
     /*describe('no uncraftable inventory item in hands', () => {
         beforeEach(async () => {

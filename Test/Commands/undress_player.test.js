@@ -5,12 +5,13 @@ import { clearQueue, sendQueuedMessages } from "../../Modules/messageHandler.js"
 import { createMockMessage } from "../__mocks__/libs/discord.js";
 
 describe('undress_player command', () => {
-    beforeEach(async () => {
-        await game.entityLoader.loadAll();
+    beforeAll(async () => {
+        if (!game.inProgress) await game.entityLoader.loadAll();
     });
 
-    afterEach(() => {
-        game.entityLoader.clearAll();
+    afterEach(async () => {
+        await game.entityLoader.loadInventoryItems(false);
+        await game.entityLoader.loadRoomItems(false);
         clearQueue(game);
         vi.resetAllMocks();
     });

@@ -4,13 +4,9 @@ import { createMockMessage } from "../__mocks__/libs/discord.js";
 import { sendQueuedMessages } from "../../Modules/messageHandler.js";
 
 describe("living_moderator command", () => {
-    beforeEach(async () => {
-        await game.entityLoader.loadAll();
+    beforeAll(async () => {
+        if (!game.inProgress) await game.entityLoader.loadAll();
     });
-
-    afterEach(() => {
-        game.entityLoader.clearAll()
-    })
 
     const living_moderator = new ModeratorCommand(config, usage, execute);
 

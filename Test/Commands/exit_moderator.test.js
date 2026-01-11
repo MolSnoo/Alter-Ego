@@ -4,12 +4,7 @@ import { clearQueue, sendQueuedMessages } from "../../Modules/messageHandler.js"
 import { createMockMessage } from "../__mocks__/libs/discord.js";
 
 describe('exit_moderator command', () => {
-    beforeEach(async () => {
-        await game.entityLoader.loadAll();
-    });
-
-    afterEach(() => {
-        game.entityLoader.clearAll();
+    afterEach(async () => {
         clearQueue(game);
         vi.resetAllMocks();
     });

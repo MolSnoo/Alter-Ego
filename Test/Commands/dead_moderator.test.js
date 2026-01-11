@@ -4,17 +4,13 @@ import { createMockMessage } from "../__mocks__/libs/discord.js";
 import { sendQueuedMessages } from "../../Modules/messageHandler.js";
 
 describe("dead_moderator command", () => {
-    beforeEach(async () => {
-        await game.entityLoader.loadAll();
+    beforeAll(async () => {
+        if (!game.inProgress) await game.entityLoader.loadAll();
     });
-
-    afterEach(() => {
-        game.entityLoader.clearAll()
-    })
 
     const dead_moderator = new ModeratorCommand(config, usage, execute);
 
-    test("dead_moderator execution", async () => {
+    test("with dead players", async () => {
         // @ts-ignore
         await dead_moderator.execute(game, createMockMessage(), "dead", []);
         sendQueuedMessages(game);
