@@ -217,7 +217,7 @@ export default class Dialog extends GameConstruct {
 			this.locationIsAudioSurveilled = this.location.tags.has("audio surveilled");
 			this.locationIsVideoSurveilled = this.location.tags.has("video surveilled");
 			if (this.locationIsAudioSurveilled || this.neighboringAudioSurveilledRooms.length > 0)
-				this.audioMonitoringRooms = game.entityFinder.getRooms(undefined, "audio monitoring", true);
+				this.audioMonitoringRooms = game.entityFinder.getRooms(undefined, "audio monitoring", true).filter(room => room.id !== this.location.id);
 			if (this.speaker.hasBehaviorAttribute("sender")) {
 				for (const livingPlayer of game.livingPlayersCollection.values()) {
 					if (livingPlayer.hasBehaviorAttribute("receiver") && livingPlayer.name !== this.speaker.name) {
@@ -237,7 +237,7 @@ export default class Dialog extends GameConstruct {
 	 * @param {Player} player - The player to check. 
 	 */
 	isMimicking(player) {
-		return this.speakerRecognitionName === player.name;
+		return this.speaker.name !== player.name && this.speakerRecognitionName === player.name;
 	}
 
 	/**

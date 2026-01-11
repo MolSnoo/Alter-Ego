@@ -80,6 +80,7 @@ export default class EquipmentSlot extends GameEntity {
             this.row,
             this.getGame()
         );
+        nullItem.prefab = null;
         nullItem.setPlayer(item.player);
         this.equippedItem = null;
         this.items.length = 0;

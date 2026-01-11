@@ -203,6 +203,7 @@ export default class SayAction extends Action {
 			if (dialog.isShouted)
 				this.#narrateDialogAndSolveVoicePuzzles(neighboringRoom, dialog, this.getGame().notificationGenerator.generateHearNeighboringRoomDialogNotification(dialog));
 		}
+		if (!dialog.isShouted) return;
 		// If any neighboring rooms have the `audio surveilled` tag, the audible dialog needs to be communicated to any `audio monitoring` rooms.
 		for (const neighboringAudioSurveilledRoom of dialog.neighboringAudioSurveilledRooms) {
 			const neighboringRoomDisplayName = neighboringAudioSurveilledRoom.getSurveilledDisplayName();
