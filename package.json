@@ -7,7 +7,10 @@
   "scripts": {
     "run": "node bot.js",
     "start": "node bot.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "createLocalFiles": "node Test/createLocalFiles.js",
+    "test": "vitest run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -35,7 +38,8 @@
   "devDependencies": {
     "@types/luxon": "^3.7.1",
     "@types/node": "24.10.1",
-    "@types/node-fetch": "2.6.13",
-    "typescript": "5.9.3"
+    "@vitest/coverage-v8": "4.0.16",
+    "typescript": "5.9.3",
+    "vitest": "4.0.16"
   }
 }

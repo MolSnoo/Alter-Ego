@@ -1,0 +1,3 @@
+describe('Puzzle test', () => {
+    test('', () => {});
+});

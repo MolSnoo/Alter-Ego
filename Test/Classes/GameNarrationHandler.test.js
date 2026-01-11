@@ -1,0 +1,3 @@
+describe('GameNarrationHandler test', () => {
+    test('', () => {});
+});

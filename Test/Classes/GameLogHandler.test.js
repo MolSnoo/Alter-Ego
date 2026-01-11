@@ -1,0 +1,3 @@
+describe('GameLogHandler test', () => {
+    test('', () => {});
+});

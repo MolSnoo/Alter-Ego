@@ -1,0 +1,3 @@
+describe('EquipmentSlot test', () => {
+    test('', () => {});
+});
