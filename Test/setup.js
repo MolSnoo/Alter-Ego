@@ -76,7 +76,7 @@ beforeAll(() => {
     members.push(moderator);
 
     /** @type {any} */
-    const mockGuild = discordMock.createMockGuild(channels, roles, members);
+    const mockGuild = discordMock.createMockGuild(channels, roles, members, client);
 
     const guildContext = new GuildContext(
         mockGuild,

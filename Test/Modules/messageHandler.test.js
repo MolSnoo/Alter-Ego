@@ -2,7 +2,7 @@ import discord from "../__mocks__/libs/discord.js";
 import * as DialogClass from "../../Data/Dialog.js";
 import AnnounceAction from "../../Data/Actions/AnnounceAction.js";
 import SayAction from "../../Data/Actions/SayAction.js";
-import { processIncomingMessage } from "../../Modules/messageHandler.js";
+import * as messageHandler from "../../Modules/messageHandler.js";
 import { instantiateInventoryItem } from "../../Modules/itemManager.js";
 
 /**
@@ -36,7 +36,7 @@ describe('messageHandler test', () => {
                     channel: game.guildContext.announcementChannel
                 });
                 const announceActionSpy = vi.spyOn(AnnounceAction.prototype, 'performAnnounce').mockImplementationOnce(vi.fn((announcement) => {}));
-                processIncomingMessage(game, message);
+                messageHandler.processIncomingMessage(game, message);
                 expect(dialogConstructorSpy).toHaveBeenCalledOnce();
                 expect(announceActionSpy).toHaveBeenCalledOnce();
             });
@@ -50,7 +50,7 @@ describe('messageHandler test', () => {
                     channel: game.guildContext.announcementChannel
                 });
                 const announceActionSpy = vi.spyOn(AnnounceAction.prototype, 'performAnnounce').mockImplementationOnce(vi.fn((announcement) => {}));
-                processIncomingMessage(game, message);
+                messageHandler.processIncomingMessage(game, message);
                 expect(dialogConstructorSpy).not.toHaveBeenCalled();
                 expect(announceActionSpy).not.toHaveBeenCalled();
             });
@@ -64,44 +64,170 @@ describe('messageHandler test', () => {
                     channel: game.guildContext.announcementChannel
                 });
                 const announceActionSpy = vi.spyOn(AnnounceAction.prototype, 'performAnnounce').mockImplementationOnce(vi.fn((announcement) => {}));
-                processIncomingMessage(game, message);
+                messageHandler.processIncomingMessage(game, message);
                 expect(dialogConstructorSpy).not.toHaveBeenCalled();
                 expect(announceActionSpy).not.toHaveBeenCalled();
             });
         });
 
         describe('say', () => {
-            /** @type {Player} */
+            /** 
+             * Location: command-center
+             * 
+             * Behavior Attributes: concealed, no channel, see room, hear room
+             * 
+             * Knows: vivian, nero
+             * @type {Player}
+             */
             let kyra;
-            /** @type {Player} */
+            /** 
+             * Location: general-managers-office
+             * 
+             * Behavior Attributes:
+             * 
+             * Knows: kyra, nero
+             * @type {Player}
+             */
             let vivian;
-            /** @type {Player} */
+            /** 
+             * Location: floor-1-hall-2
+             * 
+             * Behavior Attributes: 
+             * 
+             * Knows: kiara
+             * @type {Player}
+             */
             let astrid;
-            /** @type {Player} */
+            /** 
+             * Location: courtyard
+             * 
+             * Behavior Attributes: sender, receiver
+             * 
+             * Knows: vivian, kyra
+             * @type {Player}
+             */
             let nero;
-            /** @type {Player} */
+            /** 
+             * Location: subject to change
+             * 
+             * Behavior Attributes: 
+             * 
+             * Knows: 
+             * @type {Player}
+             */
             let asuka;
-            /** @type {Player} */
+            /** 
+             * Location: subject to change
+             * 
+             * Behavior Attributes:
+             * 
+             * Knows: 
+             * @type {Player}
+             */
             let luna;
-            /** @type {Player} */
+            /** 
+             * Location: floor-1-hall-1
+             * 
+             * Behavior Attributes:
+             * 
+             * Knows: astrid
+             * @type {Player}
+             */
             let kiara;
-            /** @type {Player} */
+            /** 
+             * Location: command-center
+             * 
+             * Behavior Attributes: 
+             * 
+             * Knows: everyone
+             * @type {Player}
+             */
             let amadeus;
-            /** @type {Player} */
+            /** 
+             * Location: general-managers-office 
+             * 
+             * Behavior Attributes: hidden, sender, receiver
+             * 
+             * Knows: 
+             * @type {Player}
+             */
             let qm;
-            /** @type {Room} */
+            /**
+             * Tags: video surveilled, audio surveilled, audio monitoring
+             * 
+             * Audio Monitored By: lobby, command-center
+             * 
+             * Video Monitored By: lobby, command-center
+             * 
+             * Occupants: 
+             * @type {Room}
+             */
             let breakRoom;
-            /** @type {Room} */
+            /** 
+             * Tags: soundproof
+             * 
+             * Audio Monitored By: 
+             * 
+             * Video Monitored By: 
+             * 
+             * Occupants: vivian, qm (hidden in DESK)
+             * @type {Room}
+             */
             let gmOffice;
-            /** @type {Room} */
+            /** 
+             * Tags: video surveilled, audio surveilled
+             * 
+             * Audio Monitored By: lobby, break-room, command-center
+             * 
+             * Video Monitored By: lobby, command-center
+             * 
+             * Occupants: kiara
+             * @type {Room}
+             */
             let f1h1;
-            /** @type {Room} */
+            /**
+             * Tags: 
+             * 
+             * Audio Monitored By: 
+             * 
+             * Video Monitored By: 
+             * 
+             * Occupants: astrid
+             * @type {Room}
+             */
             let f1h2;
-            /** @type {Room} */
+            /**
+             * Tags: video monitoring, video surveilled, audio monitoring, audio surveilled
+             * 
+             * Audio Monitored By: break-room, command-center
+             * 
+             * Video Monitored By: command-center
+             * 
+             * Occupants: subject to change
+             * @type {Room}
+             */
             let lobby;
-            /** @type {Room} */
+            /** 
+             * Tags: soundproof, video monitoring, video surveilled, audio monitoring, audio surveilled, secret
+             * 
+             * Audio Monitored By: lobby, break-room 
+             * 
+             * Video Monitored By: lobby
+             * 
+             * Occupants: kyra, amadeus
+             * @type {Room}
+             */
             let commandCenter;
-            /** @type {Room} */
+            /** 
+             * Tags: 
+             * 
+             * Audio Monitored By: 
+             * 
+             * Video Monitored By: 
+             * 
+             * Occupants: subject to change
+             * @type {Room}
+             */
             let courtyard;
             /** @type {Player[]} */
             let players;
@@ -136,6 +262,9 @@ describe('messageHandler test', () => {
                 vivian.location.removePlayer(vivian);
                 gmOffice.addPlayer(vivian);
 
+                nero.location.removePlayer(nero);
+                breakRoom.addPlayer(nero);
+
                 astrid.location.removePlayer(astrid);
                 f1h2.addPlayer(astrid);
 
@@ -143,12 +272,9 @@ describe('messageHandler test', () => {
                 f1h1.addPlayer(kiara);
                 
                 luna.location.removePlayer(luna);
-                lobby.addPlayer(luna);
+                courtyard.addPlayer(luna);
                 asuka.location.removePlayer(asuka);
-                lobby.addPlayer(asuka);
-
-                nero.location.removePlayer(nero);
-                courtyard.addPlayer(nero);
+                courtyard.addPlayer(asuka);
 
                 const mask = game.entityFinder.getPrefab("PLAGUE DOCTOR MASK");
                 instantiateInventoryItem(mask, kyra, "FACE", null, "", 1, new Map());
@@ -164,12 +290,22 @@ describe('messageHandler test', () => {
                     room.channel.messages.cache.clear();
             });
 
-            test('standard dialog is communicated to ', async () => {
+            test('standard dialog is communicated to spectate channels', async () => {
                 const performSaySpy = vi.spyOn(SayAction.prototype, 'performSay');
                 const message = discord.createPlayerMessage(luna, "Oh, hello!");
-                await processIncomingMessage(game, message);
+                await messageHandler.processIncomingMessage(game, message);
+                await messageHandler.sendQueuedMessages(game);
                 expect(performSaySpy).toHaveBeenCalledOnce();
-
+                expect(game.communicationHandler.getDialogSpectateMirrors(message)).toHaveLength(2);
+                for (const occupant of luna.location.occupants) {
+                    expect(occupant.notificationChannel.messages.cache.size).toBe(0);
+                    expect(occupant.spectateChannel.messages.cache.size).toBe(1);
+                    const spectateMessage = occupant.spectateChannel.messages.cache.first();
+                    expect(spectateMessage.webhookId).not.toBeNull();
+                    expect(spectateMessage.author.username).toBe("Luna");
+                    expect(spectateMessage.author.avatarURL()).toBe(luna.member.avatarURL());
+                    expect(spectateMessage.content).toBe("Oh, hello!");
+                }
             });
         });
     });

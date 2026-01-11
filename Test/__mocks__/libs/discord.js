@@ -19,12 +19,12 @@ export function createPermissionOverwritesManager() {
 	return permissionOverwritesManager;
 }
 
-export function createMockGuildChannelManager() {
+export function createMockGuildChannelManager(client) {
 	const { Collection } = require('discord.js');
 	const channelManager = {
 		cache: new Collection(),
 		resolve: vi.fn((id) => channelManager.cache.get(id)),
-		create: vi.fn(async ({ name, type, parentId, parent }) => createMockChannel(generateSnowflake(), name, type, parentId, parent ? parent : channelManager.resolve(parentId))),
+		create: vi.fn(async ({ name, type, parentId, parent }) => createMockChannel(generateSnowflake(), name, type, parentId, parent ? parent : channelManager.resolve(parentId), client)),
 		fetch: vi.fn(async (id) => channelManager.cache.get(id))
 	};
 	return channelManager;
@@ -165,10 +165,10 @@ export function createMockGuildMemberManager() {
  * @param {*} members 
  * @returns 
  */
-export function createMockGuild(channels = [], roles = [], members = []) {
+export function createMockGuild(channels = [], roles = [], members = [], client) {
 	const guild = {
 		iconURL: vi.fn(() => ''),
-		channels: createMockGuildChannelManager(),
+		channels: createMockGuildChannelManager(client),
 		members: createMockGuildMemberManager(),
 		roles: createMockRoleManager()
 	};
