@@ -60,11 +60,11 @@ export async function execute(game, message, command, args) {
             return game.communicationHandler.reply(message, `Couldn't find equipment slot "${split[1]}".`);
         else if (slot.equippedItem === null)
             return game.communicationHandler.reply(message, `Nothing is equipped to "${split[1]}".`);
-        else if (slot.equippedItem.name !== itemName)
+        else if (slot.equippedItem?.prefab?.id !== itemName && slot.equippedItem?.identifier !== itemName)
             return game.communicationHandler.reply(message, `Couldn't find "${itemName}" equipped to ${slotName}.`);
         item = slot.equippedItem;
     } else {
-        slot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, itemName, null);
+        slot = game.entityFinder.getPlayerEquipmentSlotWithEquippedItem(player, itemName);
         if (slot === undefined)
             return game.communicationHandler.reply(message, `Couldn't find equipped item "${split[0]}".`);
         // slot.equippedItem will never be null, because slot.equippedItem.name resolves to itemName
