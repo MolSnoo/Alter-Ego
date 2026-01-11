@@ -1,6 +1,13 @@
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
+/**
+ * @import Player from "../../../Data/Player.js"
+ */
+
+/** @type {import("discord.js").Collection} */
+let webhooks;
+
 export function createPermissionOverwritesManager() {
 	const { Collection } = require('discord.js');
 	const permissionOverwritesManager = {
@@ -34,9 +41,39 @@ export function createMockGuildMessageManager() {
 	return messageManager;
 }
 
-export function createMockChannel(id, name, type, parentId, parent) {
+export function createMockWebhook(name, channel, owner) {
+	const { Collection } = require('discord.js');
+	const webhook = {
+		id: generateSnowflake(),
+		name: name,
+		channel: channel,
+		client: channel.client,
+		owner: owner,
+		messages: new Collection(),
+		editMessage: vi.fn(async (id, { content }) => webhook.messages.get(id).edit(content)),
+		fetchMessage: vi.fn(async (id) => webhook.messages.get(id)),
+		send: vi.fn(async ({ content, username, avatarURL, embeds, files }) => {
+			const message = createMockMessage({
+				content: content,
+				member: null,
+				author: createMockUser(generateSnowflake(), username, avatarURL),
+				channel: webhook.channel,
+				webhookId: webhook.id,
+				client: owner
+			});
+			webhook.messages.set(message.id, message);
+			webhook.channel.messages.cache.set(message.id, message);
+			return message;
+		})
+	};
+	webhooks.set(webhook.id, webhook);
+	return webhook;
+}
+
+export function createMockChannel(id, name, type, parentId, parent, client) {
 	const messageManager = createMockGuildMessageManager();
 	let channel = {
+		client: client,
 		id: id,
 		name: name,
 		type: type,
@@ -49,8 +86,8 @@ export function createMockChannel(id, name, type, parentId, parent) {
 			channel.messages.cache.set(message.id, message);
 		}),
 		edit: vi.fn(({ name, lockPermissions }) => { channel.name = name; if (lockPermissions) for (const key of channel.permissionOverwrites.cache.keys()) channel.permissionOverwrites.delete(key) }),
-		fetchWebhooks: vi.fn(() => []),
-		createWebhook: vi.fn(({}) => {}),
+		fetchWebhooks: vi.fn(async () => webhooks.filter(webhook => webhook.channel.id === channel.id)),
+		createWebhook: vi.fn(async ({ name }) => createMockWebhook(name, channel, channel.client)),
 		permissionOverwrites: createPermissionOverwritesManager(),
 		lockPermissions: vi.fn(() => {}),
 		delete: vi.fn(async () => channel = undefined)
@@ -58,14 +95,14 @@ export function createMockChannel(id, name, type, parentId, parent) {
 	return channel;
 }
 
-export function createMockUser(id = generateSnowflake(), username = '') {
+export function createMockUser(id = generateSnowflake(), username = '', avatarURL = '') {
 	const user = {
 		id: id,
 		username: username,
-		defaultAvatarURL: '',
+		defaultAvatarURL: avatarURL,
 		dmChannel: createMockChannel(id, username),
 		send: vi.fn(async ({}) => createMockMessage({ content: '', channel: user.dmChannel })),
-		avatarURL: vi.fn(() => ''),
+		avatarURL: vi.fn(() => avatarURL),
 		setPresence: vi.fn(() => {})
 	};
 	return user;
@@ -145,8 +182,11 @@ export function createMockGuild(channels = [], roles = [], members = []) {
 }
 
 export function createMockClient() {
+	const { Collection } = require('discord.js');
+	webhooks = new Collection();
 	const client = {
-		user: createMockUser()
+		user: createMockUser(),
+		fetchWebhook: vi.fn(async (id) => webhooks.get(id))
 	};
 	return client;
 }
@@ -155,20 +195,22 @@ export function createMockClient() {
  * @param {*} param0 
  * @returns {UserMessage}
  */
-export function createMockMessage({ content = '', member = createMockMember(), author = createMockUser(), channel = null } = {}) {
+export function createMockMessage({ content = '', member = createMockMember(), author = createMockUser(), channel = null, webhookId, client } = {}) {
 	const { Collection } = require('discord.js');
 	const messageChannel = channel || createMockChannel();
+	if (messageChannel && messageChannel.parent) messageChannel.parentId = messageChannel.parent.id;
 	return {
 		id: generateSnowflake(),
 		content: content,
 		cleanContent: content,
+		client: client,
 		member,
 		author,
 		channel: messageChannel,
 		reply: vi.fn(async (text) => createMockMessage({ content: text, channel: messageChannel })),
 		// @ts-ignore
 		react: vi.fn(async () => ({})),
-		webhookId: null,
+		webhookId: webhookId,
 		attachments: new Collection(),
 		embeds: [],
 		// @ts-ignore
@@ -181,6 +223,20 @@ export function createMockMessage({ content = '', member = createMockMember(), a
 	};
 }
 
+/** 
+ * Creates a mocked message by the given player.
+ * @param {Player} player
+ * @param {string} content
+ */
+export function createPlayerMessage(player, content) {
+	return createMockMessage({
+		content: content,
+		member: player.member,
+		author: player.member.user,
+		channel: player.location.channel
+	});
+}
+
 export function generateSnowflake() {
 	return String(Math.floor(Math.random() * 999999999));
 }
@@ -190,5 +246,6 @@ export default {
 	createMockGuild,
 	createMockClient,
 	createMockMessage,
-	createMockMember
+	createMockMember,
+	createPlayerMessage
 };

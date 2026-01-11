@@ -34,20 +34,22 @@ vi.mock('../Configs/serverconfig.json', () => ({ default: serverconfig }));
 vi.mock('../Configs/settings.json', () => ({ default: settings }));
 
 beforeAll(() => {
+    /** @type {any} */ const client = discordMock.createMockClient();
+
     // Create a minimal mocked Discord environment and initialize Game.
     /** @type {any[]} */
     let channels = [];
-    /** @type {any} */ const commandChannel = discordMock.createMockChannel(serverconfig.commandChannel, 'bot-commands', ChannelType.GuildText);
-    /** @type {any} */ const logChannel = discordMock.createMockChannel(serverconfig.logChannel, 'bot-log', ChannelType.GuildText);
-    /** @type {any} */ const announcementChannel = discordMock.createMockChannel(serverconfig.announcementChannel, 'announcements', ChannelType.GuildText);
-    /** @type {any} */ const testingChannel = discordMock.createMockChannel(serverconfig.testingChannel, 'testing', ChannelType.GuildText);
-    /** @type {any} */ const generalChannel = discordMock.createMockChannel(serverconfig.generalChannel, 'general', ChannelType.GuildText);
-    /** @type {any} */ const whisperCategory = discordMock.createMockChannel(serverconfig.whisperCategory, 'Whispers', ChannelType.GuildCategory);
-    /** @type {any} */ const spectateCategory = discordMock.createMockChannel(serverconfig.spectateCategory, 'Spectate', ChannelType.GuildCategory);
+    /** @type {any} */ const commandChannel = discordMock.createMockChannel(serverconfig.commandChannel, 'bot-commands', ChannelType.GuildText, undefined, undefined, client);
+    /** @type {any} */ const logChannel = discordMock.createMockChannel(serverconfig.logChannel, 'bot-log', ChannelType.GuildText, undefined, undefined, client);
+    /** @type {any} */ const announcementChannel = discordMock.createMockChannel(serverconfig.announcementChannel, 'announcements', ChannelType.GuildText, undefined, undefined, client);
+    /** @type {any} */ const testingChannel = discordMock.createMockChannel(serverconfig.testingChannel, 'testing', ChannelType.GuildText, undefined, undefined, client);
+    /** @type {any} */ const generalChannel = discordMock.createMockChannel(serverconfig.generalChannel, 'general', ChannelType.GuildText, undefined, undefined, client);
+    /** @type {any} */ const whisperCategory = discordMock.createMockChannel(serverconfig.whisperCategory, 'Whispers', ChannelType.GuildCategory, undefined, undefined, client);
+    /** @type {any} */ const spectateCategory = discordMock.createMockChannel(serverconfig.spectateCategory, 'Spectate', ChannelType.GuildCategory, undefined, undefined, client);
     channels.push(commandChannel, logChannel, announcementChannel, testingChannel, generalChannel, whisperCategory, spectateCategory);
     /** @type {any[]} */ const roomCategoryIds = serverconfig.roomCategories.split(',');
     for (const roomCategoryId of roomCategoryIds)
-        channels.push(discordMock.createMockChannel(roomCategoryId, 'Rooms', ChannelType.GuildCategory));
+        channels.push(discordMock.createMockChannel(roomCategoryId, 'Rooms', ChannelType.GuildCategory, undefined, undefined, client));
 
     /** @type {any[]} */
     let roles = [];
@@ -126,8 +128,6 @@ beforeAll(() => {
     const moderatorCommands = new Collection();
     const playerCommands = new Collection();
     const eligibleCommands = new Collection();
-
-    /** @type {any} */ const client = discordMock.createMockClient();
 
     // Create BotContext singleton and attach to game.
     new BotContext(client, botCommands, moderatorCommands, playerCommands, eligibleCommands, game);

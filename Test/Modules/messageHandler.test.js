@@ -1,7 +1,9 @@
 import discord from "../__mocks__/libs/discord.js";
 import * as DialogClass from "../../Data/Dialog.js";
 import AnnounceAction from "../../Data/Actions/AnnounceAction.js";
+import SayAction from "../../Data/Actions/SayAction.js";
 import { processIncomingMessage } from "../../Modules/messageHandler.js";
+import { instantiateInventoryItem } from "../../Modules/itemManager.js";
 
 /**
  * @import Player from "../../Data/Player.js"
@@ -14,17 +16,17 @@ describe('messageHandler test', () => {
     });
 
     describe('processIncomingMessage tests', () => {
-        let dialogConstructorSpy;
-
-        beforeEach(() => {
-            dialogConstructorSpy = vi.spyOn(DialogClass, 'default');
-        });
-
-        afterEach(() => {
-            dialogConstructorSpy.mockRestore();
-        });
-
         describe('announcement', () => {
+            let dialogConstructorSpy;
+
+            beforeEach(() => {
+                dialogConstructorSpy = vi.spyOn(DialogClass, 'default');
+            });
+
+            afterEach(() => {
+                dialogConstructorSpy.mockRestore();
+            });
+
             test('announcement message by living player', () => {
                 const kyra = game.entityFinder.getLivingPlayer("Kyra");
                 const message = discord.createMockMessage({
@@ -147,9 +149,12 @@ describe('messageHandler test', () => {
 
                 nero.location.removePlayer(nero);
                 courtyard.addPlayer(nero);
+
+                const mask = game.entityFinder.getPrefab("PLAGUE DOCTOR MASK");
+                instantiateInventoryItem(mask, kyra, "FACE", null, "", 1, new Map());
             });
 
-            afterEach(() => {
+            beforeEach(() => {
                 for (const player of players) {
                     if (player.isNPC) continue;
                     player.spectateChannel.messages.cache.clear();
@@ -159,7 +164,13 @@ describe('messageHandler test', () => {
                     room.channel.messages.cache.clear();
             });
 
-            
+            test('standard dialog is communicated to ', async () => {
+                const performSaySpy = vi.spyOn(SayAction.prototype, 'performSay');
+                const message = discord.createPlayerMessage(luna, "Oh, hello!");
+                await processIncomingMessage(game, message);
+                expect(performSaySpy).toHaveBeenCalledOnce();
+
+            });
         });
     });
 });
