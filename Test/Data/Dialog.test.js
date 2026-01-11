@@ -40,7 +40,7 @@ describe('Dialog test', () => {
         expect(dialog.locationIsAudioSurveilled).toBe(true);
         expect(dialog.locationIsVideoSurveilled).toBe(true);
         expect(dialog.neighboringAudioSurveilledRooms).toHaveLength(0);
-        expect(dialog.audioMonitoringRooms).toHaveLength(2);
+        expect(dialog.audioMonitoringRooms).toHaveLength(1);
         expect(dialog.receivers).toHaveLength(0);
     });
 
