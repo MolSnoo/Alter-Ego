@@ -1,8 +1,10 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const serverManager = include(`${constants.modulesDir}/serverManager.js`);
+import { registerRoomCategory, createCategory } from '../Modules/serverManager.js';
 
-module.exports.config = {
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+
+/** @type {CommandConfig} */
+export const config = {
     name: "createroomcategory_moderator",
     description: "Creates a room category.",
     details: "Creates a room category channel with the given name. The ID of the new category channel will "
@@ -10,33 +12,44 @@ module.exports.config = {
         + "with the given name already exists, but its ID hasn't been registered in the roomCategories setting, "
         + "it will automatically be added. Note that if you create a room category in Discord without using "
         + "this command, you will have to add its ID to the roomCategories setting manually.",
-    usage: `${settings.commandPrefix}createroomcategory Floor 1\n`
-        + `${settings.commandPrefix}register Floor 2`,
     usableBy: "Moderator",
     aliases: ["createroomcategory","register"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to give a name to the new room category. Usage:\n${exports.config.usage}`);
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}createroomcategory Floor 1\n`
+        + `${settings.commandPrefix}register Floor 2`;
+}
 
-    var input = args.join(" ");
-    var channel = game.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
+    if (args.length === 0)
+        return game.communicationHandler.reply(message, `You need to give a name to the new room category. Usage:\n${usage(game.settings)}`);
+
+    const input = args.join(" ");
+    let channel = game.guildContext.guild.channels.cache.find(channel => channel.name.toLowerCase() === input.toLowerCase() && channel.parentId === null);
     if (channel) {
-        let response = await serverManager.registerRoomCategory(channel);
-        game.messageHandler.addGameMechanicMessage(message.channel, response);
+        const response = await registerRoomCategory(channel);
+        game.communicationHandler.sendToCommandChannel(response);
     }
     else {
         try {
-            channel = await serverManager.createCategory(game.guild, input);
-            let response = await serverManager.registerRoomCategory(channel);
-            game.messageHandler.addGameMechanicMessage(message.channel, response);
+            channel = await createCategory(game.guildContext.guild, input);
+            const response = await registerRoomCategory(channel);
+            game.communicationHandler.sendToCommandChannel(response);
         }
         catch (err) {
-            game.messageHandler.addGameMechanicMessage(message.channel, err);
+            game.communicationHandler.sendToCommandChannel(err);
         }
     }
-
-    return;
-};
+}

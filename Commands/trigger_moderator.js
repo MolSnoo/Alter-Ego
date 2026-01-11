@@ -1,35 +1,40 @@
-const settings = include('Configs/settings.json');
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "trigger_moderator",
     description: "Triggers an event.",
     details: "Triggers the specified event. The event must not already be ongoing. If the event has any triggered commands, they will be run.",
-    usage: `${settings.commandPrefix}trigger rain\n`
-        + `${settings.commandPrefix}trigger explosion`,
     usableBy: "Moderator",
     aliases: ["trigger"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}trigger rain\n`
+        + `${settings.commandPrefix}trigger explosion`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify an event. Usage:\n${exports.config.usage}`);
+        return game.communicationHandler.reply(message, `You need to specify an event. Usage:\n${usage(game.settings)}`);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const event = game.entityFinder.getEvent(input);
+    if (event === undefined) return game.communicationHandler.reply(message, `Couldn't find event "${input}".`);
+    if (event.ongoing) return game.communicationHandler.reply(message, `${event.id} is already ongoing.`);
 
-    var event = null;
-    for (let i = 0; i < game.events.length; i++) {
-        if (game.events[i].name === parsedInput) {
-            event = game.events[i];
-            break;
-        }
-    }
-    if (event === null) return game.messageHandler.addReply(message, `Couldn't find event "${input}".`);
-    if (event.ongoing) return game.messageHandler.addReply(message, `${event.name} is already ongoing.`);
-
-    await event.trigger(bot, game, true);
-    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully triggered ${event.name}.`);
-
-    return;
-};
+    await event.trigger(true);
+    game.communicationHandler.sendToCommandChannel(`Successfully triggered ${event.id}.`);
+}

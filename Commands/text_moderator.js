@@ -1,62 +1,53 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const messageHandler = include(`${constants.modulesDir}/messageHandler.js`);
+import TextAction from '../Data/Actions/TextAction.js';
 
-module.exports.config = {
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+
+/** @type {CommandConfig} */
+export const config = {
     name: "text_moderator",
     description: "Sends a text message from an NPC.",
     details: "Sends a text message from the first player to the second player. The first player must have the talent \"NPC\". "
         + "If an image is attached, it will be sent as well.",
-    usage: `${settings.commandPrefix}text amy florian I work at the bar.\n`
-        + `${settings.commandPrefix}text amy florian Here's a picture of me at work. (attached image)\n`
-        + `${settings.commandPrefix}text ??? keiko This is a message about your car's extended warranty.\n`
-        + `${settings.commandPrefix}text ??? hibiki (attached image)`,
     usableBy: "Moderator",
     aliases: ["text"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}text amy florian I work at the bar.\n`
+        + `${settings.commandPrefix}text amy florian Here's a picture of me at work. (attached image)\n`
+        + `${settings.commandPrefix}text ??? keiko This is a message about your car's extended warranty.\n`
+        + `${settings.commandPrefix}text ??? hibiki (attached image)`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a sender, a recipient, and a message. Usage:\n${exports.config.usage}`);
+        return game.communicationHandler.reply(message, `You need to specify a sender, a recipient, and a message. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent === "NPC") {
-            player = game.players_alive[i];
-            break;
-        }
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase() && game.players_alive[i].talent !== "NPC")
-            return game.messageHandler.addReply(message, `You cannot text for a player that isn't an NPC.`);
-    }
-    if (player === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return game.communicationHandler.reply(message, `Couldn't find player "${args[0]}".`);
+    else if (!player.isNPC) return game.communicationHandler.reply(message, `You cannot text for a player that isn't an NPC.`);
     args.splice(0, 1);
 
-    var recipient = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            recipient = game.players_alive[i];
-            break;
-        }
-    }
-    if (recipient === null) return game.messageHandler.addReply(message, `Couldn't find player "${args[0]}".`);
-    if (recipient.name === player.name) return game.messageHandler.addReply(message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
+    const recipient = game.entityFinder.getLivingPlayer(args[0]);
+    if (recipient === undefined) return game.communicationHandler.reply(message, `Couldn't find player "${args[0]}".`);
+    if (recipient.name === player.name) return game.communicationHandler.reply(message, `${player.name} cannot send a message to ${player.originalPronouns.ref}.`);
     args.splice(0, 1);
 
-    var input = args.join(" ");
-    if (input === "" && message.attachments.size === 0) return game.messageHandler.addReply(message, `Text message cannot be empty. Please send a message and/or an attachment.`);
-    if (input.length > 1900)
-        input = input.substring(0, 1897) + "...";
-
-    var senderText = `\`[ ${player.name} -> ${recipient.name} ]\` `;
-    var receiverText = `\`[ ${player.name} ]\` `;
-    if (input !== "") {
-        senderText += input;
-        receiverText += input;
-    }
-
-    messageHandler.addDirectNarrationWithAttachments(player, senderText, message.attachments);
-    messageHandler.addDirectNarrationWithAttachments(recipient, receiverText, message.attachments);
-
-    return;
-};
+    const input = args.join(" ");
+    if (input === "" && message.attachments.size === 0) return game.communicationHandler.reply(message, `Text message cannot be empty. Please send a message and/or an attachment.`);
+    
+    const action = new TextAction(game, message, player, player.location, false);
+    action.performText(recipient, input);
+}

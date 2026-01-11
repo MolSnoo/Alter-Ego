@@ -1,20 +1,36 @@
-﻿const settings = include('Configs/settings.json');
+﻿/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "status_player",
     description: "Shows your status.",
     details: "Shows you what status effects you're currently afflicted with.",
-    usage: `${settings.commandPrefix}status`,
     usableBy: "Player",
-    aliases: ["status"]
+    aliases: ["status"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
-    const status = player.getAttributeStatusEffects("disable status");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}status`;
+}
 
-    const statusMessage = `You are currently:\n${player.generate_statusList(false, false)}`;
-    game.messageHandler.addGameMechanicMessage(player.member, statusMessage);
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
+ */
+export async function execute(game, message, command, args, player) {
+    const status = player.getBehaviorAttributeStatusEffects("disable status");
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
-    return;
-};
+    const statusMessage = `You are currently:\n${player.getStatusList(false, false)}`;
+    game.communicationHandler.sendMessageToPlayer(player, statusMessage, false);
+}

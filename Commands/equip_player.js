@@ -1,75 +1,64 @@
-const settings = include('Configs/settings.json');
+import EquipAction from '../Data/Actions/EquipAction.js';
 
-module.exports.config = {
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
+
+/** @type {CommandConfig} */
+export const config = {
     name: "equip_player",
     description: "Equips an item.",
     details: "Equips an item currently in your hand. You can specify which equipment slot you want to equip the item to, if you want. "
         + "However, some items can only be equipped to certain equipment slots (for example, a mask can only be equipped to the FACE slot). "
         + "People in the room will see you equip an item, regardless of its size.",
-    usage: `${settings.commandPrefix}equip mask\n`
-        + `${settings.commandPrefix}wear coat\n`
-        + `${settings.commandPrefix}equip sweater to shirt`,
     usableBy: "Player",
-    aliases: ["equip", "wear", "e"]
+    aliases: ["equip", "wear", "e"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}equip mask\n`
+        + `${settings.commandPrefix}wear coat\n`
+        + `${settings.commandPrefix}equip sweater to shirt`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
+ */
+export async function execute(game, message, command, args, player) {
     if (args.length === 0)
-        return game.messageHandler.addReply(message, `You need to specify an item. Usage:\n${exports.config.usage}`);
+        return game.communicationHandler.reply(message, `You need to specify an item. Usage:\n${usage(game.settings)}`);
 
-    const status = player.getAttributeStatusEffects("disable equip");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+    const status = player.getBehaviorAttributeStatusEffects("disable equip");
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
-    var input = args.join(' ');
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
-    var newArgs = parsedInput.split(" TO ");
-    var itemName = newArgs[0].trim();
-    var slotName = newArgs[1] ? newArgs[1] : "";
+    const input = args.join(' ');
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const newArgs = parsedInput.split(" TO ");
+    const itemName = newArgs[0].trim();
+    let slotName = newArgs[1] ? newArgs[1] : "";
 
-    var item = null;
-    var hand = "";
-    for (let slot = 0; slot < player.inventory.length; slot++) {
-        if (player.inventory[slot].name === "RIGHT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
-            item = player.inventory[slot].equippedItem;
-            hand = "RIGHT HAND";
-            break;
-        }
-        else if (player.inventory[slot].name === "LEFT HAND" && player.inventory[slot].equippedItem !== null && player.inventory[slot].equippedItem.name === itemName) {
-            item = player.inventory[slot].equippedItem;
-            hand = "LEFT HAND";
-            break;
-        }
-        // If it's reached the left hand and it doesn't have the desired item, neither hand has it. Stop looking.
-        else if (player.inventory[slot].name === "LEFT HAND")
-            break;
-    }
-    if (item === null) return game.messageHandler.addReply(message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
-    if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return game.messageHandler.addReply(message, `${itemName} is not equippable.`);
+    const hand = game.entityFinder.getPlayerHandHoldingItem(player, itemName, "player");
+    const item = hand ? hand.equippedItem : undefined;
+    if (item === undefined) return game.communicationHandler.reply(message, `Couldn't find item "${itemName}" in either of your hands. If this item is elsewhere in your inventory, please unequip or unstash it before trying to equip it.`);
+    if (!item.prefab.equippable || item.prefab.equipmentSlots.length === 0) return game.communicationHandler.reply(message, `${itemName} is not equippable.`);
 
     // If no slot name was given, pick the first one this item can be equipped to.
     if (slotName === "") slotName = item.prefab.equipmentSlots[0];
+    if (!item.prefab.equipmentSlots.includes(slotName)) return game.communicationHandler.reply(message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
 
-    let foundSlot = false;
-    for (let i = 0; i < player.inventory.length; i++) {
-        if (slotName && player.inventory[i].name === slotName) {
-            foundSlot = true;
-            var acceptableSlot = false;
-            for (let j = 0; j < item.prefab.equipmentSlots.length; j++) {
-                if (item.prefab.equipmentSlots[j] === player.inventory[i].name) {
-                    acceptableSlot = true;
-                    break;
-                }
-            }
-            if (!acceptableSlot) return game.messageHandler.addReply(message, `${itemName} can't be equipped to equipment slot ${slotName}.`);
-            if (player.inventory[i].equippedItem !== null) return game.messageHandler.addReply(message, `Cannot equip items to ${slotName} because ${player.inventory[i].equippedItem.name} is already equipped to it.`);
-        }
-    }
-    if (!foundSlot) return game.messageHandler.addReply(message, `Couldn't find equipment slot "${slotName}".`);
+    let slot = player.inventoryCollection.get(slotName);
+    if (slot === undefined) return game.communicationHandler.reply(message, `Couldn't find equipment slot "${slotName}".`);
+    if (slot.equippedItem !== null) return game.communicationHandler.reply(message, `Cannot equip items to ${slotName} because ${slot.equippedItem.name} is already equipped to it.`);
 
-    player.equip(game, item, slotName, hand, bot);
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} equipped ${item.identifier ? item.identifier : item.prefab.id} to ${slotName} in ${player.location.channel}`);
-
-    return;
-};
+    const action = new EquipAction(game, message, player, player.location, false);
+    action.performEquip(item, slot, hand);
+}

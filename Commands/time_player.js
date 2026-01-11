@@ -1,21 +1,37 @@
-const settings = include('Configs/settings.json');
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "time_player",
     description: "Shows the current in-game time.",
     details: "Shows the current in-game time and date. This will show you the time in the timezone "
         + "that the bot is currently operating in. This may differ from your local time.",
-    usage: `${settings.commandPrefix}time`,
     usableBy: "Player",
-    aliases: ["time"]
+    aliases: ["time"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
-    const status = player.getAttributeStatusEffects("disable time");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}time`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
+ */
+export async function execute(game, message, command, args, player) {
+    const status = player.getBehaviorAttributeStatusEffects("disable time");
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
     const timeMessage = `It is currently **${new Date().toLocaleTimeString()}** on **${new Date().toDateString()}**.`;
-    game.messageHandler.addGameMechanicMessage(player.member, timeMessage);
-
-    return;
-};
+    game.communicationHandler.sendMessageToPlayer(player, timeMessage, false);
+}

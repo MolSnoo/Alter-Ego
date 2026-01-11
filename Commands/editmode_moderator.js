@@ -1,8 +1,8 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
-const saver = include(`${constants.modulesDir}/saver.js`);
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "editmode_moderator",
     description: "Toggles edit mode for editing the spreadsheet.",
     details: "Toggles edit mode on or off, allowing you to make edits to the spreadsheet. When edit mode is turned on, "
@@ -11,43 +11,53 @@ module.exports.config = {
         + "is enabled, so use it sparingly. Data will be saved to the spreadsheet before edit mode is enabled, so be sure "
         + "to wait until the confirmation message has been sent before making any edits. When you are finished making edits, "
         + "be sure to load the updated spreadsheet data before disabling edit mode.",
-    usage: `${settings.commandPrefix}editmode\n`
-        + `${settings.commandPrefix}editmode on\n`
-        + `${settings.commandPrefix}editmode off`,
     usableBy: "Moderator",
     aliases: ["editmode"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}editmode\n`
+        + `${settings.commandPrefix}editmode on\n`
+        + `${settings.commandPrefix}editmode off`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
     if (args.length === 0 && game.editMode === false || args.length > 0 && args[0].toLowerCase() === "on") {
         try {
-            await saver.saveGame();
+            await game.entitySaver.saveGame();
             game.editMode = true;
-            for (let i = 0; i < game.players_alive.length; i++) {
-                game.players_alive[i].isMoving = false;
-                clearInterval(game.players_alive[i].moveTimer);
-                game.players_alive[i].remainingTime = 0;
-                game.players_alive[i].moveQueue.length = 0;
-                if (!game.players_alive[i].hasAttribute('unconscious'))
-                    game.messageHandler.addDirectNarration(game.players_alive[i], "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
-            }
-            game.messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been enabled.");
+            game.livingPlayersCollection.forEach(player => {
+                player.stopMoving();
+                if (player.isConscious())
+                    game.communicationHandler.sendMessageToPlayer(player, "A moderator has enabled edit mode. While the spreadsheet is being edited, you cannot do anything but speak. This should only take a few minutes.", false);
+            });
+            game.communicationHandler.sendToCommandChannel("Edit mode has been enabled.");
         }
         catch (err) {
             console.log(err);
-            return game.messageHandler.addGameMechanicMessage(message.channel, "There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
+            return game.communicationHandler.sendToCommandChannel("There was an error saving data to the spreadsheet. Error:\n```" + err + "```");
         }
     }
     else if (args.length === 0 && game.editMode === true || args.length > 0 && args[0].toLowerCase() === "off") {
+        if (game.loadedEntitiesWithErrors.size !== 0)
+            return game.communicationHandler.reply(message, `Edit mode can't be disabled while there are errors on the sheet. Fix the errors found by the load command and then try again.`);
         game.editMode = false;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (!game.players_alive[i].hasAttribute('unconscious'))
-                game.messageHandler.addDirectNarration(game.players_alive[i], "Edit mode has been disabled. You are free to resume normal gameplay.", false);
-        }
-        game.messageHandler.addGameMechanicMessage(message.channel, "Edit mode has been disabled.");
+        game.livingPlayersCollection.forEach(player => {
+            if (player.isConscious())
+                game.communicationHandler.sendMessageToPlayer(player, "Edit mode has been disabled. You are free to resume normal gameplay.", false);
+        });
+        game.communicationHandler.sendToCommandChannel("Edit mode has been disabled.");
     }
-    else game.messageHandler.addReply(message, `Couldn't understand input "${args[0]}". Usage:\n${exports.config.usage}`);
-
-    return;
-};
+    else game.communicationHandler.reply(message, `Couldn't understand input "${args[0]}". Usage:\n${usage(game.settings)}`);
+}

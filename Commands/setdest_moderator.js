@@ -1,6 +1,8 @@
-const settings = include('Configs/settings.json');
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "setdest_moderator",
     description: "Updates an exit's destination.",
     details: "Replaces the destination for the specified room's exit. Given the following initial room setup:\n```"
@@ -21,78 +23,85 @@ module.exports.config = {
         + "room-3   |EXIT D|room-1  | EXIT A```\n"
         + "Note that this will leave room-2's EXIT B and EXIT C without exits that lead back to them, which will result in errors next time rooms are loaded. "
         + "To prevent this, this command should be used sparingly, and all affected exits should have their destinations reassigned.",
-    usage: `${settings.commandPrefix}setdest corolla DOOR wharf VEHICLE\n`
-        + `${settings.commandPrefix}setdest motor boat PORT docks BOAT\n`
-        + `${settings.commandPrefix}setdest wharf MOTOR BOAT wharf MOTOR BOAT`,
     usableBy: "Moderator",
     aliases: ["setdest"],
     requiresGame: false
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
-    if (args.length < 4)
-        return game.messageHandler.addReply(message, `You need to specify a room, an exit, another room, and another exit. Usage:\n${exports.config.usage}`);
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}setdest corolla DOOR wharf VEHICLE\n`
+        + `${settings.commandPrefix}setdest motor boat PORT docks BOAT\n`
+        + `${settings.commandPrefix}setdest wharf MOTOR BOAT wharf MOTOR BOAT`;
+}
 
-    var input = args.join(" ");
-    var parsedInput = input.replace(/ /g, "-").toLowerCase();
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
+    if (args.length < 4)
+        return game.communicationHandler.reply(message, `You need to specify a room, an exit, another room, and another exit. Usage:\n${usage(game.settings)}`);
 
     // First, find the room.
-    var room = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            room = game.rooms[i];
-            parsedInput = parsedInput.substring(room.name.length).replace(/-/g, " ").toUpperCase().trim();
-            input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
+    let room;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        room = game.entityFinder.getRoom(searchString);
+        if (room) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addReply(message, `You need to specify an exit in ${game.rooms[i].name}, another room, and another exit.`);
     }
-    if (room === null) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
+    if (room === undefined) return game.communicationHandler.reply(message, `Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return game.communicationHandler.reply(message, `You need to specify an exit in ${room.id}, another room, and another exit.`);
 
     // Now that the room has been found, find the exit.
-    var exit = null;
-    for (let i = 0; i < room.exit.length; i++) {
-        if (parsedInput.startsWith(room.exit[i].name + ' ')) {
-            exit = room.exit[i];
-            parsedInput = parsedInput.substring(exit.name.length).toLowerCase().trim().replace(/ /g, "-");
-            input = input.substring(input.replace(/ /g, "-").toLowerCase().indexOf(parsedInput)).trim();
+    let exit;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        exit = game.entityFinder.getExit(room, searchString);
+        if (exit) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === room.exit[i].name) return game.messageHandler.addReply(message, `You need to specify another room and another exit for ${exit.name} of ${room.name} to lead to.`);
     }
-    if (exit === null) return game.messageHandler.addReply(message, `Couldn't find exit "${input}" in ${room.name}.`);
+    if (exit === null) return game.communicationHandler.reply(message, `Couldn't find exit "${args.join(" ")}" in ${room.id}.`);
+    else if (args.length === 0) return game.communicationHandler.reply(message, `You need to specify another room and another exit for ${exit.name} of ${room.id} to lead to.`);
 
     // Now find the destination room.
-    var destRoom = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (parsedInput.startsWith(game.rooms[i].name + '-')) {
-            destRoom = game.rooms[i];
-            parsedInput = parsedInput.substring(destRoom.name.length).replace(/-/g, " ").toUpperCase().trim();
-            input = input.substring(input.toUpperCase().indexOf(parsedInput)).trim();
+    let destRoom;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        destRoom = game.entityFinder.getRoom(searchString);
+        if (destRoom) {
+            args = args.slice(i);
             break;
         }
-        else if (parsedInput === game.rooms[i].name) return game.messageHandler.addReply(message, `You need to specify an exit in ${game.rooms[i].name} for ${exit.name} of ${room.name} to lead to.`);
     }
-    if (destRoom === null) return game.messageHandler.addReply(message, `Couldn't find room "${input}".`);
+    if (destRoom === null) return game.communicationHandler.reply(message, `Couldn't find room "${args.join(" ")}".`);
+    else if (args.length === 0) return game.communicationHandler.reply(message, `You need to specify an exit in ${destRoom.id} for ${exit.name} of ${room.id} to lead to.`);
 
     // Now that the destination room has been found, find the destination exit.
-    var destExit = null;
-    for (let i = 0; i < destRoom.exit.length; i++) {
-        if (destRoom.exit[i].name === parsedInput) {
-            destExit = destRoom.exit[i];
-            parsedInput = parsedInput.substring(destExit.name.length).toLowerCase().trim().replace(/ /g, "-");
-            input = input.substring(input.replace(/ /g, "-").toLowerCase().indexOf(parsedInput)).trim();
+    let destExit;
+    for (let i = args.length - 1; i >= 0; i--) {
+        const searchString = args.slice(0, i).join(" ");
+        destExit = game.entityFinder.getExit(destRoom, searchString);
+        if (destExit) {
             break;
         }
     }
-    if (destExit === null) return game.messageHandler.addReply(message, `Couldn't find exit "${input}" in ${destRoom.name}.`);
+    if (destExit === undefined) return game.communicationHandler.reply(message, `Couldn't find exit "${args.join(" ")}" in ${destRoom.id}.`);
 
     exit.dest = destRoom;
     exit.link = destExit.name;
     destExit.dest = room;
     destExit.link = exit.name;
 
-    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully updated destination of ${exit.name} in ${room.name}.`);
-
-    return;
-};
+    game.communicationHandler.sendToCommandChannel(`Successfully updated destination of ${exit.name} in ${room.id}.`);
+}

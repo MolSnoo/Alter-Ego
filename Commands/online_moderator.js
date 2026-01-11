@@ -1,24 +1,32 @@
-const settings = include('Configs/settings.json');
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "online_moderator",
     description: "Lists all online players.",
     details: "Lists all players who are currently online.",
-    usage: `${settings.commandPrefix}online`,
     usableBy: "Moderator",
     aliases: ["online"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
-    var players = [];
-    for (let i = 0; i < game.players_alive.length; i++) {
-		if (game.players_alive[i].online)
-			players.push(game.players_alive[i].name);
-	}
-	players.sort();
-	const playerList = players.join(", ");
-    game.messageHandler.addGameMechanicMessage(message.channel, `Players online:\n${playerList}`);
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}online`;
+}
 
-    return;
-};
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
+    const players = game.entityFinder.getLivingPlayers().filter(player => player.online).map(player => player.name).sort();
+	const playerList = players.join(", ");
+    game.communicationHandler.sendToCommandChannel(`Players online:\n${playerList}`);
+}

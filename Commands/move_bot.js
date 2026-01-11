@@ -1,6 +1,12 @@
-﻿const serverconfig = include('Configs/serverconfig.json');
+import Event from "../Data/Event.js";
+import MoveAction from "../Data/Actions/MoveAction.js";
 
-module.exports.config = {
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
+
+/** @type {CommandConfig} */
+export const config = {
     name: "move_bot",
     description: "Moves the given player(s) to the specified room.",
     details: 'Forcibly moves the specified player to the specified room. If you use "all" in place of the player, '
@@ -8,34 +14,48 @@ module.exports.config = {
         + 'If you use "player" in place of the player, then the player who triggered the command will be moved. If you use "room" instead, all players in the room will be moved. '
         + 'All of the same things that happen when a player moves to a room of their own volition apply, however you can move players to non-adjacent rooms this way. '
         + 'The bot will not announce which exit the player leaves through or which entrance they enter from when a player is moved to a non-adjacent room.',
-    usage: `move susie main-office\n`
+    usableBy: "Bot",
+    aliases: ["move"],
+    requiresGame: true
+};
+
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `move susie main-office\n`
         + `move player general-managers-office\n`
         + `move player cafeteria\n`
         + `move room trial-grounds\n`
-        + `move all elevator`,
-    usableBy: "Bot",
-    aliases: ["move"]
-};
+        + `move all elevator`;
+}
 
-module.exports.run = async (bot, game, command, args, player, data) => {
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} [player] - The player who caused the command to be executed, if applicable. 
+ * @param {Callee} [callee] - The in-game entity that caused the command to be executed, if applicable. 
+ */
+export async function execute(game, command, args, player, callee) {
     const cmdString = command + " " + args.join(" ");
     if (args.length === 0) {
-        game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
+        game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Insufficient arguments.`);
         return;
     }
 
     // Get all listed players first.
-    var players = [];
+    let players = [];
     if (args[0].toLowerCase() === "player" && player !== null) {
         players.push(player);
         args.splice(0, 1);
     }
-    else if (args[0].toLowerCase() === "room" && data !== null && data.hasOwnProperty("ongoing")) {
+    else if (args[0].toLowerCase() === "room" && callee !== null && callee instanceof Event) {
         // Command was triggered by an Event. Get occupants of all rooms affected by it.
-        for (let i = 0; i < game.rooms.length; i++) {
-            if (game.rooms[i].tags.includes(data.roomTag) && game.rooms[i].occupants.length > 0)
-                players = players.concat(game.rooms[i].occupants);
-        }
+        game.entityFinder.getRooms(null, callee.roomTag, true).map((room) => {
+            players = players.concat(room.occupants);
+        });
         args.splice(0, 1);
     }
     else if (args[0].toLowerCase() === "room" && player !== null) {
@@ -44,94 +64,46 @@ module.exports.run = async (bot, game, command, args, player, data) => {
         args.splice(0, 1);
     }
     else if (args[0].toLowerCase() === "all") {
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].talent !== "NPC" && !game.players_alive[i].member.roles.cache.find(role => role.id === serverconfig.headmasterRole))
-                players.push(game.players_alive[i]);
-        }
+        game.entityFinder.getLivingPlayers(null, false).map((player) => {
+            if (!player.member.roles.cache.find((role) => role.id === game.guildContext.freeMovementRole.id))
+                players.push(player);
+        });
         args.splice(0, 1);
     }
     else {
-        player = null;
-        for (let i = 0; i < game.players_alive.length; i++) {
-            if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-                player = game.players_alive[i];
-                break;
-            }
-        }
-        if (player === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
+        player = game.entityFinder.getLivingPlayer(args[0]);
+        if (player === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find player "${args[0]}".`);
         players.push(player);
         args.splice(0, 1);
     }
     // Args at this point should only include the room name.
     // Check to see that the last argument is the name of a room.
-    var input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
-    var desiredRoom = null;
-    for (let i = 0; i < game.rooms.length; i++) {
-        if (game.rooms[i].name === input) {
-            desiredRoom = game.rooms[i];
-            input = input.substring(0, input.indexOf(desiredRoom.name));
-            args = input.split("-");
-            break;
-        }
-    }
-    if (desiredRoom === null) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    let input = args.join(" ").replace(/\'/g, "").replace(/ /g, "-").toLowerCase();
+    const desiredRoom = game.entityFinder.getRoom(input);
+    if (desiredRoom === undefined) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find room "${input}".`);
+    input = input.substring(0, input.indexOf(desiredRoom.id));
+    args = input.split("-");
 
     for (let i = 0; i < players.length; i++) {
         // Skip over players who are already in the specified room.
         if (players[i].location !== desiredRoom) {
             const currentRoom = players[i].location;
             // Check to see if the given room is adjacent to the current player's room.
-            var exit = null;
-            let exitPuzzle = null;
-            var entrance = null;
-            for (let j = 0; j < currentRoom.exit.length; j++) {
-                if (currentRoom.exit[j].dest === desiredRoom) {
-                    exit = currentRoom.exit[j];
-                    exitPuzzle = game.puzzles.find(puzzle => puzzle.location.name === currentRoom.name && puzzle.name === exit.name && puzzle.type === "restricted exit");
-                    for (let k = 0; k < desiredRoom.exit.length; k++) {
-                        if (desiredRoom.exit[k].name === exit.link) {
-                            entrance = desiredRoom.exit[k];
-                            break;
-                        }
-                    }
+            let exit;
+            let entrance;
+            for (const targetExit of currentRoom.exitCollection.values()) {
+                if (targetExit.dest.id === desiredRoom.id) {
+                    exit = targetExit;
+                    entrance = game.entityFinder.getExit(desiredRoom, exit.link);
                     break;
                 }
             }
 
-            const appendString = players[i].createMoveAppendString();
-            var exitMessage;
-            if (exit) exitMessage = `${players[i].displayName} exits into ${exit.name}${appendString}`;
-            else exitMessage = `${players[i].displayName} exits${appendString}`;
-            var entranceMessage;
-            if (entrance) entranceMessage = `${players[i].displayName} enters from ${entrance.name}${appendString}`;
-            else entranceMessage = `${players[i].displayName} enters${appendString}`;
             // Clear the player's movement timer first.
-            players[i].isMoving = false;
-            clearInterval(players[i].moveTimer);
-            players[i].remainingTime = 0;
-            players[i].moveQueue.length = 0;
-            // Solve the exit puzzle, if applicable.
-            if (exitPuzzle && exitPuzzle.accessible && exitPuzzle.solutions.includes(players[i].name))
-                exitPuzzle.solve(bot, game, players[i], "", players[i].name, true);
+            players[i].stopMoving();
             // Move the player.
-            currentRoom.removePlayer(game, players[i], exit, exitMessage);
-            desiredRoom.addPlayer(game, players[i], entrance, entranceMessage, true);
+            const action = new MoveAction(game, undefined, players[i], players[i].location, true);
+            action.performMove(false, currentRoom, desiredRoom, exit, entrance);
         }
     }
-
-    // Create a list of players moved for the log message.
-    var playerList = players[0].name;
-    if (players.length === 2) playerList += ` and ${players[1].name}`;
-    else if (players.length >= 3) {
-        for (let i = 1; i < players.length; i++) {
-            if (i === players.length - 1) playerList += `, and ${players[i].name}`;
-            else playerList += `, ${players[i].name}`;
-        }
-    }
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${playerList} forcibly moved to ${desiredRoom.channel}`);
-
-    return;
-};
+}

@@ -1,81 +1,50 @@
-const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+import KnockAction from '../Data/Actions/KnockAction.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "knock_moderator",
     description: "Knocks on a door for a player.",
     details: "Knocks on a door for the given player",
-    usage: `${settings.commandPrefix}knock kanda door 1`,
     usableBy: "Moderator",
     aliases: ["knock"],
     requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args) => {
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}knock kanda door 1`;
+}
+
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ */
+export async function execute(game, message, command, args) {
     if (args.length < 2)
-        return game.messageHandler.addReply(message, `You need to specify a player and an exit. Usage:\n${exports.config.usage}`);
+        return game.communicationHandler.reply(message, `You need to specify a player and an exit. Usage:\n${usage(game.settings)}`);
 
-    var player = null;
-    for (let i = 0; i < game.players_alive.length; i++) {
-        if (game.players_alive[i].name.toLowerCase() === args[0].toLowerCase()) {
-            player = game.players_alive[i];
-            args.splice(0, 1);
-            break;
-        }
-    }
-    if (player === null) return game.messageHandler.addReply(message, `Player "${args[0]}" not found.`);
+    const player = game.entityFinder.getLivingPlayer(args[0]);
+    if (player === undefined) return game.communicationHandler.reply(message, `Player "${args[0]}" not found.`);
+    args.splice(0, 1);
 
-    var input = args.join(" ");
-    var parsedInput = input.toUpperCase().replace(/\'/g, "");
+    const input = args.join(" ");
+    const parsedInput = input.toUpperCase().replace(/\'/g, "");
 
     // Check that the input given is an exit in the player's current room.
-    var exit = null;
-    for (let i = 0; i < player.location.exit.length; i++) {
-        if (player.location.exit[i].name === parsedInput) {
-            exit = player.location.exit[i];
-        }
-    }
-    if (exit === null) return game.messageHandler.addReply(message, `Couldn't find exit "${parsedInput}" in the room.`);
+    const exit = game.entityFinder.getExit(player.location, parsedInput);
+    if (exit === undefined) return game.communicationHandler.reply(message, `Couldn't find exit "${parsedInput}" in the room.`);
+    if (exit.dest.tags.has("outside") && player.location.tags.has("outside"))
+        return game.communicationHandler.reply(message, `There's nothing to knock on.`);
 
-    var roomNarration = player.displayName + " knocks on ";
-    if (exit.name === "DOOR") roomNarration += "the DOOR";
-    else if (exit.name.includes("DOOR")) roomNarration += exit.name;
-    else roomNarration += "the door to " + exit.name;
-    roomNarration += '.';
-
-    // Narrate the player knocking in their current room.
-    new Narration(game, player, player.location, roomNarration).send();
-
-    var room = exit.dest;
-    if (room.name === player.location.name) return;
-
-    var hearingPlayers = [];
-    // Get a list of all the hearing players in the destination room.
-    for (let i = 0; i < room.occupants.length; i++) {
-        if (!room.occupants[i].hasAttribute("no hearing"))
-            hearingPlayers.push(room.occupants[i]);
-    }
-
-    var destNarration = "There is a knock on ";
-    if (exit.link === "DOOR") destNarration += "the DOOR";
-    else if (exit.link.includes("DOOR")) destNarration += exit.link;
-    else destNarration += "the door to " + exit.link;
-    destNarration += '.';
-
-    // If the number of hearing players is the same as the number of occupants in the room, send the message to the room.
-    if (hearingPlayers.length === room.occupants.length && hearingPlayers.length !== 0)
-        new Narration(game, player, room, destNarration).send();
-    else {
-        for (let i = 0; i < hearingPlayers.length; i++)
-            hearingPlayers[i].notify(game, destNarration);
-    }
-    game.messageHandler.addGameMechanicMessage(message.channel, `Successfully knocked on ${exit.name} for ${player.name}.`);
-
-    // Post log message.
-    const time = new Date().toLocaleTimeString();
-    game.messageHandler.addLogMessage(game.logChannel, `${time} - ${player.name} forcibly knocked on ${exit.name} in ${player.location.channel}`);
-
-    return;
-};
+    const action = new KnockAction(game, message, player, player.location, true);
+    action.performKnock(exit);
+    game.communicationHandler.sendToCommandChannel(`Successfully knocked on ${exit.name} for ${player.name}.`);
+}

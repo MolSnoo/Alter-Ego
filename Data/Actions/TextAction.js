@@ -1,0 +1,25 @@
+import Action from "../Action.js";
+
+/** @typedef {import("../Player.js").default} Player */
+
+/**
+ * @class TextAction
+ * @classdesc Represents a text action.
+ * @extends Action
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/actions/text-action.html
+ */
+export default class TextAction extends Action {
+	/**
+	 * Performs a text action.
+	 * @param {Player} recipient - The player who will receive the text.
+	 * @param {string} messageText - The text content of the text message.
+	 */
+	performText(recipient, messageText) {
+		if (this.performed) return;
+		super.perform();
+		const senderText = this.getGame().notificationGenerator.generateTextNotification(messageText, this.player.name, recipient.name);
+		const recipientText = this.getGame().notificationGenerator.generateTextNotification(messageText, this.player.name);
+		this.getGame().communicationHandler.notifyPlayerWithAttachments(this.player, this, senderText, this.message.attachments);
+		this.getGame().communicationHandler.notifyPlayerWithAttachments(recipient, this, recipientText, this.message.attachments);
+	}
+}

@@ -1,31 +1,42 @@
-﻿const settings = include('Configs/settings.json');
-const constants = include('Configs/constants.json');
+﻿import StopAction from '../Data/Actions/StopAction.js';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+/** @typedef {import('../Classes/GameSettings.js').default} GameSettings */
+/** @typedef {import('../Data/Game.js').default} Game */
+/** @typedef {import('../Data/Player.js').default} Player */
 
-module.exports.config = {
+/** @type {CommandConfig} */
+export const config = {
     name: "stop_player",
     description: "Stops your movement.",
     details: "Stops you in your tracks while moving to another room. Your distance to that room will be preserved, "
         + "so if you decide to move to that room again, it will not take as long. This command will also cancel any "
         + "queued movements.",
-    usage: `${settings.commandPrefix}stop`,
     usableBy: "Player",
-    aliases: ["stop"]
+    aliases: ["stop"],
+    requiresGame: true
 };
 
-module.exports.run = async (bot, game, message, command, args, player) => {
-    const status = player.getAttributeStatusEffects("disable stop");
-    if (status.length > 0) return game.messageHandler.addReply(message, `You cannot do that because you are **${status[0].name}**.`);
+/**
+ * @param {GameSettings} settings 
+ * @returns {string} 
+ */
+export function usage(settings) {
+    return `${settings.commandPrefix}stop`;
+}
 
-    if (!player.isMoving) return game.messageHandler.addReply(message, `You cannot do that because you are not moving.`);
+/**
+ * @param {Game} game - The game in which the command is being executed. 
+ * @param {UserMessage} message - The message in which the command was issued. 
+ * @param {string} command - The command alias that was used. 
+ * @param {string[]} args - A list of arguments passed to the command as individual words. 
+ * @param {Player} player - The player who issued the command. 
+ */
+export async function execute(game, message, command, args, player) {
+    const status = player.getBehaviorAttributeStatusEffects("disable stop");
+    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[1].id}**.`);
 
-    // Stop the player's movement.
-    clearInterval(player.moveTimer);
-    player.isMoving = false;
-    player.moveQueue.length = 0;
-    // Narrate that the player stopped.
-    new Narration(game, player, player.location, `${player.displayName} stops moving.`).send();
+    if (!player.isMoving) return game.communicationHandler.reply(message, `You cannot do that because you are not moving.`);
 
-    return;
-};
+    const action = new StopAction(game, message, player, player.location, false);
+    action.performStop();
+}

@@ -1,97 +1,228 @@
-const constants = include('Configs/constants.json');
-const commandHandler = include(`${constants.modulesDir}/commandHandler.js`);
-const parser = include(`${constants.modulesDir}/parser.js`);
+import GameEntity from './GameEntity.js';
+import InflictAction from './Actions/InflictAction.js';
+import { parseAndExecuteBotCommands } from '../Modules/commandHandler.js';
+import Timer from '../Classes/Timer.js';
+import { DateTime } from 'luxon';
+import { parse } from 'date-fns';
 
-const Narration = include(`${constants.dataDir}/Narration.js`);
+/** @typedef {import('./Game.js').default} Game */
+/** @typedef {import('./Status.js').default} Status */
+/** @typedef {import('luxon').Duration} Duration */
 
-var moment = require('moment');
-var timer = require('moment-timer');
-moment().format();
+/**
+ * @class Event
+ * @classdesc Represents a timed event in the game.
+ * @extends GameEntity
+ * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html
+ */
+export default class Event extends GameEntity {
+    /**
+     * The unique ID of the event.
+     * @readonly
+     * @type {string}
+     */
+    id;
+    /**
+     * The unique name of the event. Deprecated. Use `id` instead.
+     * @deprecated
+     * @readonly
+     * @type {string}
+     */
+    name;
+    /**
+     * Whether the event is ongoing.
+     * @type {boolean}
+     */
+    ongoing;
+    /**
+     * The string representation of how long the event lasts after being triggered.
+     * @type {string}
+     */
+    durationString;
+    /**
+     * The duration object of the event.
+     * @type {Duration}
+     */
+    duration;
+    /**
+     * The string representation of the remaining time of the event.
+     * @type {string}
+     */
+    remainingString;
+    /**
+     * The remaining time of the event.
+     * @type {Duration}
+     */
+    remaining;
+    /**
+     * The string representation of what times the event will be automatically triggered. Deprecated. Use triggerTimesStrings instead.
+     * @deprecated
+     * @type {string}
+     */
+    triggerTimesString;
+    /**
+     * What times the event will be automatically triggered. Deprecated. Use triggerTimesStrings instead.
+     * @deprecated
+     * @type {string[]}
+     */
+    triggerTimes;
+    /**
+     * The string representations of what times the event will be automatically triggered.
+     * @see https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-strings
+     * @type {string[]}
+     */
+    triggerTimesStrings;
+    /**
+     * The keyword or phrase assigned to the event that allows it to affect rooms.
+     * @type {string}
+     */
+    roomTag;
+    /**
+     * Forward slash separated list of comma-separated bot commands to be executed when the event is triggered or ended.
+     * @type {string}
+     */
+    commandsString;
+    /**
+     * The bot commands to be executed when the event is triggered.
+     * @type {string[]}
+     */
+    triggeredCommands;
+    /**
+     * The bot commands to be executed when the event is ended.
+     * @type {string[]}
+     */
+    endedCommands;
+    /**
+     * String representations of status effects to be inflicted on occupants of affected rooms every second that the event is ongoing.
+     * @type {string[]}
+     */
+    effectsStrings;
+    /** 
+     * The status effects to be inflicted on occupants of affected rooms every second that the event is ongoing.
+     * @type {Status[]}
+     */
+    effects;
+    /**
+     * String representations of status effects whose durations will be reset to full for all occupants of affected rooms every second that the event is ongoing.
+     * @type {string[]}
+     */
+    refreshesStrings;
+    /** 
+     * The status effects whose durations will be reset to full for all occupants of affected rooms every second that the event is ongoing.
+     * @type {Status[]} 
+     */
+    refreshes;
+    /**
+     * The narration to be sent to affected rooms when the event is triggered.
+     * @readonly
+     * @type {string}
+     */
+    triggeredNarration;
+    /**
+     * The narration to be sent to affected rooms when the event is ended.
+     * @readonly
+     * @type {string}
+     */
+    endedNarration;
+    /** 
+     * A timer counting down from the event's initial duration every second. When it reaches 0, the event ends, and this becomes `null`.
+     * @type {Timer | null} 
+     */
+    timer;
+    /** 
+     * A timer that inflicts and refreshes status effects every second while the event is ongoing.
+     * @type {Timer | null}
+     */
+    effectsTimer;
 
-class Event {
-    constructor(name, ongoing, durationString, duration, remainingString, remaining, triggerTimesString, triggerTimes, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshStrings, triggeredNarration, endedNarration, row) {
-        this.name = name;
+    /**
+     * @constructor
+     * @param {string} id - The unique ID of the event.
+     * @param {boolean} ongoing - Whether the event is ongoing.
+     * @param {string} durationString - The string representation of how long the event lasts after being triggered.
+     * @param {Duration} duration - The duration object of the event.
+     * @param {string} remainingString - The string representation of the remaining time of the event.
+     * @param {Duration} remaining - The remaining time of the event.
+     * @param {string[]} triggerTimesStrings - The string representations of what times the event will be automatically triggered. Refer to this link for accepted formats: {@link https://molsnoo.github.io/Alter-Ego/reference/data_structures/event.html#trigger-times-string}
+     * @param {string} roomTag - The keyword or phrase assigned to the event that allows it to affect rooms.
+     * @param {string} commandsString - Forward slash separated list of comma-separated bot commands to be executed when the event is triggered or ended.
+     * @param {string[]} triggeredCommands - The bot commands to be executed when the event is triggered.
+     * @param {string[]} endedCommands - The bot commands to be executed when the event is ended.
+     * @param {string[]} effectsStrings - String representations of status effects to be inflicted on occupants of affected rooms every second that the event is ongoing.
+     * @param {string[]} refreshesStrings - String representations of status effects whose durations will be reset to full for all occupants of affected rooms every second that the event is ongoing.
+     * @param {string} triggeredNarration - The narration to be sent to affected rooms when the event is triggered.
+     * @param {string} endedNarration - The narration to be sent to affected rooms when the event is ended.
+     * @param {number} row - The row of the event in the event sheet.
+     * @param {Game} game - The game this belongs to.
+     */
+    constructor(id, ongoing, durationString, duration, remainingString, remaining, triggerTimesStrings, roomTag, commandsString, triggeredCommands, endedCommands, effectsStrings, refreshesStrings, triggeredNarration, endedNarration, row, game) {
+        super(game, row);
+        this.id = id;
+        this.name = id;
         this.ongoing = ongoing;
         this.durationString = durationString;
         this.duration = duration;
         this.remainingString = remainingString;
         this.remaining = remaining;
-        this.triggerTimesString = triggerTimesString;
-        this.triggerTimes = triggerTimes;
+        this.triggerTimesStrings = triggerTimesStrings;
         this.roomTag = roomTag;
         this.commandsString = commandsString;
         this.triggeredCommands = triggeredCommands;
         this.endedCommands = endedCommands;
         this.effectsStrings = effectsStrings;
-        this.effects = [...effectsStrings];
-        this.refreshesStrings = refreshStrings;
-        this.refreshes = [...refreshStrings];
+        this.effects = new Array(this.effectsStrings.length);
+        this.refreshesStrings = refreshesStrings;
+        this.refreshes = new Array(this.refreshesStrings.length);
         this.triggeredNarration = triggeredNarration;
         this.endedNarration = endedNarration;
-        this.row = row;
 
         this.timer = null;
         this.effectsTimer = null;
     }
 
+    /** A list of acceptable formats for triggerTimes. */
     static formats = [
-        "LT",           "LTS",          "HH:mm",            "hh:mm a",
-        "ddd LT",       "ddd LTS",      "ddd HH:mm",        "ddd hh:mm a",
-        "dddd LT",      "dddd LTS",     "dddd HH:mm",       "dddd hh:mm a",
-        "Do LT",        "Do LTS",       "Do HH:mm",         "Do hh:mm a",
-        "Do MMM LT",    "Do MMM LTS",   "Do MMM HH:mm",     "Do MMM hh:mm a",
-        "Do MMMM LT",   "Do MMMM LTS",  "Do MMMM HH:mm",    "Do MMMM hh:mm a",
-        "D MMM LT",     "D MMM LTS",    "D MMM HH:mm",      "D MMM hh:mm a",
-        "D MMMM LT",    "D MMMM LTS",   "D MMMM HH:mm",     "D MMMM hh:mm a",
-        "MMM Do LT",    "MMM Do LTS",   "MMM Do HH:mm",     "MMM Do hh:mm a",
-        "MMMM Do LT",   "MMMM Do LTS",  "MMMM Do HH:mm",    "MMMM Do hh:mm a",
-        "MMM D LT",     "MMM D LTS",    "MMM D HH:mm",      "MMM D hh:mm a",
-        "MMMM D LT",    "MMMM D LTS",   "MMMM D HH:mm",     "MMMM D hh:mm a"
+        "p",           "pp",          "HH:mm",            "hh:mm a",
+        "ccc p",       "ccc pp",      "ccc HH:mm",        "ccc hh:mm a",
+        "cccc p",      "cccc pp",     "cccc HH:mm",       "cccc hh:mm a",
+        "do p",        "do pp",       "do HH:mm",         "do hh:mm a",
+        "do MMM p",    "do MMM pp",   "do MMM HH:mm",     "do MMM hh:mm a",
+        "do MMMM p",   "do MMMM pp",  "do MMMM HH:mm",    "do MMMM hh:mm a",
+        "d MMM p",     "d MMM pp",    "d MMM HH:mm",      "d MMM hh:mm a",
+        "d MMMM p",    "d MMMM pp",   "d MMMM HH:mm",     "d MMMM hh:mm a",
+        "MMM do p",    "MMM do pp",   "MMM do HH:mm",     "MMM do hh:mm a",
+        "MMMM do p",   "MMMM do pp",  "MMMM do HH:mm",    "MMMM do hh:mm a",
+        "MMM d p",     "MMM d pp",    "MMM d HH:mm",      "MMM d hh:mm a",
+        "MMMM d p",    "MMMM d pp",   "MMMM d HH:mm",     "MMMM d hh:mm a"
     ];
 
-
-    async trigger(bot, game, doTriggeredCommands) {
+    /**
+     * Trigger the event.
+     * @param {boolean} doTriggeredCommands - Whether or not to execute the event's triggeredCommands.
+     */
+    async trigger(doTriggeredCommands) {
         // Mark it as ongoing.
         this.ongoing = true;
 
-        // Send the triggered narration to all rooms with occupants.
-        if (this.triggeredNarration !== "") {
-            for (let i = 0; i < game.rooms.length; i++) {
-                if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                    new Narration(game, null, game.rooms[i], parser.parseDescription(this.triggeredNarration, this, null, false)).send();
-            }
-        }
+        this.getGame().narrationHandler.narrateTrigger(this);
+        this.getGame().logHandler.logTrigger(this);
 
-        if (doTriggeredCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.triggeredCommands.length; i++) {
-                if (this.triggeredCommands[i].startsWith("wait")) {
-                    let args = this.triggeredCommands[i].split(" ");
-                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.triggeredCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    commandHandler.execute(this.triggeredCommands[i], bot, game, null, null, this);
-                }
-            }
-        }
+        // Execute triggered commands.
+        if (doTriggeredCommands)
+            await parseAndExecuteBotCommands(this.triggeredCommands, this.getGame(), this);
 
         // Begin the timer, if applicable.
         if (this.duration)
-            this.startTimer(bot, game);
+            this.startTimer();
         if (this.effects.length > 0 || this.refreshes.length > 0)
-            this.startEffectsTimer(game);
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} was triggered.`);
-
-        return;
+            this.startEffectsTimer();
     }
 
-    async end(bot, game, doEndedCommands) {
+    /**
+     * End the event.
+     * @param {boolean} doEndedCommands - Whether or not to execute the event's endedCommands.
+     */
+    async end(doEndedCommands) {
         // Unmark it as ongoing.
         this.ongoing = false;
 
@@ -107,50 +238,27 @@ class Event {
             this.effectsTimer = null;
         }
 
-        // Send the ended narration to all rooms with occupants.
-        if (this.endedNarration !== "") {
-            for (let i = 0; i < game.rooms.length; i++) {
-                if (game.rooms[i].tags.includes(this.roomTag) && game.rooms[i].occupants.length > 0)
-                    new Narration(game, null, game.rooms[i], parser.parseDescription(this.endedNarration, this, null, false)).send();
-            }
-        }
+        this.getGame().narrationHandler.narrateEnd(this);
+        this.getGame().logHandler.logEnd(this);
 
-        if (doEndedCommands) {
-            // Run any needed commands.
-            for (let i = 0; i < this.endedCommands.length; i++) {
-                if (this.endedCommands[i].startsWith("wait")) {
-                    let args = this.endedCommands[i].split(" ");
-                    if (!args[1]) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". No amount of seconds to wait was specified.`);
-                    const seconds = parseInt(args[1]);
-                    if (isNaN(seconds) || seconds < 0) return game.messageHandler.addGameMechanicMessage(game.commandChannel, `Error: Couldn't execute command "${this.endedCommands[i]}". Invalid amount of seconds to wait.`);
-                    await sleep(seconds);
-                }
-                else {
-                    commandHandler.execute(this.endedCommands[i], bot, game, null, null, this);
-                }
-            }
-        }
-
-        // Post log message.
-        const time = new Date().toLocaleTimeString();
-        game.messageHandler.addLogMessage(game.logChannel, `${time} - ${this.name} was ended.`);
-
-        return;
+        // Execute ended commands.
+        if (doEndedCommands)
+            await parseAndExecuteBotCommands(this.endedCommands, this.getGame(), this);
     }
 
-    async startTimer(bot, game) {
+    async startTimer() {
         if (this.remaining === null)
-            this.remaining = this.duration.clone();
+            this.remaining = this.duration;
         let event = this;
-        this.timer = new moment.duration(1000).timer({ start: true, loop: true }, async function () {
-            event.remaining.subtract(1000, 'ms');
+        this.timer = new Timer(1000, { start: true, loop: true }, async function () {
+            event.remaining = event.remaining.minus(1000);
 
-            const days = Math.floor(event.remaining.asDays());
-            const hours = event.remaining.hours();
-            const minutes = event.remaining.minutes();
-            const seconds = event.remaining.seconds();
+            const days = Math.floor(event.remaining.as('days'));
+            const hours = event.remaining.hours;
+            const minutes = event.remaining.minutes;
+            const seconds = event.remaining.seconds;
 
-            var displayString = "";
+            let displayString = "";
             if (days !== 0) displayString += `${days} `;
             if (hours >= 0 && hours < 10) displayString += '0';
             displayString += `${hours}:`;
@@ -160,49 +268,53 @@ class Event {
             displayString += `${seconds}`;
             event.remainingString = displayString;
 
-            if (event.remaining.asMilliseconds() <= 0)
-                await event.end(bot, game, true);
+            if (event.remaining.as('milliseconds') <= 0)
+                await event.end(true);
         });
     }
 
-    startEffectsTimer(game) {
+    startEffectsTimer() {
         let event = this;
-        this.effectsTimer = new moment.duration(1000).timer({ start: true, loop: true }, function () {
-            for (let i = 0; i < game.rooms.length; i++) {
-                if (game.rooms[i].tags.includes(event.roomTag)) {
-                    for (let j = 0; j < game.rooms[i].occupants.length; j++) {
-                        const occupant = game.rooms[i].occupants[j];
-                        for (let k = 0; k < event.effects.length; k++) {
-                            if (!occupant.statusString.includes(event.effects[k].name))
-                                occupant.inflict(game, event.effects[k], true, true, true);
+        this.effectsTimer = new Timer(1000, { start: true, loop: true }, function () {
+            const rooms = event.getGame().entityFinder.getRooms(null, event.roomTag, true);
+            for (let room of rooms) {
+                for (let occupant of room.occupants) {
+                    event.effects.forEach(effect => {
+                        if (!occupant.hasStatus(effect.id)) {
+                            const action = new InflictAction(event.getGame(), undefined, occupant, occupant.location, true);
+                            action.performInflict(effect, true, true, true);
                         }
-                        for (let k = 0; k < event.refreshes.length; k++) {
-                            let status = null;
-                            for (let l = 0; l < occupant.status.length; l++) {
-                                if (occupant.status[l].name === event.refreshes[k].name) {
-                                    status = occupant.status[l];
-                                    break;
-                                }
-                            }
-                            if (status !== null && status.remaining !== null)
-                                status.remaining = event.effects[k].duration.clone();
-                        }
-                    }
+                    });
+                    event.refreshes.forEach(refresh => {
+                        /** @type {Status} */
+                        let status = occupant.statusCollection.get(refresh.id);
+                        if (status !== undefined && status.remaining !== null)
+                            status.remaining = refresh.duration;
+                    });
                 }
             }
         });
     }
 
     triggeredCell() {
-        return constants.eventSheetTriggeredColumn + this.row;
+        return this.getGame().constants.eventSheetTriggeredColumn + this.row;
     }
     endedCell() {
-        return constants.eventSheetEndedColumn + this.row;
+        return this.getGame().constants.eventSheetEndedColumn + this.row;
     }
-}
 
-module.exports = Event;
-
-function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    /**
+     * Parses a triggerTime string and returns an object that stores the parsed time and the format used to parse it.
+     * @param {string} timeString - The string to parse. 
+     * @returns {ParsedTriggerTime}
+     */
+    static parseTriggerTime(timeString) {
+        for (const format of Event.formats) {
+            let parsedTime = DateTime.fromJSDate(parse(timeString, format, new Date()));
+            if (parsedTime.isValid) {
+                return { format: format, datetime: parsedTime, valid: true };
+            }
+        }
+        return { format: null, datetime: undefined, valid: false };
+    }
 }
