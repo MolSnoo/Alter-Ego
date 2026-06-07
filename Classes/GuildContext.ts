@@ -1,4 +1,16 @@
-import { ChannelType, type Guild, type GuildMember, type Role, type TextChannel, type User } from "discord.js";
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+import {
+    type CategoryChannelResolvable,
+    ChannelType,
+    type Guild, type GuildBasedChannel, type GuildChannelTypes,
+    type GuildMember,
+    type Role,
+    type TextChannel,
+    type User
+} from "discord.js";
 
 /**
  * Represents the guild in which a Game is occurring and all of the parts of a Guild needed by the bot.
@@ -255,5 +267,46 @@ export default class GuildContext {
      */
     sentInGeneralChannel(message: UserMessage) {
         return message.channel.id === this.generalChannel.id;
+    }
+
+    /**
+     * Finds the channel in the guild. Returns undefined if no such channel exists.
+     * @param name - The name of the channel to find.
+     * @param parentId - The parent ID the channel must have. Optional.
+     */
+    findChannel(name: string, parentId?: string) {
+        if (parentId)
+            return this.guild.channels.cache.find(channel => channel.parent && channel.parentId === parentId && channel.name === name);
+        else return this.guild.channels.cache.find(channel => channel.name === name);
+    }
+
+    /**
+     * Gets the guild channel with the given ID.
+     * @param id - The ID of the channel to get.
+     */
+    getChannelWithId(id: string) {
+        return this.guild.channels.resolve(id);
+    }
+
+    /**
+     * Counts how many channels are in a given category.
+     * @param categoryId - The ID of the category channel whose channels are to be counted.
+     */
+    countChannelsInCategory(categoryId: string): number {
+        return this.guild.channels.cache.filter(channel => channel.parent && channel.parentId === categoryId).size;
+    }
+
+    /**
+     * Creates a channel in the guild.
+     * @param name - The name to give to the new channel.
+     * @param parent - The parent category to assign to the channel. Optional.
+     * @param type - The type of channel to create. Defaults to `GuildText`.
+     */
+    async createChannel(name: string, parent?: CategoryChannelResolvable, type: GuildChannelTypes = ChannelType.GuildText): Promise<GuildBasedChannel> {
+        return await this.guild.channels.create({
+            name: name,
+            parent: parent,
+            type: type
+        });
     }
 }
