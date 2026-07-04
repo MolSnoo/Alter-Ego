@@ -30,7 +30,7 @@ import {
  * Generates the message create options for a narration or notification.
  * @param {MessageDisplayType} messageDisplayType - The display type of the message to send.
  * @param {Game} game - The game the message is for.
- * @param {string} messageText - The text content of the message. 
+ * @param {string} messageText - The text content of the message.
  * @param {Player} [player] - The player the message is about. Optional.
  * @param {string[]} [files] - An array of file URLs to send. Optional.
  * @param {Interactable[]} [interactables] - An array of interactables. Optional.
@@ -50,13 +50,13 @@ export function generateMessageDisplayCreateOptions(messageDisplayType, game, me
  * Generates the message create options for a narration or notification.
  * @param {MessageDisplayType} messageDisplayType - The display type of the message to send.
  * @param {Game} game - The game the message is for.
- * @param {string} messageText - The text content of the message. 
- * @param {string} username - The username of the webhook message. 
+ * @param {string} messageText - The text content of the message.
+ * @param {string} username - The username of the webhook message.
  * @param {string} avatarURL - The URL of the icon to use for the webhook message.
- * @param {Embed[]} [embeds] - An array of embeds to send in the message. Optional. 
- * @param {string[]} [files] - An array of file URLs to send. Optional. 
+ * @param {Embed[]} [embeds] - An array of embeds to send in the message. Optional.
+ * @param {string[]} [files] - An array of file URLs to send. Optional.
  * @param {Player} [player] - The player the message is about. Optional.
- * 
+ *
  */
 export function generateWebhookMessageDisplayCreateOptions(messageDisplayType, game, messageText, username, avatarURL, embeds = [], files = [], player) {
     return {
@@ -72,13 +72,13 @@ export function generateWebhookMessageDisplayCreateOptions(messageDisplayType, g
 
 /**
  * Creates a flag bit field for a message based on its display type.
- * @param {MessageDisplayType} messageDisplayType 
+ * @param {MessageDisplayType} messageDisplayType
  */
 function generateFlags(messageDisplayType) {
     /** @type {Flags} */
     let flags;
     if (messageDisplayType === MessageDisplayType.MINOR) flags = MessageFlags.IsComponentsV2 | MessageFlags.SuppressNotifications;
-    else if (messageDisplayType !== MessageDisplayType.PLAIN_TEXT) flags = MessageFlags.IsComponentsV2; 
+    else if (messageDisplayType !== MessageDisplayType.PLAIN_TEXT) flags = MessageFlags.IsComponentsV2;
     return flags;
 }
 
@@ -88,7 +88,7 @@ function generateFlags(messageDisplayType) {
  * @param {Game} game - The game the narration is for.
  * @param {string} messageText - The text content of the narration.
  * @param {Player} [player] - The player the narration is about. Optional.
- * @param {string[]} [files] - An array of file URLs to send. Optional. 
+ * @param {string[]} [files] - An array of file URLs to send. Optional.
  * @param {Interactable[]} [interactables] - An array of interactables. Optional.
  */
 function createNarrateComponents(messageDisplayType, game, messageText, player, files, interactables = []) {
@@ -227,9 +227,9 @@ function createMonologNarrationComponents(game, messageText, player) {
 /**
  * Creates an array of components for a room description.
  * @param {Room} location - The room to be displayed.
- * @param {string} descriptionText - The description of the room to send. 
+ * @param {string} descriptionText - The description of the room to send.
  * @param {string} occupantsString - The list of occupants in the room.
- * @param {string} defaultDropFixtureText - The description of the default drop fixture in this room. 
+ * @param {string} defaultDropFixtureText - The description of the default drop fixture in this room.
  * @param {string} color - The color as a hex code.
  * @param {Interactable[]} interactables - An array of interactables.
  */
@@ -240,21 +240,25 @@ export function createRoomDescriptionComponents(location, descriptionText, occup
 
     /** @type {(TextDisplayBuilder | ContainerBuilder | MediaGalleryBuilder | SeparatorBuilder | ActionRowBuilder<ButtonBuilder|StringSelectMenuBuilder>)[]} */
     let components = [];
-    components.push(new ContainerBuilder()
-        .setAccentColor(Number(`0x${color}`))
-        .addSectionComponents(
-            new SectionBuilder()
-                .setThumbnailAccessory(
-                    new ThumbnailBuilder()
-                        .setURL(location.getIconURL())
-                )
-                .addTextDisplayComponents(
-                    new TextDisplayBuilder().setContent("_ _"),
-                    new TextDisplayBuilder().setContent(`**${location.displayName}**`),
-                    new TextDisplayBuilder().setContent("_ _")
-                )
-        )
-    );
+
+    const containerComponent = new ContainerBuilder().setAccentColor(Number(`0x${color}`));
+    /** @type {TextDisplayBuilder[]} */
+    const inlineComponents = [
+        new TextDisplayBuilder().setContent("_ _"),
+        new TextDisplayBuilder().setContent(`**${location.displayName}**`),
+        new TextDisplayBuilder().setContent("_ _")
+    ];
+    const iconUrl = location.getIconURL();
+    if (iconUrl) {
+        const sectionBuilder = new SectionBuilder()
+            .setThumbnailAccessory(new ThumbnailBuilder().setURL(iconUrl))
+            .addTextDisplayComponents(inlineComponents);
+        containerComponent.addSectionComponents(sectionBuilder);
+    }
+    else
+        containerComponent.addTextDisplayComponents(inlineComponents);
+    components.push(containerComponent);
+
     components.push(new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(false));
     components.push(new TextDisplayBuilder().setContent(descriptionText));
     if (mediaGalleryBuilder.items.length !== 0) components.push(mediaGalleryBuilder);
@@ -274,7 +278,7 @@ export function createRoomDescriptionComponents(location, descriptionText, occup
 /**
  * Creates a media gallery builder using linked images and videos in the message. Can only contain up to 3 gallery items.
  * @param {string} originalMessageText - The original text of the message.
- * @param {string[]} [fileURLs] - An array of file URLs to send. Optional. 
+ * @param {string[]} [fileURLs] - An array of file URLs to send. Optional.
  * @returns {[MediaGalleryBuilder, string]} - A media gallery builder and the message text after removing links that have been inserted into it.
  */
 function getMediaGalleryComponents(originalMessageText, fileURLs = []) {
@@ -303,7 +307,7 @@ function getMediaGalleryComponents(originalMessageText, fileURLs = []) {
 function generateActionRows(interactables, componentCount = 0) {
     /** @typedef {{actionRow: ActionRowBuilder<ButtonBuilder|StringSelectMenuBuilder>, priority: number}} ActionRowIntermediary */
     /** @typedef {{button: ButtonBuilder, priority: number}} ButtonIntermediary */
-    
+
     const maxComponentCount = 40;
     const buttonInteractables = interactables.filter(interactable => interactable.type === InteractableType.BUTTON);
     const stringSelectInteractables = interactables.filter(interactable => interactable.type === InteractableType.STRING_SELECT_MENU);
@@ -401,7 +405,7 @@ export function createCommandHelpComponents(title, description, aliasString, usa
  * Creates an array of components for an entity view display.
  * @param {PersistentGameEntityName} entityType - The type of entity this view is for.
  * @param {number} entityRow - The row number of this entity.
- * @param {ViewField[]} fields - An array of view fields to convert into components. 
+ * @param {ViewField[]} fields - An array of view fields to convert into components.
  * @param {string} color - The color as a hex code.
  * @param {Interactable[]} [interactables] - An array of interactables. Optional.
  */
