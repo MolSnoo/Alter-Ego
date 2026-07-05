@@ -1,15 +1,17 @@
 ﻿// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type Game from '../Data/Game.ts';
-import BotCommand from "../Classes/BotCommand.ts";
-import ModeratorCommand from "../Classes/ModeratorCommand.ts";
-import PlayerCommand from "../Classes/PlayerCommand.ts";
-import EligibleCommand from "../Classes/EligibleCommand.ts";
+import Flag from '../Data/Flag.ts';
+import BotCommand from '../Classes/BotCommand.ts';
+import ModeratorCommand from '../Classes/ModeratorCommand.ts';
+import PlayerCommand from '../Classes/PlayerCommand.ts';
+import EligibleCommand from '../Classes/EligibleCommand.ts';
 import type Player from '../Data/Player.ts';
 import Puzzle from '../Data/Puzzle.ts';
-import Flag from '../Data/Flag.ts';
 
 export type CommandType = "Bot" | "Moderator" | "Player" | "Eligible";
 export type CommandOf<T extends CommandType> =
@@ -41,47 +43,47 @@ export async function executeCommand(commandStr: string, game: Game, message?: U
 
     // Execute the command based on who issued it.
     if (command instanceof BotCommand) {
-        command.execute(game, commandAlias, args, player, callee);
-        game.clientContext.logCommand(game.clientContext.client.user.username, commandStr, timestamp);
-        return true;
+        try {
+            await command.execute(game, commandAlias, args, player, callee);
+            game.clientContext.logCommand(game.clientContext.user.username, commandStr, timestamp);
+            return true;
+        }
+        catch (error) {
+            game.communicationHandler.sendToCommandChannel(error.message ?? error);
+            return false;
+        }
     }
     else if (command instanceof ModeratorCommand && game.clientContext.commandIssuedInValidChannel(command, message)) {
+        const messageDeletable = message.deletable && message.channel.id !== game.guildContext.commandChannel.id;
         if (command.config.requiresGame && !game.inProgress) {
-            if (message.channel.id === game.guildContext.commandChannel.id) {
-                message.reply("There is no game currently running.");
-                return false;
-            }
-            else {
-                message.author.send("There is no game currently running.");
-                message.delete();
-                return false;
-            }
+            game.communicationHandler.reply(message, "There is no game currently running.");
+            if (messageDeletable) await message.delete();
+            return false;
         }
         const moderator = message.member ? game.entityLoader.getOrCreateModerator(message.member) : undefined;
         if (!moderator) {
             game.communicationHandler.reply(message, "You are not a moderator.");
             return false;
         }
-        if (command.config.whitespaceSensitive) {
+        if (command.config.whitespaceSensitive)
             args = commandStr.split(" ").slice(1);
+        try {
+            await command.execute(game, message, commandAlias, args, moderator);
+            if (messageDeletable) await message.delete();
+            game.clientContext.logCommand(message.author.username, message.content, timestamp);
+            return true;
         }
-        command.execute(game, message, commandAlias, args, moderator);
-        if (message.channel.id !== game.guildContext.commandChannel.id)
-            message.delete();
-        game.clientContext.logCommand(message.author.username, message.content, timestamp);
-        return true;
+        catch (error) {
+            game.communicationHandler.reply(message, error.message ?? error);
+            return false;
+        }
     }
     else if (command instanceof PlayerCommand && game.clientContext.commandIssuedInValidChannel(command, message)) {
         if (command.config.requiresGame && !game.inProgress) {
-            message.reply("There is no game currently running.");
+            game.communicationHandler.reply(message, "There is no game currently running.");
             return false;
         }
-        for (const livingPlayer of game.livingPlayers.values()) {
-            if (livingPlayer.id === message.author.id) {
-                player = livingPlayer;
-                break;
-            }
-        }
+        const player = game.entityFinder.getLivingPlayerById(message.author.id);
         if (!player) {
             game.communicationHandler.reply(message, "You are not on the list of living players.");
             return false;
@@ -99,29 +101,43 @@ export async function executeCommand(commandStr: string, game: Game, message?: U
         }
 
         player.setOnline();
-
-        if (command.config.whitespaceSensitive) {
+        if (command.config.whitespaceSensitive)
             args = commandStr.split(" ").slice(1);
-        }
-
-        command.execute(game, message, commandAlias, args, player).then(() => {
+        try {
+            await command.execute(game, message, commandAlias, args, player);
+            /**
+             * @privateRemarks
+             * We make an exception here for the say command because it handles its own deletion after using some of the
+             * properties of the original message. However, if we're awaiting the command execution, is this necessary
+             * anymore? This will require some investigation.
+             * - MS
+             */
             if (!game.settings.debug && commandName !== "say" && !game.guildContext.sentInDMChannel(message))
-                message.delete().catch();
-        });
-        game.clientContext.logCommand(player.name, message.content, timestamp);
-        return true;
+                await message.delete().catch();
+            game.clientContext.logCommand(player.name, message.content, timestamp);
+            return true;
+        }
+        catch (error) {
+            game.communicationHandler.reply(message, error.message ?? error);
+            return false;
+        }
     }
     else if (command instanceof EligibleCommand && game.clientContext.commandIssuedInValidChannel(command, message)) {
         if (command.config.requiresGame && !game.inProgress) {
-            message.reply("There is no game currently running.");
+            game.communicationHandler.reply(message, "There is no game currently running.");
             return false;
         }
-        command.execute(game, message, commandAlias, args).then(() => {
+        try {
+            await command.execute(game, message, commandAlias, args);
             if (!game.settings.debug && !game.guildContext.sentInDMChannel(message))
-                message.delete().catch();
-        });
-        game.clientContext.logCommand(message.author.username, message.content, timestamp);
-        return true;
+                await message.delete().catch();
+            game.clientContext.logCommand(message.author.username, message.content, timestamp);
+            return true;
+        }
+        catch (error) {
+            game.communicationHandler.reply(message, error.message ?? error);
+            return false;
+        }
     }
 
     return false;
@@ -156,7 +172,7 @@ export async function parseAndExecuteBotCommands(commandSet: string[], game: Gam
                     }
                 }
             }
-            executeCommand(command, game, null, player, callee);
+            await executeCommand(command, game, null, player, callee);
         }
     }
 }
