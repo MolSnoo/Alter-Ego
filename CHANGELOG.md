@@ -16,6 +16,11 @@ This project does **not** adhere to [Semantic Versioning](https://semver.org/spe
 - Room description messages used to fail to send if the Room had no icon URL, the `DEFAULT_ROOM_ICON_URL` setting was
   blank, and no server icon was set. They should send without issue now!
 
+## Full Changelog
+
+- Converted tests to TypeScript by @MsVBLANK in https://github.com/MsVBLANK/Alter-Ego/pull/443
+- Prevented empty ThumbnailBuilder creation by @MsVBLANK in https://github.com/MsVBLANK/Alter-Ego/pull/453
+
 ## Addendum
 
 We're hard at work developing version 2.1! It will introduce a lot of exciting new features, so stay tuned!
