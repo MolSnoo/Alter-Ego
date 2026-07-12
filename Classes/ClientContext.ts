@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import ClientEventHandler from "./ClientEventHandler.ts";
 import ClientEvent from "./ClientEvent.ts";
 import PrettyPrinter from "./PrettyPrinter.ts";
+import ClientCommandHandler, { type CommandType, type CommandOf } from "./ClientCommandHandler.ts";
 import ClientInteractableManager from "./ClientInteractableManager.ts";
 import ClientInteractionHandler from "./ClientInteractionHandler.ts";
 import type Game from "../Data/Game.ts";
@@ -17,7 +18,6 @@ import BotCommand from "./BotCommand.ts";
 import ModeratorCommand from "./ModeratorCommand.ts";
 import PlayerCommand from "./PlayerCommand.ts";
 import EligibleCommand from "./EligibleCommand.ts";
-import type { CommandType, CommandOf } from "../Modules/commandHandler.ts";
 import { loadCredentials } from "../Modules/credentialsLoader.ts";
 
 /**
@@ -81,6 +81,10 @@ export default class ClientContext {
 	 * The game the bot is managing.
 	 */
 	readonly #game: Game;
+    /**
+     * The client's command handler.
+     */
+    readonly commandHandler: ClientCommandHandler;
 	/**
 	 * An array of the most recently-issued commands. Used by the dumplog command for debugging purposes.
 	 */
@@ -113,6 +117,7 @@ export default class ClientContext {
 	private constructor(client: Client, game: Game) {
 		this.client = client;
 		this.#game = game;
+        this.commandHandler = ClientCommandHandler.Instance(this);
 		this.#commandLog = [];
 		this.prettyPrinter = new PrettyPrinter();
 		this.interactableManager = new ClientInteractableManager(this.#game);

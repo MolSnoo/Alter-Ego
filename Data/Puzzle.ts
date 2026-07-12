@@ -3,7 +3,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { parseAndExecuteBotCommands } from "../Modules/commandHandler.ts";
 import { itemIdentifierMatches } from "../Modules/matchers.ts";
 import { round } from "../Modules/helpers.ts";
 import Description from "./Description.ts";
@@ -478,7 +477,7 @@ export default class Puzzle extends ItemContainer implements PersistentGameEntit
         }
         else commandSet = this.commandSets[0].solvedCommands;
         // Execute the command set's solved commands.
-        parseAndExecuteBotCommands(commandSet, this.getGame(), this, targetPlayer);
+        this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(commandSet, this.getGame(), this, targetPlayer);
     }
 
     /**
@@ -519,7 +518,7 @@ export default class Puzzle extends ItemContainer implements PersistentGameEntit
         }
         else commandSet = this.commandSets[0].unsolvedCommands;
         // Execute the command set's unsolved commands.
-        parseAndExecuteBotCommands(commandSet, this.getGame(), this, targetPlayer);
+        this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(commandSet, this.getGame(), this, targetPlayer);
     }
 
     /**
