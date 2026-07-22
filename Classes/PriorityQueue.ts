@@ -13,25 +13,26 @@ interface MessageQueueEntry {
     destination: string;
 }
 
-type PriorityQueuePriority = "mod" | "tell" | "mechanic" | "log" | "spectator";
-
 /**
  * Five-priority queue system for use by the message handler.
  */
-export default class PriorityQueue {
+export default class PriorityQueue<T extends string[]> {
 	/** Order of queues given as an array of strings. */
-	priorityOrder: ['mod', 'tell', 'mechanic', 'log', 'spectator'];
+	priorityOrder: T;
 	/** Separate StackQueues to represent each different priority level. */
-	queues: Collection<PriorityQueuePriority, StackQueue<MessageQueueEntry>>;
+	queues: Collection<T[number], StackQueue<MessageQueueEntry>>;
 	/** Separate StackQueues to represent each different destination. */
 	channelQueues: Collection<string, StackQueue<MessageQueueEntry>>;
 	/** Whether or not a channelQueue is "Firing", that is, whether or not it is being fully dequeued by the Message Handler. */
 	channelFiring: Collection<string, boolean>;
-	/** Whether or not the PriorityQueue is in manual mode, that is, whether or not `process()` must be explicitly called to process incoming messages. */
-	manual: boolean;
+	/** Whether or not the PriorityQueue is in manual mode, that is, whether or not `process()` must be explicitly called to process incoming queue entries. */
+    manual: boolean;
+    /** The error message to log to the console when the PriorityQueue fails processing. */
+    errorMessage: string;
 
-	constructor() {
-		this.priorityOrder = ['mod', 'tell', 'mechanic', 'log', 'spectator'];
+	constructor(errorMessage: string, priorities: T) {
+        this.priorityOrder = priorities;
+        this.errorMessage = errorMessage;
 		this.channelQueues = new Collection();
 		this.channelFiring = new Collection();
 		this.queues = new Collection();
@@ -46,7 +47,7 @@ export default class PriorityQueue {
 	 * If the given priority doesn't exist, this function will silently swallow MessageQueueEntry.
 	 * O(1) operation.
 	 */
-	enqueue(message: MessageQueueEntry, priority: PriorityQueuePriority) {
+	enqueue(message: MessageQueueEntry, priority: T[number]) {
 		if (this.queues.has(priority)) {
 			this.queues.get(priority).enqueue(message);
 			if (!this.manual) this.process();
@@ -91,7 +92,7 @@ export default class PriorityQueue {
 						try {
 							await message.fire();
 						} catch (error) {
-							console.error('Message Handler encountered exception sending message:', error);
+							console.error(this.errorMessage, error);
 						}
 					}
 					priorityQueue.channelFiring.set(key, false);

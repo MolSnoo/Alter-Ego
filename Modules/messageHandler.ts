@@ -527,13 +527,25 @@ export function editSpectatorMessage(game: Game, messageOld: UserMessage | Parti
                 const regexGroups = relatedMessage.content.match(new RegExp(/((?:-# )?\*\(Whispered(?:.*)\):\*\n)(.*)/m));
                 if (regexGroups) messageText = regexGroups[1] + messageNew.content;
             }
-            webhook.editMessage(mirror.messageId, { content: messageText });
+            /**
+             * @privateRemarks
+             * for review by VM: here, we utilize the webhook ID as the destination, rather than the message channel ID.
+             * typically for editing messages, you should always utilize the message channel ID, unless it is a webhook,
+             * in which case it is safe to use the webhook ID, as chronology of editing messages is not as important as
+             * the chronology of sending messages.
+             * - AC
+             */
+            game.editQueue.enqueue({
+                fire: async () => { await webhook.editMessage(mirror.messageId, { content: messageText }); },
+                destination: webhook.id
+            }, "standard");
+            
         }
     });
 }
 
 /**
- * Edits spectate messages when the dialog they mirror is edited.
+ * Deletes spectate messages when the dialog they mirror is deleted.
  * @param game - The game this dialog belongs to.
  * @param message - The message being deleted.
  */

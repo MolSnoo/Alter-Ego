@@ -10,7 +10,7 @@ describe("PriorityQueue test", () => {
         queue.manual = true;
     });
 
-    const queue = new PriorityQueue();
+    const queue = new PriorityQueue("Message Handler encountered exception sending message:", ['mod', 'tell', 'mechanic', 'log', 'spectator'] as const);
     const queueEntry = { fire: vi.fn(async () => { const error = new Error();  console.error("You shouldn't see this!!!", error.stack) }), destination: "1" };
 
     test("Usage Test", () => {

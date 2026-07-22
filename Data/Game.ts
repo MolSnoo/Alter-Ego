@@ -203,7 +203,11 @@ export default class Game {
 	/**
 	 * A queue of messages to be sent by the messageHandler.
 	 */
-	messageQueue: PriorityQueue;
+	messageQueue: PriorityQueue<["mod", "tell", "mechanic", "log", "spectator"]>;
+    /**
+     * A queue of message edits to be handled by the messageHandler.
+     */
+    editQueue: PriorityQueue<["standard"]>;
 	/**
 	 * A timeout which sends queued messages every quarter of a second.
 	 */
@@ -264,7 +268,8 @@ export default class Game {
 		this.whispers = new Collection();
         this.parties = new Collection();
         this.moderators = new Collection();
-		this.messageQueue = new PriorityQueue();
+		this.messageQueue = new PriorityQueue("Message Handler encountered exception sending message:", ['mod', 'tell', 'mechanic', 'log', 'spectator']);
+        this.editQueue = new PriorityQueue("Message Handler encountered exception editing message:", ['standard']);
 
 		// Save data to the sheet periodically.
 		this.#autoSaveInterval = setInterval(
