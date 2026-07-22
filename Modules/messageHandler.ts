@@ -1,4 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -113,7 +115,7 @@ export function sendNarrationToRoom(
     room: Room,
     narration: Narration,
     messageText: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     addSpectate: boolean = true,
     player: Player = null,
     webhookUsername: string = narration.narratorDisplayName
@@ -165,7 +167,7 @@ export function sendNarrationToWhisper(
     narration: Narration,
     messageText: string,
     messageTextWithSpectatePrefix: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     addSpectate: boolean = true,
     player: Player = null
 ): void {
@@ -218,7 +220,7 @@ export function sendNarrationToWhisper(
 export function sendNotification(
     player: Player,
     messageText: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     addSpectate: boolean = true,
     attachments: Collection<string, Attachment> = new Collection(),
     interactables: Interactable[] = []
@@ -295,6 +297,34 @@ export function sendRoomDescription(
                 "spectator"
             );
         }
+    }
+}
+
+/**
+ * Sends a message containing a movement progress indicator to a player.
+ * @param player - The player to send the message to.
+ * @param messageText - The message to send.
+ * @param messageDisplayType - The display type of the message to send.
+ */
+export function sendMoveProgressIndicatorMessage(
+    player: Player,
+    messageText: string,
+    messageDisplayType: MessageDisplayType = MessageDisplayType.STANDARD
+): void {
+    if (!player.isNPC) {
+        player.getGame().messageQueue.enqueue(
+            {
+                fire: async () => {
+                    const message = await player.notificationChannel.send(
+                        discordUtils.generateMessageDisplayCreateOptions(messageDisplayType, player.getGame(), messageText, player)
+                    );
+                    if (message)
+                        player.getGame().movementHandler.cacheMoveProgressIndicator(player, player.notificationChannel.id, message.id);
+                },
+                destination: player.notificationChannel.id
+            },
+            "mechanic"
+        );
     }
 }
 
@@ -451,7 +481,7 @@ export function sendReply(game: Game, message: UserMessage, messageText: string)
 export function sendNarrationSpectateMessage(
     player: Player,
     messageText: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     files: string[] = [],
     messageCreateOptions: MessageCreateOptions | WebhookMessageCreateOptions = discordUtils.generateMessageDisplayCreateOptions(messageDisplayType, player.getGame(), messageText, player, files)
 ): void {
@@ -491,7 +521,7 @@ export function sendWebhookSpectateMessage(
     embeds: Embed[] = [],
     files: string[] = [],
     message?: UserMessage,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType] = MessageDisplayType.PLAIN_TEXT,
+    messageDisplayType: MessageDisplayType = MessageDisplayType.PLAIN_TEXT,
     speaker?: Player
 ): void {
     if (player.spectateChannel !== null) {
@@ -539,7 +569,7 @@ export function editSpectatorMessage(game: Game, messageOld: UserMessage | Parti
                 fire: async () => { await webhook.editMessage(mirror.messageId, { content: messageText }); },
                 destination: webhook.id
             }, "standard");
-            
+
         }
     });
 }
@@ -589,7 +619,7 @@ export async function sendWebhookMessage(
     embeds: Embed[] = [],
     files: string[] = [],
     game?: Game,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType] = MessageDisplayType.PLAIN_TEXT,
+    messageDisplayType: MessageDisplayType = MessageDisplayType.PLAIN_TEXT,
     player?: Player
 ): Promise<Message<true>> {
     const createdMessage = await webhook.send(discordUtils.generateWebhookMessageDisplayCreateOptions(messageDisplayType, game, content, username, avatarURL, embeds, files, player));

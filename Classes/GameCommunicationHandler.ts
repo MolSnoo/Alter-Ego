@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -223,6 +224,17 @@ export default class GameCommunicationHandler {
      */
     sendRoomDescriptionToPlayer(player: Player, room: Room, roomDescriptionString: string, occupantsString: string, defaultDropFixtureString: string, interactables: Interactable[] = []) {
         messageHandler.sendRoomDescription(player, room, roomDescriptionString, occupantsString, defaultDropFixtureString, true, interactables);
+    }
+
+    /**
+     * Sends a move progress indicator to the given players.
+     * @param players - The players to send the move progress indicator to.
+     * @param progressIndicator - The content of the move progress indicator.
+     */
+    sendMoveProgressIndicatorToPlayers(players: Set<Player>, progressIndicator: string) {
+        if (progressIndicator === "") return;
+        for (const player of players)
+            messageHandler.sendMoveProgressIndicatorMessage(player, progressIndicator);
     }
 
     /**

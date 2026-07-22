@@ -73,16 +73,6 @@ class InteractableOptions<T extends Action> {
     }
 }
 
-/**
- * A message with Interactables on it that has been cached for tracking.
- */
-interface InteractableMessage {
-    /** The ID of the channel the message is in. */
-    channelId: Snowflake;
-    /** The ID of the message. */
-    messageId: Snowflake;
-}
-
 type ButtonOrStringSelectMenuInteractable = ButtonInteractable | StringSelectMenuInteractable;
 
 /**
@@ -105,7 +95,7 @@ export default class ClientInteractableManager {
     /**
      * A cache of messages with Interactables, indexed by message ID. This is used to keep track of which messages have interactables on them, so that we can disable those interactables when they're no longer valid.
      */
-    readonly #interactableMessageCache: Collection<InteractableMessage, string[]>;
+    readonly #interactableMessageCache: Collection<SentMessage, string[]>;
     /**
      * The maximum number of Interactable messages to keep in the cache at once. If the cache exceeds this size, the oldest message will be removed.
      */
@@ -174,7 +164,7 @@ export default class ClientInteractableManager {
      * Disables all interactables associated with a message and removes the message from the cache.
      * @param interactableMessage - The message with interactables on it to disable.
      */
-    async #disableInteractableMessage(interactableMessage: InteractableMessage) {
+    async #disableInteractableMessage(interactableMessage: SentMessage) {
         const message = await this.#getInteractableMessage(interactableMessage);
         if (message) removeInteractablesFromMessage(message);
         const interactableCustomIds = this.#interactableMessageCache.get(interactableMessage);
@@ -190,7 +180,7 @@ export default class ClientInteractableManager {
      * Fetches a message from Discord by its channel ID and message ID, and returns it if it exists.
      * @param interactableMessage - The message to fetch, represented by its channel ID and message ID.
      */
-    async #getInteractableMessage(interactableMessage: InteractableMessage) {
+    async #getInteractableMessage(interactableMessage: SentMessage) {
         const channel = await this.#game.clientContext.client.channels.fetch(interactableMessage.channelId);
         if (!channel.isTextBased()) return;
         return await channel.messages.fetch(interactableMessage.messageId);
