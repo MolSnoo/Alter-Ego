@@ -88,7 +88,7 @@ export async function execute(game, message, command, args, moderator) {
         else return game.communicationHandler.reply(message, `"${statString}" is not a valid stat.`);
     }
 
-    const die = new Die(game, stat, attacker, defender);
+    const die = game.rollDie(stat, attacker, defender);
     if (die.modifier === 0) game.communicationHandler.sendToCommandChannel(`Rolled a **${die.result}** with no modifiers.`);
     else game.communicationHandler.sendToCommandChannel(`Rolled a **${die.result}** with modifiers ${die.modifierString}.`);
 }

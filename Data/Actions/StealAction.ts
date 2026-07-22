@@ -47,7 +47,7 @@ export default class StealAction extends Action {
         // Determine how successful the player is.
         const failMax = Math.floor((this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
         const partialMax = Math.floor(2 * (this.getGame().settings.diceMax - this.getGame().settings.diceMin) / 3) + this.getGame().settings.diceMin;
-        let dieRoll = new Die(this.getGame(), "dex", this.player, victim);
+        let dieRoll = this.getGame().rollDie("dex", this.player, victim);
         if (this.player.hasBehaviorAttribute("thief")) dieRoll.result = this.getGame().settings.diceMax;
         if (!item.prefab.discreet && dieRoll.result > partialMax) dieRoll.result = partialMax;
 

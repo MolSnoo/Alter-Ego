@@ -1,4 +1,5 @@
 ﻿// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -50,12 +51,14 @@ export default class Die extends GameConstruct {
      * @param stat - The name of the stat to roll for.
      * @param attacker - The active player to roll for. In other words, the player attempting an action.
      * @param defender - The passive player to roll for. Only used if the attacker is attempting to perform an action against another player.
+     * @param min - The minimum possible roll. Defaults to diceMin in the game's settings.
+     * @param max - The maximum possible roll. Defaults to diceMax in the game's settings.
      */
-    constructor(game: Game, stat?: string, attacker?: Player, defender?: Player) {
+    constructor(game: Game, stat?: string, attacker?: Player, defender?: Player, min: number = game.settings.diceMin, max: number = game.settings.diceMax) {
         super(game);
 
-        this.min = this.getGame().settings.diceMin;
-        this.max = this.getGame().settings.diceMax;
+        this.min = min;
+        this.max = max;
 
         let baseRoll: number;
         if (attacker && attacker.hasBehaviorAttribute("all or nothing")) {
@@ -98,9 +101,11 @@ export default class Die extends GameConstruct {
             if (attacker.hasBehaviorAttribute("coin flipper")) {
                 let hasCoin = false;
                 const hands = this.getGame().entityFinder.getPlayerHands(attacker);
-                for (const hand of hands)
+                for (const hand of hands) {
+                    if (hand.equippedItem === null) continue;
                     if (hand.equippedItem.name.includes("COIN"))
                         hasCoin = true;
+                }
                 if (hasCoin) {
                     const coinModifier = this.doBaseRoll(0, 1);
                     if (coinModifier === 1) {
