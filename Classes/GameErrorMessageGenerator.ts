@@ -403,6 +403,20 @@ export default class GameErrorMessageGenerator {
     }
 
     /**
+     * Generates an error message indicating that the player is not moving or following another player.
+     * @param player - The player who is not moving or following anyone.
+     * @param context - The context in which the command is being issued.
+     */
+    generatePlayerNotMovingOrFollowingError(player: Player, context: UserContext) {
+        switch (context) {
+            case "Player":
+                return `${this.youCannotString} not moving or following another player.`;
+            default:
+                return `${player.name} is not moving or following another player.`;
+        }
+    }
+
+    /**
      * Generates an error message indicating that the fixture is not activatable, or that it has no recipe tag.
      * @param fixture - The fixture that is not activatable.
      * @param context - The context in which the command is being issued.

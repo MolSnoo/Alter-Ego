@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { generateListString } from "../../Modules/helpers.ts";
 import Action from "../Action.ts";
 import type Exit from "../Exit.js";
 import type Player from "../Player.ts";
@@ -26,12 +28,17 @@ export default class StopAction extends Action {
         super.perform();
         this.getGame().movementHandler.stopMoving(players);
         this.getGame().narrationHandler.narrateStop(this, this.player, players, exitLocked, exit, stopFollowing);
-        if (stopFollowing) {
+        const anyoneIsAFollower = players.values().some(player => !!player.followedPlayer);
+        if (stopFollowing && anyoneIsAFollower) {
             const stopFollowingAction = new StopFollowingAction(this.getGame(), undefined, this.player, this.player.location, this.forced);
             await stopFollowingAction.performStopFollowing(false, players);
         }
 
         // If anyone is following this player, they need to stop moving.
         await this.getGame().movementHandler.stopFollowers(this.player, false, this.forced);
+
+        const playerList = generateListString(Array.from(players).map(player => player.name));
+        const addendum = stopFollowing && anyoneIsAFollower ? ` moving and following` : ``;
+        this.successMessage = `Successfully made ${playerList} stop${addendum}.`;
     }
 }
