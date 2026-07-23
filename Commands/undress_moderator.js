@@ -55,8 +55,8 @@ export async function execute(game, message, command, args, moderator) {
     if (!sentMessageInLatchChannel && args.length === 0)
         return game.communicationHandler.reply(message, `You need to specify a player. Usage:\n${usage(game.settings)}`);
 
-    let player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player && (moderator.getLatch() === null || moderator.getLatch().name.toLowerCase() !== args[0].toLowerCase().replace(/'s/g, "")))
+    let player = game.entityFinder.getLivingPlayer(args[0]?.replace(/'s/g, ""));
+    if (player && !moderator.latchedPlayerHasName(args[0]))
         args.splice(0, 1);
     if (!player && sentMessageInLatchChannel)
         player = moderator.getLatch();

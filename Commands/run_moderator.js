@@ -51,13 +51,13 @@ export async function execute(game, message, command, args, moderator) {
     else if (sentMessageInLatchChannel && args.length < 1)
         return game.communicationHandler.reply(message, game.errorMessageGenerator.generateSpecifyErrorWithUsage("an exit", usage));
 
-    let player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player && (moderator.getLatch() === null || moderator.getLatch().name.toLowerCase() !== args[0].toLowerCase().replace(/'s/g, "")))
+    let player = game.entityFinder.getLivingPlayer(args[0]?.replace(/'s/g, ""));
+    if (player && !moderator.latchedPlayerHasName(args[0]))
         args.splice(0, 1);
     if (!player && sentMessageInLatchChannel)
         player = moderator.getLatch();
     if (player === undefined) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotFoundError([args[0]]));
-    
+
     if (player.speed <= 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotMoveWithNoSpeedError(player, "Moderator"));
 
     player.stopMoving();

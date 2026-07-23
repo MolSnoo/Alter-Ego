@@ -42,20 +42,25 @@ export async function execute(game, message, command, args, moderator) {
     if (sentMessageInLatchChannel && args.length < 1)
         return game.communicationHandler.reply(message, game.errorMessageGenerator.generateSpecifyErrorWithUsage("a player to follow", usage));
 
-    // First, find the follower.
-    let player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player && (moderator.getLatch() === null || moderator.getLatch().name.toLowerCase() !== args[0].toLowerCase().replace(/'s/g, "")))
+    // First, find the player to follow.
+    let followedPlayer = game.entityFinder.getLivingPlayer(args[1]?.replace(/'s/g, ""));
+    if (followedPlayer) args.splice(1, 1);
+    if (!followedPlayer && sentMessageInLatchChannel) {
+        followedPlayer = game.entityFinder.getLivingPlayer(args[0]?.replace(/'s/g, ""));
+        if (followedPlayer) args.splice(0, 1);
+    }
+
+    // Next, find the follower.
+    let player = game.entityFinder.getLivingPlayer(args[0]?.replace(/'s/g, ""));
+    if (player)
         args.splice(0, 1);
     if (!player && sentMessageInLatchChannel)
         player = moderator.getLatch();
     if (player === undefined) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotFoundError([args[0]]));
+    if (followedPlayer === undefined) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotFoundError([args[0]]));
+    if (args.length > 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotFoundError(args));
 
     if (player.speed <= 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotMoveWithNoSpeedError(player, "Moderator"));
-
-    // Next, find the player to follow.
-    const followedPlayer = game.entityFinder.getLivingPlayer(args[args.length - 1].replace(/'s/g, ""));
-    if (followedPlayer === undefined) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotFoundError([args[args.length - 1]]));
-    args.splice(args.length - 1, 1);
 
     if (player.name === followedPlayer.name) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotSelectSelfError(player, "Moderator", "follow"));
     if (player.location.id !== followedPlayer.location.id) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotInSameRoomError([player, followedPlayer]));
