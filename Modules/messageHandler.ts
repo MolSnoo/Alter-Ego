@@ -20,7 +20,6 @@ import {
     type TextChannel,
     type Embed,
     type Webhook,
-    ComponentType,
     type EmbedBuilder,
     type WebhookMessageCreateOptions,
     type MessageCreateOptions,
@@ -329,11 +328,40 @@ export function sendMoveProgressIndicatorMessage(
 }
 
 /**
+ * Edits the given message.
+ * @param game - The game context in which the message was sent.
+ * @param message - The message to edit.
+ * @param messageText - The new content of the message.
+ * @param messageDisplayType - The display type of the message to send.
+ */
+export function editMessage(
+    game: Game,
+    message: Message,
+    messageText: string,
+    messageDisplayType: MessageDisplayType
+): void {
+    game.editQueue.enqueue({
+        fire: async () => {
+            if (message && message.editable)
+                await message.edit(discordUtils.generateMessageDisplayEditOptions(messageDisplayType, game, messageText));
+        },
+        destination: message.channel.id
+    }, "standard");
+}
+
+/**
  * Edits the given message to remove its interactable components.
+ * @param game - The game context in which the interactable message was sent.
  * @param message - The message to remove interactable components from.
  */
-export function removeInteractablesFromMessage(message: Message): void {
-    message.edit({ components: message.components.filter(component => component.type !== ComponentType.ActionRow) });
+export function removeInteractablesFromMessage(game: Game, message: Message): void {
+    game.editQueue.enqueue({
+        fire: async () => {
+            if (message && message.editable)
+                await message.edit(discordUtils.generateMessageEditOptionsWithoutActionRows(message));
+        },
+        destination: message.channel.id
+    }, "standard");
 }
 
 /**

@@ -165,8 +165,8 @@ export default class ClientInteractableManager {
      * @param interactableMessage - The message with interactables on it to disable.
      */
     async #disableInteractableMessage(interactableMessage: SentMessage) {
-        const message = await this.#getInteractableMessage(interactableMessage);
-        if (message) removeInteractablesFromMessage(message);
+        const message = await this.#game.clientContext.getSentMessage(interactableMessage);
+        if (message) removeInteractablesFromMessage(this.#game, message);
         const interactableCustomIds = this.#interactableMessageCache.get(interactableMessage);
         if (interactableCustomIds) {
             for (const customId of interactableCustomIds) {
@@ -174,16 +174,6 @@ export default class ClientInteractableManager {
             }
             this.#interactableMessageCache.delete(interactableMessage);
         }
-    }
-
-    /**
-     * Fetches a message from Discord by its channel ID and message ID, and returns it if it exists.
-     * @param interactableMessage - The message to fetch, represented by its channel ID and message ID.
-     */
-    async #getInteractableMessage(interactableMessage: SentMessage) {
-        const channel = await this.#game.clientContext.client.channels.fetch(interactableMessage.channelId);
-        if (!channel.isTextBased()) return;
-        return await channel.messages.fetch(interactableMessage.messageId);
     }
 
     /**

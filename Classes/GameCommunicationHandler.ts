@@ -17,7 +17,7 @@ import { MessageDisplayType } from "../Modules/enums.ts";
 import * as messageHandler from "../Modules/messageHandler.ts";
 import { capitalizeFirstLetter } from "../Modules/helpers.ts";
 import { ChannelType, Collection } from "discord.js";
-import type { Attachment, Embed, EmbedBuilder, Snowflake, TextChannel } from "discord.js";
+import type { Attachment, Embed, EmbedBuilder, Message, Snowflake, TextChannel } from "discord.js";
 
 /**
  * A dialog message that has been mirrored in a spectate channel.
@@ -230,11 +230,12 @@ export default class GameCommunicationHandler {
      * Sends a move progress indicator to the given players.
      * @param players - The players to send the move progress indicator to.
      * @param progressIndicator - The content of the move progress indicator.
+     * @param messageDisplayType - The display type of the message to send. Defaults to STANDARD.
      */
-    sendMoveProgressIndicatorToPlayers(players: Set<Player>, progressIndicator: string) {
+    sendMoveProgressIndicatorToPlayers(players: Set<Player>, progressIndicator: string, messageDisplayType: MessageDisplayType = MessageDisplayType.STANDARD) {
         if (progressIndicator === "") return;
         for (const player of players)
-            messageHandler.sendMoveProgressIndicatorMessage(player, progressIndicator);
+            messageHandler.sendMoveProgressIndicatorMessage(player, progressIndicator, messageDisplayType);
     }
 
     /**
@@ -407,5 +408,16 @@ export default class GameCommunicationHandler {
         );
         if (isDialogMirror && dialog.message) this.cacheSpectateMirrorForDialog(dialog.message, webhookMessage.id, webhook.id);
         return webhookMessage;
+    }
+
+    /**
+     * Edits a message sent by the client user.
+     * @param message - The message to edit.
+     * @param messageText - The new text of the message.
+     * @param messageDisplayType - The display type of the message to send. Defaults to STANDARD.
+     */
+    editMessage(message: Message, messageText: string, messageDisplayType: MessageDisplayType = MessageDisplayType.STANDARD) {
+        if (!message || !message.editable || messageText === "") return;
+        messageHandler.editMessage(this.#game, message, messageText, messageDisplayType);
     }
 }

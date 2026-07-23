@@ -180,6 +180,8 @@ describe('LeadAction test', () => {
             performStartMoveSpy = vi.spyOn(StartMoveAction.prototype, 'performStartMove');
             calculateMoveTimeSpy = vi.spyOn(GameMovementHandler.prototype, 'calculateMoveTime');
             movePlayersSpy = vi.spyOn(GameMovementHandler.prototype, 'movePlayers');
+            const doSendProgressIndicatorMock = vi.spyOn(GameMovementHandler.prototype as any, 'doSendProgressIndicator');
+            doSendProgressIndicatorMock.mockImplementation(() => false);
         });
 
         afterEach(() => {
