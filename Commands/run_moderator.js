@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import QueueMoveAction from '../Data/Actions/QueueMoveAction.ts';
+import StopFollowingAction from '../Data/Actions/StopFollowingAction.ts';
 
 /** @import Moderator from '../Data/Moderator.ts'; */
 /** @import GameSettings from '../Classes/GameSettings.ts'; */
@@ -61,7 +62,10 @@ export async function execute(game, message, command, args, moderator) {
     if (player.speed <= 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotMoveWithNoSpeedError(player, "Moderator"));
 
     player.stopMoving();
-    player.stopFollowing();
+    if (player.followedPlayer) {
+        const stopFollowingAction = new StopFollowingAction(game, message, player, player.location, true);
+        await stopFollowingAction.performStopFollowing(false);
+    }
     player.moveQueue = args.join(" ").split(">");
     const action = new QueueMoveAction(game, message, player, player.location, true);
     await action.performQueueMove(true, player.moveQueue[0]);
