@@ -6,6 +6,7 @@ import Action from "../Action.ts";
 import type Interactable from "../../Classes/Interactables/Interactable.ts";
 import type Player from "../Player.ts";
 import QueueMoveAction from "./QueueMoveAction.ts";
+import StopFollowingAction from "./StopFollowingAction.ts";
 
 /**
  * Represents a follow action.
@@ -22,7 +23,10 @@ export default class FollowAction extends Action {
         if (this.performed) return;
         super.perform();
         this.player.stopMoving();
-        this.player.stopFollowing();
+        if (this.player.followedPlayer) {
+            const stopFollowingAction = new StopFollowingAction(this.getGame(), this.message, this.player, this.location, this.forced, this.whisper, this.user);
+            await stopFollowingAction.performStopFollowing(false);
+        }
         this.player.startFollowing(player);
         const followerInteractables = this.#getFollowerInteractables();
         const leaderInteractables = this.#getLeaderInteractables(player);

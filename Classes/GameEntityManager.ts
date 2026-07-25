@@ -365,7 +365,7 @@ export default abstract class GameEntityManager {
         this.game.whispers.set(whisper.id, whisper);
         this.game.whispers.delete(oldId);
         whisper.channelName = whisper.id.substring(0, 100);
-        whisper.channel.edit({ name: whisper.channelName });
+        if (whisper.channel) whisper.channel.edit({ name: whisper.channelName })?.catch();
     }
 
     /**

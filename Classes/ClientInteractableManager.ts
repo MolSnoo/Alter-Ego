@@ -1138,7 +1138,7 @@ export default class ClientInteractableManager {
         let interactables: Interactable[] = [];
         if (player.followedPlayer) {
             const userIsModerator = !(user instanceof Player);
-            const displayName = userIsModerator ? player.name : player.followedPlayerDisplayName;
+            const displayName = userIsModerator ? player.followedPlayer.name : player.followedPlayerDisplayName;
             const label = `Stop Following ${displayName}`;
             interactables = interactables.concat(this.createStopActionInteractable(player, user, label));
         }

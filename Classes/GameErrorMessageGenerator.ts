@@ -117,6 +117,14 @@ export default class GameErrorMessageGenerator {
     }
 
     /**
+     * Generates an error message indicating that the given property cannot be displayed for more than one player at a time.
+     * @param property - The property that cannot be displayed.
+     */
+    generateCannotDisplayMoreThanOnePlayerPropertyError(property: string) {
+        return `Cannot display ${property} of more than one player at a time.`;
+    }
+
+    /**
      * Generates an error message indicating that the player cannot select themself.
      * @param player - The player who cannot select themself.
      * @param context - The context in which the command is being issued.
