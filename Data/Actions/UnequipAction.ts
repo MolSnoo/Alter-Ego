@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import Action from "../Action.ts";
 import EquipmentSlot from "../EquipmentSlot.ts";
+import type Interactable from "../../Classes/Interactables/Interactable.ts";
 import InventoryItem from "../InventoryItem.ts";
 
 /**
@@ -23,11 +25,19 @@ export default class UnequipAction extends Action {
     performUnequip(item: InventoryItem, equipmentSlot: EquipmentSlot, handEquipmentSlot: EquipmentSlot, notify: boolean = true): void {
         if (this.performed) return;
         super.perform();
-        this.getGame().narrationHandler.narrateUnequip(this, item, this.player, notify);
+        const interactables = this.#getInteractables();
+        this.getGame().narrationHandler.narrateUnequip(this, item, this.player, notify, interactables);
         this.getGame().logHandler.logUnequip(item, this.player, equipmentSlot, this.forced);
         this.player.unequip(item, equipmentSlot, handEquipmentSlot);
         handEquipmentSlot.equippedItem.executeUnequippedCommands();
         this.successMessage = `Successfully unequipped ${item.getIdentifier()} from ${this.player.name}'s ${equipmentSlot.id}.`;
+    }
+
+    #getInteractables(): Interactable[] {
+        let interactables: Interactable[] = [];
+        const interactableManager = this.getGame().clientContext.interactableManager;
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(this.player, this.user));
+        return interactables;
     }
 
     /**

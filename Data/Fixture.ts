@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -180,6 +181,14 @@ export default class Fixture extends RecipeProcessor implements PersistentGameEn
     setRecipeTag(tag: string): void {
         this._clearProcess();
         this._recipeTag = tag?.trim();
+    }
+
+    /**
+     * Returns the args for an ActionDirective that only needs to be able to look up this Fixture.
+     * @returns [name, location]
+     */
+    getGeneralActionDirectiveArgs(): string[] {
+        return [this.name, this.location.id];
     }
 
     /**

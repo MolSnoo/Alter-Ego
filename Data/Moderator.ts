@@ -51,11 +51,20 @@ export default class Moderator extends GameConstruct implements User {
     }
 
     /**
+     * Returns true if the name of the moderator's latched NPC matches the given name.
+     * If `'s` appears in the given name, it will be stripped out for comparison.
+     * @param name - The name to check.
+     */
+    public latchedPlayerHasName(name: string): boolean {
+        return this.#latchedNPCName !== null && this.#latchedNPCName === name?.toLocaleLowerCase().replace(/'s/g, "");
+    }
+
+    /**
      * Latches the moderator onto an NPC.
      * @param npc - The NPC to latch onto.
      */
     public setLatch(npc: Player): void {
-        this.#latchedNPCName = npc?.name ?? null;
+        this.#latchedNPCName = npc?.name?.toLocaleLowerCase() ?? null;
     }
 
     /**

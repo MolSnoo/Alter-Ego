@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import MoveAction from '../Data/Actions/MoveAction.ts';
 import QueueMoveAction from '../Data/Actions/QueueMoveAction.ts';
+import StopFollowingAction from '../Data/Actions/StopFollowingAction.ts';
 
 /** @import Moderator from '../Data/Moderator.ts'; */
 /** @import GameSettings from '../Classes/GameSettings.ts'; */
@@ -29,7 +31,8 @@ export const config = {
         + `players, you enter "living" or "all", all living players will be moved to the specified room, except for `
         + `players who are already in that room, NPCs, and players with the Free Movement role.\n\n`
         + `When this command is used to move a player to a room that is not adjacent to their current room, `
-        + `the narration in the destination room will not specify which exit they entered from.\n\n`
+        + `the narration in the destination room will not specify which exit they entered from. Additionally, all players `
+        + `who were following someone will stop following them. This will disband the parties of all moved players.\n\n`
         + `This command supports NPC latching. For more information, see the help details for the \`latch\` command.`,
     usableBy: "Moderator",
     aliases: ["move", "go", "enter", "walk", "m", "teleport", "tp"],
@@ -92,7 +95,10 @@ export async function execute(game, message, command, args, moderator) {
         const player = players[0];
         if (player.speed <= 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotMoveWithNoSpeedError(player, "Moderator"));
         player.stopMoving();
-        player.stopFollowing();
+        if (player.followedPlayer) {
+            const stopFollowingAction = new StopFollowingAction(game, message, player, player.location, true);
+            await stopFollowingAction.performStopFollowing(false);
+        }
         player.moveQueue = args.join(" ").split(">");
         const action = new QueueMoveAction(game, message, player, player.location, true);
         await action.performQueueMove(false, player.moveQueue[0]);
@@ -177,7 +183,18 @@ export async function execute(game, message, command, args, moderator) {
 
             // Clear the player's movement timer first.
             players[i].stopMoving();
-            players[i].stopFollowing();
+            // If the player is following anyone, make them stop following.
+            if (players[i].followedPlayer) {
+                const stopFollowingAction = new StopFollowingAction(game, message, players[i], players[i].location, true);
+                await stopFollowingAction.performStopFollowing(false);
+            }
+            // If anyone if following the player, they have lost track of them and should stop following them.
+            const followers = new Set(players[i].location.occupants.filter(occupant => occupant.isFollowing(players[i])));
+            if (followers.size > 0) {
+                const [firstFollower] = followers;
+                const stopFollowingAction = new StopFollowingAction(game, message, firstFollower, firstFollower.location, true);
+                await stopFollowingAction.performStopFollowing(false, followers);
+            }
             // Move the player.
             const action = new MoveAction(game, message, players[i], players[i].location, true);
             await action.performMove(false, currentRoom, desiredRoom, exit, entrance);

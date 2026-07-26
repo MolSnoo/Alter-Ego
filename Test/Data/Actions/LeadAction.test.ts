@@ -180,6 +180,8 @@ describe('LeadAction test', () => {
             performStartMoveSpy = vi.spyOn(StartMoveAction.prototype, 'performStartMove');
             calculateMoveTimeSpy = vi.spyOn(GameMovementHandler.prototype, 'calculateMoveTime');
             movePlayersSpy = vi.spyOn(GameMovementHandler.prototype, 'movePlayers');
+            const doSendProgressIndicatorMock = vi.spyOn(GameMovementHandler.prototype as any, 'doSendProgressIndicator');
+            doSendProgressIndicatorMock.mockImplementation(() => false);
         });
 
         afterEach(() => {
@@ -350,6 +352,7 @@ describe('LeadAction test', () => {
             });
 
             test('stationary player leads another stationary player while already in a party', async () => {
+                nero.setPronouns(nero.pronouns, "neutral");
                 const action = new LeadAction(testGame, undefined, astrid, astrid.location, false);
                 await action.performLead([nero]);
                 expect(astrid.ledPlayers).toHaveLength(2);
@@ -388,7 +391,7 @@ describe('LeadAction test', () => {
                 expect(asuka.notificationChannel.messages.cache).toHaveSize(0);
                 expect(nero.notificationChannel.messages.cache).toHaveSize(1);
                 expect(lobbyFirstNarrationMessage.content).toBe(`> -# An individual wearing a MASK begins leading Nero, who starts approaching them.`);
-                expect(astridFirstNotificationMessage.content).toBe(`You begin leading Nero. He starts approaching you.`);
+                expect(astridFirstNotificationMessage.content).toBe(`You begin leading Nero. They start approaching you.`);
                 expect(neroFirstNotificationMessage.content).toBe(`An individual wearing a MASK is now leading you. You start approaching them.`);
 
                 // Asuka's position should already be synchronized with Astrid's. Only Nero needs to start moving.
@@ -417,6 +420,7 @@ describe('LeadAction test', () => {
                 expect(lobbyFirstNarrationMessage.content).toBe(`> -# Nero finishes approaching an individual wearing a MASK, and waits with them.`);
                 expect(astridLastNotificationMessage.content).toBe(`Everyone in your party is all together now, and ready to go.`);
                 expect(neroFirstNotificationMessage.content).toBe(`> -# You finish approaching an individual wearing a MASK, and wait with them.`);
+                nero.setPronouns(nero.pronouns, nero.pronounString);
             });
         });
 

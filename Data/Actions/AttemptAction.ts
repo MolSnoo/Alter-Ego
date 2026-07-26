@@ -148,7 +148,7 @@ export default class AttemptAction extends Action {
                 this.#narrateAndLogAlreadySolvedPuzzle(puzzle);
             else {
                 const stat = Player.abbreviateStatName(puzzle.type.substring(0, puzzle.type.indexOf(" probability")));
-                const dieRoll = new Die(this.player.getGame(), stat, this.player);
+                const dieRoll = this.getGame().rollDie(stat, this.player);
                 // Get the ratio of the result as part of the maximum roll, each relative to the minimum roll.
                 const ratio = (dieRoll.result - dieRoll.min) / (dieRoll.max - dieRoll.min);
                 // Clamp the result so that it can be used to choose an item in the array of solutions.
@@ -280,7 +280,7 @@ export default class AttemptAction extends Action {
     parseInteractionArgs(args: string[]): [Puzzle, ItemInstance, string, string, string, string, Player] {
         const puzzle = this.getGame().entityFinder.getPuzzle(args[0], args[1], args[2]);
         const item = this.getGame().entityFinder.getInventoryItem(args[3], this.player.name, args[4], args[5], args[6]) ?? null;
-        const targetPlayer = this.getGame().entityFinder.getLivingPlayers(args[7], undefined, this.player.location.id, this.player.hidingSpot)[0];
+        const targetPlayer = this.getGame().entityFinder.getLivingPlayers(args[7], null, this.player.location.id, this.player.hidingSpot)[0];
         return [puzzle, item, args[7], args[8], args[9], args[10], targetPlayer];
     }
 

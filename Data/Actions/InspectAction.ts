@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -6,6 +7,7 @@ import Action from "../Action.ts";
 import Description from "../Description.ts";
 import Fixture from "../Fixture.ts";
 import InventoryItem from "../InventoryItem.ts";
+import Player from "../Player.ts";
 import RoomItem from "../RoomItem.ts";
 
 /**
@@ -73,15 +75,44 @@ export default class InspectAction extends Action {
      *
      * @param args - The args after being parsed.
      */
-    validateInteractionArgs(args: [string, Inspectable]): [Inspectable] | [] {
-        if (args.length !== 2) return [];
+    validateInteractionArgs(args: [string, Inspectable]): [Inspectable] {
+        const errorMessageGenerator = this.getGame().errorMessageGenerator;
+        if (args.length !== 2) throw new Error(errorMessageGenerator.generateInsufficientArgumentsError());
         const disabledStatusEffects = this.player.getStatusEffectsDisablingCommand("inspect");
-        if (disabledStatusEffects.length > 0) return [];
-        if (!args[1]) return [];
-        if (!args[1].getLocation()) return [];
-        if (args[1].getLocation().id !== this.player.location.id) return [];
-        if (args[0] === 'F' && args[1] instanceof Fixture && !args[1]?.accessible) return [];
-        if (args[0] === 'RI' && args[1] instanceof RoomItem && (!args[1]?.accessible || args[1].quantity === 0)) return [];
-        return [args[1]];
+        if (disabledStatusEffects.length > 0)
+            throw new Error(errorMessageGenerator.generateCommandDisabledError(disabledStatusEffects[0]));
+        const entityType = args[0] === 'F'
+            ? "Fixture"
+            : args[0] === 'II'
+                ? "InventoryItem"
+                : args[0] === 'P'
+                    ? "Player"
+                    : args[0] === 'RI'
+                        ? "RoomItem"
+                        : "Room";
+        if (!args[1])
+            throw new Error(errorMessageGenerator.generateInvalidEntityError(entityType));
+        if (args[0] === 'F' && args[1] instanceof Fixture && !args[1]?.accessible)
+            throw new Error(errorMessageGenerator.generateEntityNotFoundError("fixture", args[1].name));
+        if (args[0] === 'RI' && args[1] instanceof RoomItem && (!args[1]?.accessible || args[1].quantity === 0))
+            throw new Error(errorMessageGenerator.generateEntityNotFoundError("room item", args[1].name));
+        if (!args[1].getLocation() || args[1].getLocation().id !== this.player.location.id)
+            throw new Error(errorMessageGenerator.generatePlayerLocationMismatchError());
+        const target = args[1];
+        const hiddenStatusEffects = this.player.getBehaviorAttributeStatusEffects("hidden");
+        if (hiddenStatusEffects.length > 0) {
+            if (target instanceof Fixture && this.player.hidingSpot !== target.name)
+                throw new Error(errorMessageGenerator.generateCommandDisabledError(hiddenStatusEffects[0]));
+            if (target instanceof RoomItem) {
+                let topContainer = target.getTopContainer();
+                if (!(topContainer instanceof Fixture))
+                    topContainer = topContainer.parentFixture;
+                if (this.player.hidingSpot !== topContainer.name)
+                    throw new Error(errorMessageGenerator.generateCommandDisabledError(hiddenStatusEffects[0]));
+            }
+            if (target instanceof Player && !this.player.isHiddenWith(target))
+                throw new Error(errorMessageGenerator.generateCommandDisabledError(hiddenStatusEffects[0]));
+        }
+        return [target];
     }
 }

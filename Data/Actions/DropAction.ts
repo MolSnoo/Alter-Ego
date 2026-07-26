@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -31,7 +32,7 @@ export default class DropAction extends Action {
     performDrop(item: InventoryItem, handEquipmentSlot: EquipmentSlot, container: RoomItemContainer, inventorySlot: InventorySlot<RoomItem>, notify: boolean = true): void {
         if (this.performed) return;
         super.perform();
-        const interactables = this.#getInteractables(container);
+        const interactables = this.#getInteractables(container, handEquipmentSlot);
         this.getGame().narrationHandler.narrateDrop(this, item, container, this.player, notify, interactables);
         this.getGame().logHandler.logDrop(item, this.player, container, inventorySlot, this.forced);
         this.player.drop(item, handEquipmentSlot, container, inventorySlot);
@@ -58,11 +59,19 @@ export default class DropAction extends Action {
         this.successMessage = `Successfully dropped ${item.getIdentifier()} ${preposition} ${containerPhrase} for ${this.player.name}.`;
     }
 
-    #getInteractables(container: RoomItemContainer): Interactable[] {
+    #getInteractables(container: RoomItemContainer, handEquipmentSlot: EquipmentSlot): Interactable[] {
         let interactables: Interactable[] = [];
-        if (container instanceof Fixture) {
-            interactables = interactables.concat(this.getGame().clientContext.interactableManager.getActivateOrDeactivateInteractables(container, this.player));
-        }
+        const interactableManager = this.getGame().clientContext.interactableManager;
+        interactables = interactables.concat(interactableManager.getUnstashInteractables(this.player, this.user, handEquipmentSlot));
+        interactables = interactables.concat(interactableManager.getUnequipInteractables(this.player, this.user, handEquipmentSlot));
+        const inspectables: Inspectable[] = [];
+        if (container instanceof Puzzle && container.parentFixture) inspectables.push(container.parentFixture);
+        else if (!(container instanceof Puzzle)) inspectables.push(container);
+        interactables = interactables.concat(interactableManager.createInspectActionInteractable(inspectables, this.player, this.user));
+        interactables = interactables.concat(interactableManager.getTakeInteractables(container, container.getContainedItems(), this.player, this.user));
+        if (container instanceof Fixture)
+            interactables = interactables.concat(interactableManager.getActivateOrDeactivateInteractables(container, this.player));
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(this.player, this.user));
         return interactables;
     }
 
@@ -87,26 +96,41 @@ export default class DropAction extends Action {
      *
      * @param args - The args after being parsed.
      */
-    validateInteractionArgs(args: [InventoryItem, EquipmentSlot, Puzzle | Fixture | RoomItem, InventorySlot<RoomItem>]): [InventoryItem, EquipmentSlot, Puzzle | Fixture | RoomItem, InventorySlot<RoomItem>] | [] {
-        if (args.length !== 4) return [];
-        if (!args[0] || !(args[0] instanceof InventoryItem)) return [];
+    validateInteractionArgs(args: [InventoryItem, EquipmentSlot, Puzzle | Fixture | RoomItem, InventorySlot<RoomItem>]): [InventoryItem, EquipmentSlot, Puzzle | Fixture | RoomItem, InventorySlot<RoomItem>] {
+        const errorMessageGenerator = this.getGame().errorMessageGenerator;
+        if (args.length !== 4) throw new Error(errorMessageGenerator.generateInsufficientArgumentsError());
+        if (!args[0] || !(args[0] instanceof InventoryItem)) throw new Error(errorMessageGenerator.generateInvalidEntityError("InventoryItem"));
         const item = args[0];
         const disabledStatusEffects = this.player.getStatusEffectsDisablingCommand("drop");
-        if (disabledStatusEffects.length > 0) return [];
-        if (!args[1] || args[1].equippedItem === null) return [];
+        if (disabledStatusEffects.length > 0)
+            throw new Error(errorMessageGenerator.generateCommandDisabledError(disabledStatusEffects[0]));
+        const context = this.forced ? "Moderator" : "Player";
+        if (!args[1] || args[1].equippedItem === null)
+            throw new Error(errorMessageGenerator.generateNoHeldItemError(this.player, item?.name ?? "", context, true, "drop"));
         const hand = args[1];
-        if (!args[2] || !args[2].canCurrentlyContainItems(true, this.forced)) return [];
-        if (args[2].getLocation().id !== this.player.location.id) return [];
+        if (!args[2])
+            throw new Error(errorMessageGenerator.generateInvalidEntityError("ItemContainer"));
+        if (args[2].getLocation().id !== this.player.location.id) throw new Error(errorMessageGenerator.generatePlayerLocationMismatchError());
         const container = args[2];
-        if (this.player.isHidden() && this.player.hidingSpot !== "") {
-            let topContainer = container;
-            if (container instanceof RoomItem)
-                topContainer = container.getTopContainer();
-            if (topContainer instanceof Puzzle && topContainer.parentFixture !== null) topContainer = topContainer.parentFixture;
-            if (topContainer.name !== this.player.hidingSpot) return [];
+        let topContainer: Fixture | Puzzle;
+        if (container instanceof RoomItem)
+            topContainer = container.getTopContainer();
+        else topContainer = container;
+        if (topContainer instanceof Puzzle)
+            topContainer = topContainer.parentFixture;
+        if (topContainer) {
+            const hiddenStatusEffects = this.player.getBehaviorAttributeStatusEffects("hidden");
+            if (hiddenStatusEffects.length > 0 && this.player.hidingSpot !== topContainer.name)
+                throw new Error(errorMessageGenerator.generateCommandDisabledError(hiddenStatusEffects[0]));
+            if (topContainer.isProcessingItems())
+                throw new Error(errorMessageGenerator.generateCannotChangeItemsInActivatedFixtureError(topContainer, "drop", context));
         }
         const inventorySlot = args[3];
-        if (inventorySlot && inventorySlot.willBeOverFilledBy(item)) return [];
+        if (inventorySlot && inventorySlot.willBeOverFilledBy(item))
+            throw new Error(errorMessageGenerator.generateItemWillNotFitInInventorySlotError(item, container as RoomItem, inventorySlot, context));
+        // That should be all the container validation we need. This is a failsafe.
+        if (!container.canCurrentlyContainItems(true, this.forced))
+            throw new Error(errorMessageGenerator.generateCannotPutItemsInContainerError(container, context));
         return [item, hand, container, inventorySlot];
     }
 }

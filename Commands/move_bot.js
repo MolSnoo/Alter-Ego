@@ -1,13 +1,16 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import Event from "../Data/Event.ts";
 import MoveAction from "../Data/Actions/MoveAction.ts";
+import StopFollowingAction from "../Data/Actions/StopFollowingAction.ts";
 
 /** @import GameSettings from '../Classes/GameSettings.ts' */
 /** @import Game from '../Data/Game.ts' */
 /** @import Player from '../Data/Player.ts' */
+/** @import Exit from '../Data/Exit.ts' */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -25,9 +28,11 @@ export const config = {
         + `NPCs and players with the Free Movement role. However, if the command was issued by an event and the "room" `
         + `argument is used, all players in all rooms that have the event's room tag will be moved.\n\n`
         + `When this command is used to move a player to a room that is not adjacent to their current room, `
-        + `the narration in the destination room will not specify which exit they entered from.`,
+        + `the narration in the destination room will not specify which exit they entered from.\n\n`
+        + `This command will always make players stop following anyone they may have been following. `
+        + `This will disband the parties of all moved players.`,
     usableBy: "Bot",
-    aliases: ["move", "go", "enter", "walk", "m"],
+    aliases: ["move", "go", "enter", "walk", "m", "teleport", "tp"],
     requiresGame: true
 };
 
@@ -58,6 +63,7 @@ export async function execute(game, command, args, player, callee) {
     }
 
     // Get all listed players first.
+    /** @type {Player[]} */
     let players = [];
     if (args[0].toLowerCase() === "player" && player !== null) {
         players.push(player);
@@ -101,7 +107,9 @@ export async function execute(game, command, args, player, callee) {
         if (players[i].location !== desiredRoom) {
             const currentRoom = players[i].location;
             // Check to see if the given room is adjacent to the current player's room.
+            /** @type {Exit} */
             let exit;
+            /** @type {Exit} */
             let entrance;
             for (const targetExit of currentRoom.exits.values()) {
                 if (targetExit.dest.id === desiredRoom.id) {
@@ -113,6 +121,18 @@ export async function execute(game, command, args, player, callee) {
 
             // Clear the player's movement timer first.
             players[i].stopMoving();
+            // If the player is following anyone, make them stop following.
+            if (players[i].followedPlayer) {
+                const stopFollowingAction = new StopFollowingAction(game, undefined, players[i], players[i].location, true);
+                await stopFollowingAction.performStopFollowing(false);
+            }
+            // If anyone if following the player, they have lost track of them and should stop following them.
+            const followers = new Set(players[i].location.occupants.filter(occupant => occupant.isFollowing(players[i])));
+            if (followers.size > 0) {
+                const [firstFollower] = followers;
+                const stopFollowingAction = new StopFollowingAction(game, undefined, firstFollower, firstFollower.location, true);
+                await stopFollowingAction.performStopFollowing(false, followers);
+            }
             // Move the player.
             const action = new MoveAction(game, undefined, players[i], players[i].location, true);
             await action.performMove(false, currentRoom, desiredRoom, exit, entrance);

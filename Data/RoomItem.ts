@@ -1,14 +1,17 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Collection } from "discord.js";
 import DestroyRoomItemAction from "./Actions/DestroyRoomItemAction.ts";
 import InstantiateRoomItemAction from "./Actions/InstantiateRoomItemAction.ts";
+import type Fixture from "./Fixture.ts";
 import type Game from "./Game.ts";
 import InventorySlot from "./InventorySlot.ts";
 import ItemInstance from "./ItemInstance.ts";
 import type Player from "./Player.ts";
+import type Puzzle from "./Puzzle.ts";
 import type Room from "./Room.ts";
 import { itemIdentifierMatches } from "../Modules/matchers.ts";
 
@@ -164,7 +167,7 @@ export default class RoomItem extends ItemInstance implements PersistentGameEnti
     /**
      * Gets the highest-level container of this item.
      */
-    getTopContainer(): RoomItemContainer {
+    getTopContainer(): Fixture | Puzzle {
         let topContainer = this.container;
         while (topContainer !== null && topContainer instanceof RoomItem)
             topContainer = topContainer.container;

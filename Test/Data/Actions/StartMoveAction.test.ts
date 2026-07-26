@@ -215,6 +215,8 @@ describe('StartMoveAction test', () => {
         queueMoveSpy = vi.spyOn(QueueMoveAction.prototype, 'performQueueMove');
         movePlayersSpy = vi.spyOn(GameMovementHandler.prototype, 'movePlayers');
         moveSpy = vi.spyOn(MoveAction.prototype, 'performMove');
+        const doSendProgressIndicatorMock = vi.spyOn(GameMovementHandler.prototype as any, 'doSendProgressIndicator');
+        doSendProgressIndicatorMock.mockImplementation(() => false);
         await sendMessages();
         clearMessages();
         vi.useFakeTimers();

@@ -1,4 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -18,7 +20,6 @@ import {
     type TextChannel,
     type Embed,
     type Webhook,
-    ComponentType,
     type EmbedBuilder,
     type WebhookMessageCreateOptions,
     type MessageCreateOptions,
@@ -113,7 +114,7 @@ export function sendNarrationToRoom(
     room: Room,
     narration: Narration,
     messageText: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     addSpectate: boolean = true,
     player: Player = null,
     webhookUsername: string = narration.narratorDisplayName
@@ -165,7 +166,7 @@ export function sendNarrationToWhisper(
     narration: Narration,
     messageText: string,
     messageTextWithSpectatePrefix: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     addSpectate: boolean = true,
     player: Player = null
 ): void {
@@ -218,7 +219,7 @@ export function sendNarrationToWhisper(
 export function sendNotification(
     player: Player,
     messageText: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     addSpectate: boolean = true,
     attachments: Collection<string, Attachment> = new Collection(),
     interactables: Interactable[] = []
@@ -299,11 +300,68 @@ export function sendRoomDescription(
 }
 
 /**
+ * Sends a message containing a movement progress indicator to a player.
+ * @param player - The player to send the message to.
+ * @param messageText - The message to send.
+ * @param messageDisplayType - The display type of the message to send.
+ */
+export function sendMoveProgressIndicatorMessage(
+    player: Player,
+    messageText: string,
+    messageDisplayType: MessageDisplayType = MessageDisplayType.STANDARD
+): void {
+    if (!player.isNPC) {
+        player.getGame().messageQueue.enqueue(
+            {
+                fire: async () => {
+                    const message = await player.notificationChannel.send(
+                        discordUtils.generateMessageDisplayCreateOptions(messageDisplayType, player.getGame(), messageText, player)
+                    );
+                    if (message)
+                        player.getGame().movementHandler.cacheMoveProgressIndicator(player, player.notificationChannel.id, message.id);
+                },
+                destination: player.notificationChannel.id
+            },
+            "mechanic"
+        );
+    }
+}
+
+/**
+ * Edits the given message.
+ * @param game - The game context in which the message was sent.
+ * @param message - The message to edit.
+ * @param messageText - The new content of the message.
+ * @param messageDisplayType - The display type of the message to send.
+ */
+export function editMessage(
+    game: Game,
+    message: Message,
+    messageText: string,
+    messageDisplayType: MessageDisplayType
+): void {
+    game.editQueue.enqueue({
+        fire: async () => {
+            if (message && message.editable)
+                await message.edit(discordUtils.generateMessageDisplayEditOptions(messageDisplayType, game, messageText));
+        },
+        destination: message.channel.id
+    }, "standard");
+}
+
+/**
  * Edits the given message to remove its interactable components.
+ * @param game - The game context in which the interactable message was sent.
  * @param message - The message to remove interactable components from.
  */
-export function removeInteractablesFromMessage(message: Message): void {
-    message.edit({ components: message.components.filter(component => component.type !== ComponentType.ActionRow) });
+export function removeInteractablesFromMessage(game: Game, message: Message): void {
+    game.editQueue.enqueue({
+        fire: async () => {
+            if (message && message.editable)
+                await message.edit(discordUtils.generateMessageEditOptionsWithoutActionRows(message));
+        },
+        destination: message.channel.id
+    }, "standard");
 }
 
 /**
@@ -451,7 +509,7 @@ export function sendReply(game: Game, message: UserMessage, messageText: string)
 export function sendNarrationSpectateMessage(
     player: Player,
     messageText: string,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType],
+    messageDisplayType: MessageDisplayType,
     files: string[] = [],
     messageCreateOptions: MessageCreateOptions | WebhookMessageCreateOptions = discordUtils.generateMessageDisplayCreateOptions(messageDisplayType, player.getGame(), messageText, player, files)
 ): void {
@@ -491,7 +549,7 @@ export function sendWebhookSpectateMessage(
     embeds: Embed[] = [],
     files: string[] = [],
     message?: UserMessage,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType] = MessageDisplayType.PLAIN_TEXT,
+    messageDisplayType: MessageDisplayType = MessageDisplayType.PLAIN_TEXT,
     speaker?: Player
 ): void {
     if (player.spectateChannel !== null) {
@@ -527,13 +585,25 @@ export function editSpectatorMessage(game: Game, messageOld: UserMessage | Parti
                 const regexGroups = relatedMessage.content.match(new RegExp(/((?:-# )?\*\(Whispered(?:.*)\):\*\n)(.*)/m));
                 if (regexGroups) messageText = regexGroups[1] + messageNew.content;
             }
-            webhook.editMessage(mirror.messageId, { content: messageText });
+            /**
+             * @privateRemarks
+             * for review by VM: here, we utilize the webhook ID as the destination, rather than the message channel ID.
+             * typically for editing messages, you should always utilize the message channel ID, unless it is a webhook,
+             * in which case it is safe to use the webhook ID, as chronology of editing messages is not as important as
+             * the chronology of sending messages.
+             * - AC
+             */
+            game.editQueue.enqueue({
+                fire: async () => { await webhook.editMessage(mirror.messageId, { content: messageText }); },
+                destination: webhook.id
+            }, "standard");
+
         }
     });
 }
 
 /**
- * Edits spectate messages when the dialog they mirror is edited.
+ * Deletes spectate messages when the dialog they mirror is deleted.
  * @param game - The game this dialog belongs to.
  * @param message - The message being deleted.
  */
@@ -577,7 +647,7 @@ export async function sendWebhookMessage(
     embeds: Embed[] = [],
     files: string[] = [],
     game?: Game,
-    messageDisplayType: typeof MessageDisplayType[keyof typeof MessageDisplayType] = MessageDisplayType.PLAIN_TEXT,
+    messageDisplayType: MessageDisplayType = MessageDisplayType.PLAIN_TEXT,
     player?: Player
 ): Promise<Message<true>> {
     const createdMessage = await webhook.send(discordUtils.generateWebhookMessageDisplayCreateOptions(messageDisplayType, game, content, username, avatarURL, embeds, files, player));

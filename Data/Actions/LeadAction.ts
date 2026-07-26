@@ -54,23 +54,37 @@ export default class LeadAction extends Action {
         // If any followers' positions differ from the leader's, start moving them toward the leader.
         let misalignedFollowers = party.getMisalignedFollowers();
         let considerPartySynchronized = misalignedFollowers.length === 0;
+        // A map of move times for misaligned followers, where the key is the follower's name.
+        // We use this to store the calculated time so we can start moving them after sending the narration.
+        const playerMoveTimes: Map<string, number> = new Map();
+        // Keep track of the longest travel time.
+        let maxTime = 0;
         if (!considerPartySynchronized) {
             // This will prevent the party from moving until all positions are synchronized.
             party.positionsSynchronized = false;
 
-            // Keep track of the longest travel time.
-            let maxTime = 0;
-            // Create a dummy action to narrate the alignment of all players.
-            const dummyAction = new LeadAction(this.getGame(), undefined, this.player, this.location, this.forced);
             for (const follower of misalignedFollowers) {
                 const rate = follower.calculateMoveRate(false);
                 const time = this.getGame().movementHandler.calculateMoveTime(rate, follower, this.player);
                 if (time > maxTime) maxTime = time;
-                this.getGame().movementHandler.movePlayers(new Set([follower]), false, this.player, time, dummyAction);
+                playerMoveTimes.set(follower.name, time);
             }
             // If it only takes a second or less for the party to synchronize, consider it already synchronized for the narration.
             if (maxTime <= 1000) considerPartySynchronized = true;
+        }
 
+        // Send the narration before moving any players.
+        const leaderInteractables = this.#getLeaderInteractables();
+        const followerInteractables = this.#getFollowerInteractables(newFollowers);
+        this.getGame().narrationHandler.narrateLead(this, this.player, newFollowers, considerPartySynchronized, leaderInteractables, followerInteractables);
+
+        if (misalignedFollowers.length !== 0) {
+            // Create a dummy action to narrate the alignment of all players.
+            const dummyAction = new LeadAction(this.getGame(), undefined, this.player, this.location, this.forced);
+            for (const follower of misalignedFollowers) {
+                const time = playerMoveTimes.get(follower.name);
+                this.getGame().movementHandler.movePlayers(new Set([follower]), false, this.player, time, dummyAction);
+            }
             // This is a fallback in case any members of the party didn't make it to the leader
             // for some reason other than being inflicted with the weary status.
             // Mark all positions as synchronized after all followers have reached the leader.
@@ -89,9 +103,7 @@ export default class LeadAction extends Action {
                     this.getGame().narrationHandler.narratePartyReady(dummyAction, this.player);
             });
         }
-        const leaderInteractables = this.#getLeaderInteractables();
-        const followerInteractables = this.#getFollowerInteractables(newFollowers);
-        this.getGame().narrationHandler.narrateLead(this, this.player, newFollowers, considerPartySynchronized, leaderInteractables, followerInteractables);
+
         const followerList = generateListString(followers.map(player => player.name));
         this.getGame().logHandler.logLead(this.player, followerList, this.forced);
 

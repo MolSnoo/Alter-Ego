@@ -1,9 +1,11 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import Action from "../Action.ts";
 import type EquipmentSlot from "../EquipmentSlot.ts";
+import type Interactable from "../../Classes/Interactables/Interactable.ts";
 import InventoryItem from "../InventoryItem.ts";
 import InventorySlot from "../InventorySlot.ts";
 
@@ -24,10 +26,18 @@ export default class StashAction extends Action {
     performStash(item: InventoryItem, handEquipmentSlot: EquipmentSlot, container: InventoryItem, inventorySlot: InventorySlot<InventoryItem>): void {
         if (this.performed) return;
         super.perform();
-        this.getGame().narrationHandler.narrateStash(this, item, container, inventorySlot, this.player);
+        const interactables = this.#getInteractables();
+        this.getGame().narrationHandler.narrateStash(this, item, container, inventorySlot, this.player, interactables);
         this.getGame().logHandler.logStash(item, this.player, container, inventorySlot, this.forced);
         this.player.stash(item, handEquipmentSlot, container, inventorySlot);
         this.successMessage = `Successfully stashed ${item.getIdentifier()} ${container.getPreposition()} ${inventorySlot.id} of ${container.identifier} for ${this.player.name}.`;
+    }
+
+    #getInteractables(): Interactable[] {
+        let interactables: Interactable[] = [];
+        const interactableManager = this.getGame().clientContext.interactableManager;
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(this.player, this.user));
+        return interactables;
     }
 
     /**

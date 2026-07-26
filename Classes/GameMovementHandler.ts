@@ -11,7 +11,6 @@ import InflictAction from "../Data/Actions/InflictAction.ts";
 import MoveAction from "../Data/Actions/MoveAction.ts";
 import StopAction from "../Data/Actions/StopAction.ts";
 
-
 export type Positionable = Exit | Player;
 
 /**
@@ -36,6 +35,18 @@ export default class GameMovementHandler {
      * A collection of movement intervals to move players in sync.
      */
     readonly #moveTimers: Collection<Set<Player>, NodeJS.Timeout>;
+    /**
+     * A collection of ratios describing how far along in their movement the players are.
+     */
+    readonly #moveTimeRatios: Collection<Set<Player>, number>;
+    /**
+     * A collection of intervals to update players' move progress indicators.
+     */
+    readonly #moveProgressTimers: Collection<Set<Player>, NodeJS.Timeout>;
+    /**
+     * A collection of messages containing movement progress indicators, keyed by the name of the player they were sent to.
+     */
+    readonly #moveProgressIndicators: Collection<string, SentMessage>;
 
     /**
      * @param game - The game this belongs to.
@@ -45,6 +56,9 @@ export default class GameMovementHandler {
         this.#playerSets = new Set();
         this.#indexedPlayerSets = new Collection();
         this.#moveTimers = new Collection();
+        this.#moveTimeRatios = new Collection();
+        this.#moveProgressTimers = new Collection();
+        this.#moveProgressIndicators = new Collection();
     }
 
     /**
@@ -82,10 +96,18 @@ export default class GameMovementHandler {
      * Caches the player set and creates a move timer for them.
      * @param players - The players to create a move timer for.
      * @param callback - The callback to execute on each tick of the move timer.
+     * @param sendProgressIndicators - Whether or not to send messages to each player with progress indicators. Defaults to false.
+     * @param time - The number of milliseconds it will take to move to the destination. Required when sendProgressIndicators is true.
      */
-    #createMoveTimerFor(players: Set<Player>, callback: () => Promise<void>) {
+    #createMoveTimerFor(players: Set<Player>, callback: () => Promise<void>, sendProgressIndicators: boolean = false, time?: number): void {
         this.#addPlayerSet(players);
+        this.#moveTimeRatios.set(players, 0);
         this.#moveTimers.set(players, setInterval(callback, Game.tick));
+        if (sendProgressIndicators) {
+            const progressIndicator = this.#generateProgressIndicator(players);
+            this.#game.communicationHandler.sendMoveProgressIndicatorToPlayers(players, progressIndicator);
+            this.#createMoveProgressTimerFor(players, time);
+        }
     }
 
     /**
@@ -109,13 +131,23 @@ export default class GameMovementHandler {
      * Clears the move timer for the given players and removes all associated sets.
      */
     #clearMoveTimerFor(players: Set<Player>): void {
+        const moveTimeRatio = this.#moveTimeRatios.get(players);
+        if (moveTimeRatio) this.#moveTimeRatios.delete(players);
         const timer = this.#moveTimers.get(players);
         if (timer) {
             clearInterval(timer);
             this.#moveTimers.delete(players);
+            // Delete the progress timer, if one exists.
+            const moveProgressTimer = this.#moveProgressTimers.get(players);
+            if (moveProgressTimer) {
+                clearInterval(moveProgressTimer);
+                this.#moveProgressTimers.delete(players);
+            }
             // Clean up the associated player set.
-            for (const player of players)
+            for (const player of players) {
                 this.#indexedPlayerSets.delete(player.name);
+                this.#deleteMoveProgressIndicator(player);
+            }
             this.#playerSets.delete(players);
         }
         else {
@@ -124,6 +156,28 @@ export default class GameMovementHandler {
                 if (playerSet) this.#clearMoveTimerFor(playerSet);
             }
         }
+    }
+
+    /**
+     * Caches the message containing the player's move progress indicator so it can be updated periodically.
+     * @param player - The player the move progress indicator was sent to.
+     * @param channelId - The ID of the channel the message is in.
+     * @param messageId - The ID of the message containing the move progress indicator.
+     */
+    public cacheMoveProgressIndicator(player: Player, channelId: string, messageId: string): void {
+        this.#moveProgressIndicators.set(player.name, { channelId: channelId, messageId: messageId });
+    }
+
+    /**
+     * Deletes the player's move progress indicator from the cache and its associated message.
+     * @param player - The player whose move progress indicator is to be deleted.
+     */
+    async #deleteMoveProgressIndicator(player: Player): Promise<void> {
+        const moveProgressIndicator = this.#moveProgressIndicators.get(player.name);
+        if (!moveProgressIndicator) return;
+        this.#moveProgressIndicators.delete(player.name);
+        const message = await this.#game.clientContext.getSentMessage(moveProgressIndicator);
+        if (message) await message.delete().catch();
     }
 
     /**
@@ -178,6 +232,75 @@ export default class GameMovementHandler {
     }
 
     /**
+     * Determines whether to send a move progress indicator.
+     * We don't want players to be able to predict if a heated situation is occurring, so the result is randomly determined.
+     * Returns true if the amount of time it takes to complete the movement in milliseconds is greater than a
+     * randomly generated number within a given range.
+     * @param time - The number of milliseconds it will take to move to the destination.
+     */
+    private doSendProgressIndicator(time: number): boolean {
+        const timeThreshold = this.#game.rollCustomDie(8, 12);
+        return time / 1000 >= timeThreshold.result;
+    }
+
+    /**
+     * Generates a string containing a progress indicator bar.
+     * @param players - The set of players to generate a progress indicator for.
+     * @param width - The number of characters comprising the progress indicator. Defaults to 16.
+     * @param fillChar - The character to use for a filled block. Defaults to `█`.
+     * @param emptyChar - The character to use for an empty block. Defaults to `░`.
+     */
+    #generateProgressIndicator(players: Set<Player>, width: number = 16, fillChar: string = '█', emptyChar: string = '░'): string {
+        const ratio = this.#moveTimeRatios.get(players);
+        if (ratio === undefined) return '';
+        if (ratio <= 0)
+            return `[${emptyChar.repeat(width)}]`;
+        const filledCount = Math.floor(ratio * width);
+        const bar = fillChar.repeat(filledCount) + emptyChar.repeat(width - filledCount);
+        return `[${bar}]`;
+    }
+
+    /**
+     * Calculates the interval with which to edit the players' move progress indicators based on
+     * how long the movement is expected to take. The interval will be randomly generated within
+     * a given range, to make it more difficult for players to predict if a heated situation is occurring.
+     * @param time - The number of milliseconds it will take to move to the destination.
+     */
+    #calculateMoveProgressInterval(time: number): number {
+        // Edit every 5 seconds, at most.
+        const maxInterval = 5000;
+        // Decide the target number of steps. Most movements are short, so we only need a few steps.
+        // Just in case it's a longer movement, we'll add significantly more steps.
+        const longMovement = time > 60000;
+        const steps = longMovement ? 30 : 8;
+        // Ensure the interval is never lower than the maxInterval.
+        const baseInterval = Math.max(maxInterval, time / steps);
+        // Make the interval vary by up to 25% to make it less predictable.
+        const variationPercent = this.#game.rollCustomDie(75, 125).result;
+        const heatedSlowdownMultiplier = this.#game.heated ? 1 + this.#game.settings.heatedSlowdownRate : 1;
+        return Math.max(maxInterval, heatedSlowdownMultiplier * baseInterval * (variationPercent / 100));
+    }
+
+    /**
+     * Creates an interval timer that periodically edits the players' move progress indicator
+     * messages to reflect the current ratio of the movement's completion.
+     * @param players - The set of players to create a progress timer for.
+     * @param time - The total movement duration in milliseconds.
+     */
+    #createMoveProgressTimerFor(players: Set<Player>, time: number): void {
+        const interval = this.#calculateMoveProgressInterval(time);
+        this.#moveProgressTimers.set(players, setInterval(async () => {
+            const progressIndicator = this.#generateProgressIndicator(players);
+            for (const player of players) {
+                const sentMessage = this.#moveProgressIndicators.get(player.name);
+                if (!sentMessage) continue;
+                const message = await this.#game.clientContext.getSentMessage(sentMessage);
+                this.#game.communicationHandler.editMessage(message, progressIndicator);
+            }
+        }, interval));
+    }
+
+    /**
      * Returns the first entity in the given set, or null if the set is empty.
      * @param entities - The set of entities to get the first entity from.
      */
@@ -224,6 +347,7 @@ export default class GameMovementHandler {
         }
         const startingPos = this.#getPosition(players);
 
+        const sendProgressIndicator = this.doSendProgressIndicator(time);
         this.#createMoveTimerFor(players, async () => {
             const settings = this.#game.settings;
             const firstPlayer = this.#first(players);
@@ -234,6 +358,7 @@ export default class GameMovementHandler {
             // Get the current coordinates based on what percentage of the duration has passed.
             const elapsedTime = time - remainingTime;
             const timeRatio = elapsedTime / time;
+            this.#moveTimeRatios.set(players, timeRatio);
             let x = startingPos.x + Math.round(timeRatio * (destination.pos.x - startingPos.x));
             let y = startingPos.y + Math.round(timeRatio * (destination.pos.y - startingPos.y));
             let z = startingPos.z + Math.round(timeRatio * (destination.pos.z - startingPos.z));
@@ -340,7 +465,7 @@ export default class GameMovementHandler {
                     if (time > 1000) this.#game.narrationHandler.narratePartyReady(action, firstPlayer.party.leader);
                 }
             }
-        });
+        }, sendProgressIndicator, time);
     }
 
     /**

@@ -25,7 +25,8 @@ export const config = {
  * @returns {string}
  */
 export function usage(settings) {
-    return `${settings.commandPrefix}stop`;
+    return `${settings.commandPrefix}stop\n`
+        + `${settings.commandPrefix}st`;
 }
 
 /**
@@ -37,9 +38,9 @@ export function usage(settings) {
  */
 export async function execute(game, message, command, args, player) {
     const status = player.getBehaviorAttributeStatusEffects("disable stop");
-    if (status.length > 0) return game.communicationHandler.reply(message, `You cannot do that because you are **${status[0].id}**.`);
+    if (status.length > 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCommandDisabledError(status[0]));
 
-    if (!player.followedPlayer && !player.isMoving) return game.communicationHandler.reply(message, `You cannot do that because you are not moving.`);
+    if (!player.followedPlayer && !player.isMoving) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayerNotMovingOrFollowingError(player, "Player"));
 
     const action = new StopAction(game, message, player, player.location, false);
     action.performStop();

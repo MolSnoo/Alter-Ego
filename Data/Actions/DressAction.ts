@@ -6,7 +6,7 @@
 import { generateListString, getSortedItemsString, round } from "../../Modules/helpers.ts";
 import Action from "../Action.ts";
 import type EquipmentSlot from "../EquipmentSlot.ts";
-import type Fixture from "../Fixture.ts";
+import type Interactable from "../../Classes/Interactables/Interactable.ts";
 import type InventoryItem from "../InventoryItem.ts";
 import InventorySlot from "../InventorySlot.ts";
 import Puzzle from "../Puzzle.ts";
@@ -27,7 +27,7 @@ export default class DressAction extends Action {
      * @param container - The container to dress from.
      * @param inventorySlot - The inventory slot to dress from, if applicable.
      */
-    performDress(items: RoomItem[], handEquipmentSlot: EquipmentSlot, container: Puzzle | Fixture | RoomItem, inventorySlot: InventorySlot<RoomItem>): void {
+    performDress(items: RoomItem[], handEquipmentSlot: EquipmentSlot, container: RoomItemContainer, inventorySlot: InventorySlot<RoomItem>): void {
         if (this.performed) return;
         super.perform();
         const equippedItems: InventoryItem[] = [];
@@ -54,7 +54,8 @@ export default class DressAction extends Action {
             if (this.message) this.getGame().communicationHandler.reply(this.message, `${container.name} has no equippable items.`);
             return;
         }
-        this.getGame().narrationHandler.narrateDress(this, equippedItems, container, this.player);
+        const interactables = this.#getInteractables(container);
+        this.getGame().narrationHandler.narrateDress(this, equippedItems, container, this.player, interactables);
         this.getGame().logHandler.logDress(equippedItems, this.player, container, inventorySlot, this.forced);
         // Execute equipped commands.
         for (const equippedItem of equippedItems)
@@ -74,5 +75,16 @@ export default class DressAction extends Action {
         }
         const slotPhrase = inventorySlot ? `${inventorySlot.id} of ` : ``;
         this.successMessage = `Successfully dressed ${this.player.name} with ${generateListString(items.map(item => item.getIdentifier()))} from ${slotPhrase}${container.getEntityID()}.`;
+    }
+
+    #getInteractables(container: RoomItemContainer): Interactable[] {
+        let interactables: Interactable[] = [];
+        const interactableManager = this.getGame().clientContext.interactableManager;
+        const inspectables: Inspectable[] = [];
+        if (container instanceof Puzzle && container.parentFixture) inspectables.push(container.parentFixture);
+        else if (!(container instanceof Puzzle)) inspectables.push(container);
+        interactables = interactables.concat(interactableManager.createInspectActionInteractable(inspectables, this.player, this.user));
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(this.player, this.user));
+        return interactables;
     }
 }

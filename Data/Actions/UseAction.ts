@@ -1,8 +1,10 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import Action from "../Action.ts";
+import type Interactable from "../../Classes/Interactables/Interactable.ts";
 import InventoryItem from "../InventoryItem.ts";
 import Player from "../Player.ts";
 
@@ -21,12 +23,20 @@ export default class UseAction extends Action {
     async performUse(item: InventoryItem, target: Player = this.player, customNarration?: string): Promise<void> {
         if (this.performed) return;
         super.perform();
-        this.getGame().narrationHandler.narrateUse(this, item, this.player, target, customNarration);
+        const interactables = this.#getInteractables();
+        this.getGame().narrationHandler.narrateUse(this, item, this.player, target, customNarration, interactables);
         this.getGame().logHandler.logUse(item, this.player, target, this.forced);
         const itemIdentifier = item.getIdentifier();
         await this.player.use(item, target);
         const targetString = target.name !== this.player.name ? `on ${target.name} ` : ``;
         this.successMessage = `Successfully used ${itemIdentifier} ${targetString}for ${this.player.name}.`;
+    }
+
+    #getInteractables(): Interactable[] {
+        let interactables: Interactable[] = [];
+        const interactableManager = this.getGame().clientContext.interactableManager;
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(this.player, this.user));
+        return interactables;
     }
 
     /**

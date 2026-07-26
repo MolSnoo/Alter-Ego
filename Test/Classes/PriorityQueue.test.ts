@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -10,7 +11,7 @@ describe("PriorityQueue test", () => {
         queue.manual = true;
     });
 
-    const queue = new PriorityQueue();
+    const queue = new PriorityQueue("Message Handler encountered exception sending message:", ['mod', 'tell', 'mechanic', 'log', 'spectator'] as const);
     const queueEntry = { fire: vi.fn(async () => { const error = new Error();  console.error("You shouldn't see this!!!", error.stack) }), destination: "1" };
 
     test("Usage Test", () => {

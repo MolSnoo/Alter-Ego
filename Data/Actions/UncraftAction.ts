@@ -40,9 +40,10 @@ export default class UncraftAction extends Action {
     #getInteractables(createdItems: InventoryItem[]): Interactable[] {
         let interactables: Interactable[] = [];
         const interactableManager = this.getGame().clientContext.interactableManager;
-        interactables = interactables.concat(interactableManager.createInspectActionInteractable(createdItems, this.player))
-        interactables = interactables.concat(interactableManager.getCraftInteractables(this.player));
-        interactables = interactables.concat(interactableManager.getUseInteractables(this.player));
+        interactables = interactables.concat(interactableManager.createInspectActionInteractable(createdItems, this.player, this.user))
+        interactables = interactables.concat(interactableManager.getCraftInteractables(this.player, this.user));
+        interactables = interactables.concat(interactableManager.getUseInteractables(this.player, this.user));
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(this.player, this.user));
         return interactables;
     }
 

@@ -419,7 +419,8 @@ export default class GameNarrationHandler {
     narrateInspect(action: Action, target: Inspectable, player: Player) {
         let notification = "";
         let narration = "";
-        let messageType: MessageDisplayType = MessageDisplayType.MINOR;
+        let notificationMessageType: MessageDisplayType = MessageDisplayType.MINOR;
+        let narrationMessageType: MessageDisplayType = MessageDisplayType.MINOR;
         if (target instanceof Room) {
             notification = this.#game.notificationGenerator.generateInspectRoomNotification(player, true);
             narration = this.#game.notificationGenerator.generateInspectRoomNotification(player, false);
@@ -437,8 +438,10 @@ export default class GameNarrationHandler {
                     this.sendNotification(occupant, action, notification, MessageDisplayType.WARNING);
                 }
                 const hiddenPlayersList = target.hidingSpot.generateOccupantsString(!player.canSee());
-                if (hiddenPlayersList)
+                if (hiddenPlayersList) {
                     notification += `\n${this.#game.notificationGenerator.generateFoundHiddenPlayersNotification(hiddenPlayersList, target.hidingSpot.getContainingPhrase())}`;
+                    notificationMessageType = MessageDisplayType.STANDARD;
+                }
             }
         }
         else if (target instanceof RoomItem) {
@@ -447,7 +450,7 @@ export default class GameNarrationHandler {
             notification = this.#game.notificationGenerator.generateInspectRoomItemNotification(player, true, target.singleContainingPhrase, preposition, containerPhrase);
             if (!target.prefab.discreet) {
                 narration = this.#game.notificationGenerator.generateInspectRoomItemNotification(player, false, target.singleContainingPhrase, preposition, containerPhrase);
-                messageType = MessageDisplayType.STANDARD;
+                narrationMessageType = MessageDisplayType.STANDARD;
             }
         }
         else if (target instanceof InventoryItem && target.player.name === player.name) {
@@ -464,12 +467,12 @@ export default class GameNarrationHandler {
                     narration = this.#game.notificationGenerator.generateInspectPlayersOwnStashedInventoryItemNotification(player, false, target.singleContainingPhrase);
             }
             if (!target.prefab.discreet)
-                messageType = MessageDisplayType.STANDARD;
+                narrationMessageType = MessageDisplayType.STANDARD;
         }
         else if (target instanceof InventoryItem && target.player.name !== player.name)
             notification = this.#game.notificationGenerator.generateInspectOtherPlayersInventoryItemNotification(player, true, target.player, target.name);
-        if (notification !== "") this.sendNotification(player, action, notification, MessageDisplayType.MINOR);
-        if (narration !== "") this.#sendNarration(messageType, action, player, narration);
+        if (notification !== "") this.sendNotification(player, action, notification, notificationMessageType);
+        if (narration !== "") this.#sendNarration(narrationMessageType, action, player, narration);
     }
 
     /**

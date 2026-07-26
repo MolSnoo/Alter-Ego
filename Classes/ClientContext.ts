@@ -1,9 +1,10 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { ActivityType, Client, type ClientUser, Collection, GatewayIntentBits, Partials } from "discord.js";
+import { ActivityType, Client, type ClientUser, Collection, GatewayIntentBits, Message, Partials } from "discord.js";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -438,5 +439,15 @@ export default class ClientContext {
      */
     public get user(): ClientUser {
         return this.client.user;
+    }
+
+    /**
+     * Fetches a message from Discord by its channel ID and message ID, and returns it if it exists.
+     * @param message - The message to fetch, represented by its channel ID and message ID.
+     */
+    public async getSentMessage(message: SentMessage): Promise<Message<boolean>> {
+        const channel = await this.client.channels.fetch(message.channelId);
+        if (!channel.isTextBased()) return;
+        return await channel.messages.fetch(message.messageId);
     }
 }

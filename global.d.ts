@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type { ButtonInteraction, GuildMember, Message, ModalSubmitInteraction, OmitPartialGroupDMChannel, StringSelectMenuInteraction } from "discord.js";
+import type { ButtonInteraction, GuildMember, Message, ModalSubmitInteraction, OmitPartialGroupDMChannel, Snowflake, StringSelectMenuInteraction } from "discord.js";
 import type GameSettings from "./Classes/GameSettings.ts";
 import type Event from "./Data/Event.ts";
 import type Exit from "./Data/Exit.js";
@@ -38,6 +38,16 @@ declare global {
         displayName: string;
         /** An image URL that will be used as an avatar when the user's messages are mirrored in a webhook. */
         displayIcon: string;
+    }
+
+    /**
+     * A message that we've sent, with the channel ID and message ID so that it can be retrieved later.
+     */
+    interface SentMessage {
+        /** The ID of the channel the message is in. */
+        channelId: Snowflake;
+        /** The ID of the message. */
+        messageId: Snowflake;
     }
 
 	/**

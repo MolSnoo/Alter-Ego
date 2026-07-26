@@ -374,7 +374,7 @@ export default class GameNotificationGenerator {
                 : secondPerson && followers.length > 1
                     ? `They`
                     : `who`;
-            const pluralizeVerb = followers.length > 1 || followers.length === 1 && followers[0].pronouns.plural;
+            const pluralizeVerb = followers.length > 1 || secondPerson && followers.length === 1 && followers[0].pronouns.plural;
             const verb2 = pluralizeVerb ? `start` : `starts`;
             const object = secondPerson ? `you` : player.pronouns.obj;
             addendum = `${punctuation} ${subject2} ${verb2} approaching ${object}`;

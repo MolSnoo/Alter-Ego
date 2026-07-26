@@ -824,6 +824,7 @@ export default class GameEntityFinder {
                 const containerName = itemContainer instanceof ItemContainer ? itemContainer.getContainerIdentifier() : undefined;
                 if (!entity) entity = this.getRoomItems(entityName, player.location.id, container instanceof Puzzle ? undefined : true, containerType, containerName, undefined, undefined, false, 'combined')[0];
                 puzzle = this.getPuzzle(entityName, player.location.id);
+                if (!puzzle && entity instanceof Fixture && entity.childPuzzle) puzzle = entity.childPuzzle;
             }
             if (entity) inspectableEntities.push(entity);
             if (entity && entity instanceof RoomItem) takeableEntities.push(entity);

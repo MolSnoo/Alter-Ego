@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { generateListString, getSortedItemsString } from "../../Modules/helpers.ts";
 import Action from "../Action.ts";
-import type Fixture from "../Fixture.ts";
+import type Interactable from "../../Classes/Interactables/Interactable.ts";
 import type InventoryItem from "../InventoryItem.ts";
 import InventorySlot from "../InventorySlot.ts";
 import Puzzle from "../Puzzle.ts";
@@ -24,7 +25,7 @@ export default class UndressAction extends Action {
      * @param container - The container to put the items in.
      * @param inventorySlot - The inventory slot to put the items in, if applicable.
      */
-    performUndress(container: Puzzle | Fixture | RoomItem, inventorySlot: InventorySlot<RoomItem>): void {
+    performUndress(container: RoomItemContainer, inventorySlot: InventorySlot<RoomItem>): void {
         if (this.performed) return;
         super.perform();
         // First, drop the items in the player's hands.
@@ -50,7 +51,8 @@ export default class UndressAction extends Action {
                 }
             }
         }
-        this.getGame().narrationHandler.narrateUndress(this, droppedItems, container, this.player);
+        const interactables = this.#getInteractables(container);
+        this.getGame().narrationHandler.narrateUndress(this, droppedItems, container, this.player, interactables);
         this.getGame().logHandler.logUndress(droppedItems, this.player, container, inventorySlot, this.forced);
         // Execute unequipped commands.
         for (const droppedItem of droppedItems)
@@ -70,5 +72,16 @@ export default class UndressAction extends Action {
         }
         const slotPhrase = inventorySlot ? `${inventorySlot.id} of ` : ``;
         this.successMessage = `Successfully undressed ${this.player.name}, putting ${generateListString(droppedItems.map(item => item.getIdentifier()))} in ${slotPhrase}${container.getEntityID()}.`;
+    }
+
+    #getInteractables(container: RoomItemContainer): Interactable[] {
+        let interactables: Interactable[] = [];
+        const interactableManager = this.getGame().clientContext.interactableManager;
+        const inspectables: Inspectable[] = [];
+        if (container instanceof Puzzle && container.parentFixture) inspectables.push(container.parentFixture);
+        else if (!(container instanceof Puzzle)) inspectables.push(container);
+        interactables = interactables.concat(interactableManager.createInspectActionInteractable(inspectables, this.player, this.user));
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(this.player, this.user));
+        return interactables;
     }
 }

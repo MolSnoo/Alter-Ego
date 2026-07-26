@@ -43,16 +43,35 @@ export async function execute(game, message, command, args, moderator) {
     if (sentMessageInLatchChannel && args.length < 1)
         return game.communicationHandler.reply(message, game.errorMessageGenerator.generateSpecifyErrorWithUsage("at least one follower", usage));
 
+    // First, find all players.
+    /** @type {Player[]} */
+    let players = [];
+    /** @type {string[]} */
+    let invalidPlayers = [];
+    for (let i = 0; i < args.length; i++) {
+        const foundPlayer = game.entityFinder.getLivingPlayer(args[i].replace(/'s/g, ""));
+        if (foundPlayer) players.push(foundPlayer);
+        else invalidPlayers.push(args[i]);
+    }
+    if (invalidPlayers.length !== 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotFoundError(invalidPlayers));
+
     // First, find the leader.
-    let player = game.entityFinder.getLivingPlayer(args[0].replace(/'s/g, ""));
-    if (player && (moderator.getLatch() === null || moderator.getLatch().name.toLowerCase() !== args[0].toLowerCase().replace(/'s/g, "")))
-        args.splice(0, 1);
-    if (!player && sentMessageInLatchChannel)
+    /** @type {Player} */
+    let player;
+    if (sentMessageInLatchChannel)
         player = moderator.getLatch();
-    if (player === undefined) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotFoundError([args[0]]));
+    // We don't want to be overzealous and assume the first player in a list is the player the user wants to make the leader.
+    // Only make that assumption if there's at least one player in the room following the first player.
+    if (!player || players.length > 1
+        && !moderator.latchedPlayerHasName(players[0].name)
+        && players[0].location.occupants.some(occupant => occupant.isFollowing(players[0]))
+    ) {
+        player = players[0];
+        players.splice(0, 1);
+    }
 
     // Next, find the followers.
-    /** 
+    /**
      * The new players who will led by the player performing the command.
      * @type {Set<Player>}
      */
@@ -62,14 +81,9 @@ export async function execute(game, message, command, args, moderator) {
      * @type {Set<Player>}
      */
     const alreadyLedPlayers = new Set();
-    for (let i = 0; i < args.length; i++) {
-        const playerName = args[i].toLowerCase();
+    for (const follower of players) {
         // Player cannot lead themself.
-        if (playerName === player.name.toLowerCase()) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotSelectSelfError(player, "Moderator", "lead"));
-
-        /** @type {Player} */
-        let follower = game.entityFinder.getLivingPlayer(args[i].replace(/'s/g, ""));
-        if (!follower) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayerNotFoundInRoomError(args[i]));
+        if (follower.name === player.name) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotSelectSelfError(player, "Moderator", "lead"));
         if (player.location.id !== follower.location.id) return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePlayersNotInSameRoomError([player, follower]));
         if (!follower.isFollowing(player)) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotSelectNonFollowerError(player, follower, "Moderator", "lead"));
         if (follower.ledPlayers.length !== 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotLeadLeaderError(player, follower, "Moderator"));

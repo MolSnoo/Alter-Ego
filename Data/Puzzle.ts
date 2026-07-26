@@ -162,6 +162,22 @@ export default class Puzzle extends ItemContainer implements PersistentGameEntit
      * The description of the puzzle when a player attempts to solve it while all of the requirements are not met.
      */
     readonly requirementsNotMetDescription: Description;
+    /**
+     * Puzzle types that players can attempt with no additional input.
+     */
+    static readonly SimpleInteractTypes = new Set(["interact", "toggle", "player", "player toggle", "matrix"]);
+    /**
+     * Puzzle types that players can attempt by supplying one of a small, set number of known options.
+     */
+    static readonly SelectInteractTypes = new Set(["switch", "room player"]);
+    /**
+     * Puzzle types that players can attempt by supplying any string of text.
+     */
+    static readonly TextInputInteractTypes = new Set(["password", "combination lock"]);
+    /**
+     * Puzzle types whose method of interaction varies based on the puzzle's solved state.
+     */
+    static readonly MixedInteractTypes = new Set(["channels", "option", "media", "key lock"]);
 
     /**
      * @param name - The name of the puzzle.
@@ -262,47 +278,56 @@ export default class Puzzle extends ItemContainer implements PersistentGameEntit
 
     /**
      * Gets a second-person verb to use to describe how a player attempts this puzzle.
-     * The verb chosen largely depends on the puzzle's name and type.
+     * The verb chosen largely depends on the puzzle's display name, type, and solved state.
      * The default verb is "use".
+     * @param solved - Whether or not to consider the puzzle solved. Defaults to its current solved state.
      */
-    getAttemptVerb(): string {
-        const names = this.parentFixture ? `${this.name} ${this.parentFixture.name}` : this.name;
-        const nameWords = new Set(names.split(' '));
-        if ((this.type === "key lock" || this.type === "combination lock") && this.solved) return "lock";
+    getAttemptVerb(solved = this.solved): string {
+        if ((this.type === "key lock" || this.type === "combination lock") && solved) return "lock";
         else if ((this.type === "key lock" || this.type === "combination lock")) return "unlock";
-        if (this.type === "media" && this.solved) return "eject";
+        if (this.type === "media" && solved) return "eject";
         else if (this.type === "media") return "insert";
-        if (this.type === "option" && this.solved) return "clear";
+        if (this.type === "switch" || this.type === "room player") return "set";
+        if (this.type === "option" && solved) return "clear";
+        else if (this.type === "option") return "set";
+        const nameWords = new Set(this.getDisplayName().split(' '));
+        if (nameWords.has("USERNAME") || nameWords.has("PASSWORD")) return "enter";
+        if (nameWords.has("INPUT")) return "enter";
+        if (nameWords.has("KEYPAD") || nameWords.has("KEYBOARD")) return "type on";
         if (nameWords.has("BUTTON")) return "press";
         if (nameWords.has("SWITCH") || nameWords.has("lever")) return "flip";
         if (nameWords.has("BOLT") && this.type === "toggle") return "flip";
-        if (nameWords.has("SHOWER") && this.solved) return "turn off";
-        if (nameWords.has("TELEVISION") && this.solved) return "turn off";
+        if (nameWords.has("SHOWER") && solved) return "turn off";
+        if (nameWords.has("TELEVISION") && solved) return "turn off";
         return "use";
     }
 
     /**
      * Gets a preposition to describe how an item is used on this puzzle.
-     * The preposition chosen largely depends on the puzzle's name and type.
+     * The preposition chosen largely depends on the puzzle's type and solved state.
      * The default is "on".
+     * @param solved - Whether or not to consider the puzzle solved. Defaults to its current solved state.
      */
-    getAttemptWithItemPreposition(): string {
-        if ((this.type === "key lock" || this.type === "combination lock") && this.solved) return "with";
+    getAttemptWithItemPreposition(solved = this.solved): string {
+        if ((this.type === "key lock" || this.type === "combination lock") && solved) return "with";
         else if ((this.type === "key lock" || this.type === "combination lock")) return "with";
-        if (this.type === "media" && this.solved) return "from";
+        if (this.type === "media" && solved) return "from";
         else if (this.type === "media") return "into";
+        if (this.type === "switch" || this.type === "room player") return "to";
+        if (this.type === "option" && !solved) return "to";
         return "on";
     }
 
     /**
      * Returns the args for the Attempt ActionDirective for this puzzle.
      * Intended to be used for puzzles that can be attempted with a simple interaction or with the use of an inventory item.
+     * @param solved - Whether or not to consider the puzzle solved. Used to generate the command. Optional.
      * @param item - The item to attempt the puzzle with. Optional.
      * @param password - The password to attempt the puzzle with. Optional.
      * @param targetPlayerDisplayName - The display name of the player to target. Optional.
      * @returns [name, location, type, item identifier, item containerName, item equipmentSlot, item proceduralSelectionsString, password, getAttemptVerb() (command), name (input), targetPlayer displayName]
      */
-    getAttemptActionDirectiveArgs(item?: InventoryItem, password: string = "", targetPlayerDisplayName: string = ""): [string, string, string, string, string, string, string, string, string, string, string] {
+    getAttemptActionDirectiveArgs(solved?: boolean, item?: InventoryItem, password: string = "", targetPlayerDisplayName: string = ""): [string, string, string, string, string, string, string, string, string, string, string] {
         return [
             this.name,
             this.location.id,
@@ -312,7 +337,7 @@ export default class Puzzle extends ItemContainer implements PersistentGameEntit
             item?.equipmentSlot ?? undefined,
             item?.proceduralSelectionsString ?? undefined,
             password,
-            this.getAttemptVerb(),
+            this.getAttemptVerb(solved),
             this.name,
             targetPlayerDisplayName
         ];
@@ -528,6 +553,19 @@ export default class Puzzle extends ItemContainer implements PersistentGameEntit
             : this.name.match(/.*\d+$/)
                 ? this.name
                 : `the ${this.name}`;
+    }
+
+    /**
+     * Checks if only the puzzle's static requirements are met.
+     * Requirements are considered static only if they're Puzzle or Event requirements.
+     * Flag and Prefab requirements are evaluated dynamically, so those are skipped over in this function.
+     */
+    checkStaticRequirementsMet(): boolean {
+        for (const requirement of this.requirements) {
+            if (requirement instanceof Puzzle && !requirement.solved || requirement instanceof Event && !requirement.ongoing)
+                return false;
+        }
+        return true;
     }
 
     /**

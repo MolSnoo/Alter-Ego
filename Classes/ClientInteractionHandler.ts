@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -21,6 +22,7 @@ import UnequipAction from "../Data/Actions/UnequipAction.ts";
 import CraftAction from "../Data/Actions/CraftAction.ts";
 import UncraftAction from "../Data/Actions/UncraftAction.ts";
 import UseAction from "../Data/Actions/UseAction.ts";
+import InventoryAction from "../Data/Actions/InventoryAction.ts";
 import ActivateAction from "../Data/Actions/ActivateAction.ts";
 import DeactivateAction from "../Data/Actions/DeactivateAction.ts";
 import AttemptAction from "../Data/Actions/AttemptAction.ts";
@@ -34,9 +36,12 @@ import ActionDirectiveInteractable from "./Interactables/ActionDirectiveInteract
 import type Game from "../Data/Game.ts";
 import type Interactable from "./Interactables/Interactable.ts";
 import Moderator from "../Data/Moderator.ts";
+import type Puzzle from "../Data/Puzzle.ts";
 import PaginationInteractable from "./Interactables/PaginationInteractable.ts";
 import { ButtonInteraction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
 import type { Interaction, InteractionCallbackResponse } from "discord.js";
+import HideAction from "../Data/Actions/HideAction.ts";
+import EmergeAction from "../Data/Actions/EmergeAction.ts";
 
 /**
  * A set of functions for handling Interactions.
@@ -229,7 +234,7 @@ export default class ClientInteractionHandler {
             catch (error) { throw new Error(error.message); }
         }
         if (action instanceof ViewPartyAction) {
-            if (player.canUseCommand("party")) {
+            if (player.canUseCommand("party") || action.forced) {
                 action.performViewParty();
                 this.#replyOrDeleteActionResponse(action, interaction, reply);
                 this.#logInteraction("ViewPartyAction", author, timestamp, []);
@@ -247,35 +252,72 @@ export default class ClientInteractionHandler {
         if (action instanceof InspectAction) {
             const args = interactable.actionDirective.getArgs();
             const parsedArgs = action.parseInteractionArgs(args);
-            const validatedArgs = action.validateInteractionArgs(parsedArgs);
-            if (validatedArgs.length === 1) {
-                action.performInspect(validatedArgs[0]);
-                this.#replyOrDeleteActionResponse(action, interaction, reply);
-                this.#logInteraction("InspectAction", author, timestamp, validatedArgs);
-                return true;
+            try {
+                const validatedArgs = action.validateInteractionArgs(parsedArgs);
+                if (validatedArgs.length === 1) {
+                    action.performInspect(validatedArgs[0]);
+                    this.#replyOrDeleteActionResponse(action, interaction, reply);
+                    this.#logInteraction("InspectAction", author, timestamp, validatedArgs);
+                    return true;
+                }
             }
+            catch (error) { throw new Error(error.message); }
+        }
+        if (action instanceof HideAction) {
+            const args = interactable.actionDirective.getArgs();
+            const parsedArgs = action.parseInteractionArgs(args);
+            try {
+                const validatedArgs = action.validateInteractionArgs(parsedArgs);
+                if (validatedArgs.length === 1) {
+                    await action.performHide(validatedArgs[0]);
+                    this.#replyOrDeleteActionResponse(action, interaction, reply);
+                    this.#logInteraction("HideAction", author, timestamp, validatedArgs);
+                    return true;
+                }
+            }
+            catch (error) { throw new Error(error.message); }
+        }
+        if (action instanceof EmergeAction) {
+            const args = interactable.actionDirective.getArgs();
+            const parsedArgs = action.parseInteractionArgs(args);
+            try {
+                const validatedArgs = action.validateInteractionArgs(parsedArgs);
+                if (validatedArgs.length === 1) {
+                    await action.performEmerge(validatedArgs[0]);
+                    this.#replyOrDeleteActionResponse(action, interaction, reply);
+                    this.#logInteraction("EmergeAction", author, timestamp, validatedArgs);
+                    return true;
+                }
+            }
+            catch (error) { throw new Error(error.message); }
         }
         if (action instanceof TakeAction) {
             const args = interactable.actionDirective.getArgs();
             const parsedArgs = action.parseInteractionArgs(args);
-            const validatedArgs = action.validateInteractionArgs(parsedArgs);
-            if (validatedArgs.length === 4) {
-                action.performTake(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3]);
-                this.#replyOrDeleteActionResponse(action, interaction, reply);
-                this.#logInteraction("TakeAction", author, timestamp, validatedArgs);
-                return true;
+            try {
+                const validatedArgs = action.validateInteractionArgs(parsedArgs);
+                if (validatedArgs.length === 4) {
+                    action.performTake(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3]);
+                    this.#replyOrDeleteActionResponse(action, interaction, reply);
+                    this.#logInteraction("TakeAction", author, timestamp, validatedArgs);
+                    return true;
+                }
             }
+            catch (error) { throw new Error(error.message); }
         }
         if (action instanceof DropAction) {
             const args = interactable.actionDirective.getArgs();
             const parsedArgs = action.parseInteractionArgs(args);
-            const validatedArgs = action.validateInteractionArgs(parsedArgs);
-            if (validatedArgs.length === 4) {
-                action.performDrop(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3]);
-                this.#replyOrDeleteActionResponse(action, interaction, reply);
-                this.#logInteraction("DropAction", author, timestamp, validatedArgs);
-                return true;
+            try {
+                const validatedArgs = action.validateInteractionArgs(parsedArgs);
+                if (validatedArgs.length === 4) {
+                    action.performDrop(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3]);
+                    this.#replyOrDeleteActionResponse(action, interaction, reply);
+                    this.#logInteraction("DropAction", author, timestamp, validatedArgs);
+                    return true;
+                }
             }
+            catch (error) { throw new Error(error.message); }
         }
         if (action instanceof StashAction) {
             const args = interactable.actionDirective.getArgs();
@@ -354,6 +396,14 @@ export default class ClientInteractionHandler {
                 return true;
             }
         }
+        if (action instanceof InventoryAction) {
+            if (player.canUseCommand("inventory") || action.forced) {
+                action.performInventory();
+                this.#replyOrDeleteActionResponse(action, interaction, reply);
+                this.#logInteraction("InventoryAction", author, timestamp, []);
+                return true;
+            }
+        }
         if (action instanceof ActivateAction) {
             const args = interactable.actionDirective.getArgs();
             const parsedArgs = action.parseInteractionArgs(args);
@@ -384,7 +434,25 @@ export default class ClientInteractionHandler {
         }
         if (action instanceof AttemptAction) {
             const args = interactable.actionDirective.getArgs();
+            let solution: string;
+            if (interaction instanceof ModalSubmitInteraction)
+                solution = interaction.fields.getTextInputValue("Attempt Solution");
+            else if (interactable.respondWithModal) {
+                if (args.length === 11) {
+                    const modal = this.#game.clientContext.interactableManager.createAttemptActionModalInteractable(
+                        args as ReturnType<typeof Puzzle.prototype.getAttemptActionDirectiveArgs>,
+                        interactable,
+                        player,
+                        user
+                    );
+                    await interaction.showModal(modal.component);
+                    return true;
+                }
+                return false;
+            }
             const parsedArgs = action.parseInteractionArgs(args);
+            // If we got a solution from a modal submission, put it in place of the old password, which should have just been a placeholder.
+            if (solution) parsedArgs.splice(2, 1, solution);
             try {
                 const validatedArgs = action.validateInteractionArgs(parsedArgs);
                 if (validatedArgs.length === 6) {

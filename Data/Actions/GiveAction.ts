@@ -5,6 +5,7 @@
 
 import Action from "../Action.ts";
 import type EquipmentSlot from "../EquipmentSlot.ts";
+import type Interactable from "../../Classes/Interactables/Interactable.ts";
 import type InventoryItem from "../InventoryItem.ts";
 import type Player from "../Player.ts";
 import { round } from "../../Modules/helpers.ts";
@@ -27,9 +28,17 @@ export default class GiveAction extends Action {
         if (this.performed) return;
         super.perform();
         const successful = this.forced || round(recipient.carryWeight + item.weight) <= recipient.maxCarryWeight;
-        this.getGame().narrationHandler.narrateGive(this, item, this.player, recipient);
+        const interactables = successful ? this.#getInteractables(recipient) : [];
+        this.getGame().narrationHandler.narrateGive(this, item, this.player, recipient, interactables);
         this.getGame().logHandler.logGive(item, this.player, recipient, successful, this.forced);
         if (successful) this.player.give(item, handEquipmentSlot, recipient, recipientHandEquipmentSlot);
         this.successMessage = `Successfully gave ${this.player.name}'s ${item.getIdentifier()} to ${recipient.name}.`;
+    }
+
+    #getInteractables(recipient: Player): Interactable[] {
+        let interactables: Interactable[] = [];
+        const interactableManager = this.getGame().clientContext.interactableManager;
+        interactables = interactables.concat(interactableManager.getInventoryInteractables(recipient));
+        return interactables;
     }
 }
