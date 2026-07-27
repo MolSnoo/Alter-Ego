@@ -18,6 +18,8 @@ import { Collection } from "discord.js";
 import ItemInstance from "../../Data/ItemInstance.ts";
 import type InventorySlot from "../../Data/InventorySlot.ts";
 import DefaultMap, { concatToInnerArray, pushToInnerArray } from "../DefaultMap.ts";
+import type Game from "../../Data/Game.ts";
+import type GameErrorMessageGenerator from "../GameErrorMessageGenerator.ts";
 
 /**
  * Base interface representing a pattern element.
@@ -230,6 +232,9 @@ export class Glob implements PatternElement {}
 
 /** Internal-use class for passing runtime pattern matching data between innerMatch calls. */
 class MatchData {
+    /** The game this match is running over. */
+    game: Game;
+
     /** Array of errors encountered while matching, such as slots that cannot be filled, or missing prepositions or constants. */
     errors: string[];
 
@@ -256,13 +261,19 @@ class MatchData {
      */
     private streamIndex: number;
 
-    constructor(streams: Token[][]) {
+    constructor(streams: Token[][], game: Game) {
+        this.game = game;
         this.errors = [];
         this.matches = new DefaultMap(() => []);
         this.hasConsumed = new Collection();
         this.glob = [];
         this.streams = streams;
         this.streamIndex = 0;
+    }
+
+    /** Shorthand for the Game Error Message Generator. */
+    get errorGenerator(): GameErrorMessageGenerator {
+        return this.game.errorMessageGenerator;
     }
 
     /** Returns a boolean representing whether or not the token stream has been exhausted. */
@@ -275,7 +286,7 @@ class MatchData {
         return this.streams[this.index];
     }
 
-    /** Moves to the stream index forward by 1, returning that token stream. This should only be used after verifying that `this.exhausted === false`. */
+    /** Moves the stream index forward by 1, returning that token stream. This should only be used after verifying that `this.exhausted === false`. */
     next(): Token[] {
         return this.streams[++this.index];
     }
@@ -292,44 +303,16 @@ class MatchData {
 
     /** Return a clone of this MatchData. */
     clone(): MatchData {
-        const data = new MatchData(this.streams);
+        const data = new MatchData(this.streams, this.game);
         data.index = this.index;
         data.glob = this.glob.map((o) => o);
         data.errors = this.errors.map((o) => o);
-        for (const entry of this.matches) {
-            data.matches.set(entry[0], entry[1]);
+        for (const [element, tokens] of this.matches) {
+            concatToInnerArray(data.matches, element, tokens);
         }
         for (const entry of this.hasConsumed) {
             data.hasConsumed.set(entry[0], entry[1]);
         }
-        return data;
-    }
-
-    /**
-     * Merge two MatchData objects.
-     * @param data1 - Base MatchData. Will have duplicate data overwritten by data2.
-     * @param data2 - New MatchData. Will overwrite duplicate data of data1.
-     */
-    static merge(data1: MatchData, data2: MatchData): MatchData {
-        /**
-         * @privateRemarks
-         * This is subject to future deletion before merging.
-         * I am currently unsure if this is necessary, due to the smart clone-return logic of optional pattern matching.
-         * - AC
-         */
-        const data = new MatchData(data1.streams);
-        for (const entry of data1.matches) {
-            data.matches.set(entry[0], entry[1]);
-        }
-        for (const entry of data2.matches) {
-            data.matches.set(entry[0], entry[1]);
-        }
-        data.glob.concat(data2.glob);
-        data.errors.concat(data1.errors);
-        data2.errors.forEach((error) => {
-            if (data.errors.find((e) => e === error) === undefined) data.errors.push(error);
-        });
-        data.index = data2.index;
         return data;
     }
 }
@@ -843,8 +826,8 @@ export class Pattern implements PatternElement {
      * Match a stream of tokens to this pattern. Returns a MatchedInvocation on success, or an InvalidInvocation on error.
      * @param streams - The stream of tokens to attempt to match to the pattern.
      */
-    match(streams: Token[][]): MatchResult {
-        let data = new MatchData(streams);
+    match(streams: Token[][], game: Game): MatchResult {
+        let data = new MatchData(streams, game);
         data.hasConsumed.set(this, false);
         data = this.innerMatch(data);
         if (data.errors.length > 0) return new InvalidInvocation(data.errors);
