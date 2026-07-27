@@ -88,10 +88,11 @@ export default class ClientCommandHandler {
      * Match a stream of tokens against command patterns.
      * @param tokens - The array of token arrays to match with.
      * @param patterns - The array of patterns to attempt matches against.
+     * @param game - The game to match within.
      * @returns The array of pattern match results, that is, an array of Invalid Invocations and/or Matched Invocations.
      */
-    private async matchTokens(tokens: Token[][], patterns: Pattern[]): Promise<MatchResult[]> {
-        return patterns.map(pattern => pattern.match(tokens));
+    private async matchTokens(tokens: Token[][], patterns: Pattern[], game: Game): Promise<MatchResult[]> {
+        return patterns.map(pattern => pattern.match(tokens, game));
     }
 
     /**
@@ -113,18 +114,19 @@ export default class ClientCommandHandler {
      * @param command - The command to validate.
      * @param context - The context with which the command was invoked.
      * @param args - The args the command was invoked with.
+     * @param game - The game to validate on.
      * @returns The first validated invocation.
      * @throws {@link Error}
      * Thrown if the command invocation is invalid.
      */
-    private async validateCommand<T extends Context>(command: Command<T>, context: T, args: string[]): Promise<ValidatedInvocation> {
+    private async validateCommand<T extends Context>(command: Command<T>, context: T, args: string[], game: Game): Promise<ValidatedInvocation> {
         const trie = Trie.buildFromCommandAndPatterns(context, command);
         const tokens = trie.tokenize(args);
         const errors: InvalidInvocation[] = [];
         const matches: MatchedInvocation[] = [];
         const validations: ValidatedInvocation[] = [];
 
-        const matchResults = await this.matchTokens(tokens, command.patterns);
+        const matchResults = await this.matchTokens(tokens, command.patterns, game);
         for (const result of matchResults) {
             if (result instanceof MatchedInvocation) matches.push(result);
             else errors.push(result);
@@ -178,7 +180,7 @@ export default class ClientCommandHandler {
         if (command instanceof BotCommand) {
             const context = new BotContext(game, commandAlias, player, callee);
             try {
-                const invocation = await this.validateCommand(command, context, args);
+                const invocation = await this.validateCommand(command, context, args, game);
                 await command.execute(context, invocation);
                 this.#client.logCommand(this.#client.user.username, commandStr, timestamp);
                 return true;
@@ -204,7 +206,7 @@ export default class ClientCommandHandler {
                 args = commandStr.split(" ").slice(1);
             const context = new ModeratorContext(game, commandAlias, message, moderator);
             try {
-                const invocation = await this.validateCommand(command, context, args);
+                const invocation = await this.validateCommand(command, context, args, game);
                 await command.execute(context, invocation);
                 if (messageDeletable) await message.delete();
                 this.#client.logCommand(message.author.username, message.content, timestamp);
@@ -242,7 +244,7 @@ export default class ClientCommandHandler {
                 args = commandStr.split(" ").slice(1);
             const context = new PlayerContext(game, player, commandAlias, message);
             try {
-                const invocation = await this.validateCommand(command, context, args);
+                const invocation = await this.validateCommand(command, context, args, game);
                 await command.execute(context, invocation);
                 /**
                  * @privateRemarks
@@ -268,7 +270,7 @@ export default class ClientCommandHandler {
             }
             const context = new EligibleContext(game, commandAlias, message);
             try {
-                const invocation = await this.validateCommand(command, context, args);
+                const invocation = await this.validateCommand(command, context, args, game);
                 await command.execute(context, invocation);
                 if (!game.settings.debug && !game.guildContext.sentInDMChannel(message))
                     await message.delete().catch();
