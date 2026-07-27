@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { InvalidInvocation, MatchedInvocation } from "../../../Classes/Command/Invocation.ts";
-import { Constant, Glob, Multiconstant, Option, Pattern, Pocket, Preposition, Slot } from "../../../Classes/Command/Pattern.ts";
+import { Constant, Glob, Multiconstant, Option, Pattern, Pocket, Preposition, Slot, type ElementError } from "../../../Classes/Command/Pattern.ts";
 import { ConstantToken, EntityToken, ItemContainerToken, PocketToken, PrepositionToken } from "../../../Classes/Command/Token.ts";
 import Trie from "../../../Classes/Command/Trie.ts";
 import EquipmentSlot from "../../../Data/EquipmentSlot.ts";
@@ -733,7 +733,7 @@ describe("Pattern file from NG Commands", () => {
             const invocation = pattern.match(trie.tokenize(["MUG", "OF", "COFFEE", "attacks", "KYRAS", "LAB", "COAT", "1"]), testGame) as InvalidInvocation;
             expect(invocation).toBeInstanceOf(InvalidInvocation);
             expect(invocation.errors.length).toBe(1);
-            expect(invocation.errors[0]).toBe("Couldn't find a required \"and/with\" in your input, instead found attacks KYRAS LAB COAT 1.")
+            expect(invocation.errors[0]).toBe("Couldn't find a required \"and/with\" in your input, instead found attacks KYRAS LAB COAT 1.");
         });
 
         test("Pattern.match(19)", async () => {
@@ -854,6 +854,27 @@ describe("Pattern file from NG Commands", () => {
                 playerList.delete(recipient);
             }
             expect(invocation.glob).toStrictEqual(["Hello", "everyone!"]);
+        });
+
+        test("Pattern.match(23)", async () => {
+            const pattern = new Pattern([
+                new Slot(Player, "recipient", { generator: "generateInsufficientArgumentsError", args: [] })
+            ]);
+            const invocation = pattern.match(trie.tokenize(["nobody"]), testGame) as InvalidInvocation;
+            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            expect(invocation.errors.length).toBe(1);
+            expect(invocation.errors[0]).toBe("Insufficient arguments.");
+        });
+
+        test("Pattern.match(24)", async () => {
+            const error: ElementError<"generateInsufficientArgumentsError"> = { generator: "generateInsufficientArgumentsError", args: [] }
+            const pattern = new Pattern([
+                new Slot(Player, "recipient", error)
+            ]);
+            const invocation = pattern.match(trie.tokenize(["nobody"]), testGame) as InvalidInvocation;
+            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            expect(invocation.errors.length).toBe(1);
+            expect(invocation.errors[0]).toBe("Insufficient arguments.");
         });
     });
 });

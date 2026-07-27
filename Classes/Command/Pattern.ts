@@ -21,10 +21,35 @@ import DefaultMap, { concatToInnerArray, pushToInnerArray } from "../DefaultMap.
 import type Game from "../../Data/Game.ts";
 import type GameErrorMessageGenerator from "../GameErrorMessageGenerator.ts";
 
+/** Utility type describing the keys of an object that are also a function. */
+export type FunctionKeys<T> = {
+  [K in keyof T]: T[K] extends Function ? K : never;
+}[keyof T];
+
+/**
+ * Interface describing the data used to invoke a function on the GameErrorMessageGenerator when a pattern element encounters an error in matching.
+ */
+export interface ElementError<T extends FunctionKeys<GameErrorMessageGenerator>> {
+    /**
+     * The GameErrorMessageGenerator function to use for generating an error message for this pattern element.
+     */
+    readonly generator: T
+
+    /**
+     * The arguments to provide to the GameErrorMessageGenerator function.
+     */
+    readonly args: Parameters<GameErrorMessageGenerator[T]>;
+}
+
 /**
  * Base interface representing a pattern element.
  */
-interface PatternElement {}
+interface PatternElement {
+    /**
+     * Data on the GameErrorMessageGenerator function to call when this pattern element encounters an error in matching.
+     */
+    readonly error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>;
+}
 
 /**
  * Special sentinel class representing a Constant in a Pattern.
@@ -33,14 +58,21 @@ interface PatternElement {}
  */
 export class Constant implements PatternElement {
     /**
+     * The GameErrorMessageGenerator call data when the Constant sentinel encounters an error in matching.
+     */
+    readonly error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>;
+
+    /**
      * The data of the Constant sentinel.
      */
     readonly value: string;
 
     /**
      * @param value - The data of the Constant sentinel.
+     * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(value: string) {
+    constructor(value: string, error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>) {
+        this.error = error;
         this.value = value;
     }
 
@@ -60,14 +92,21 @@ export class Constant implements PatternElement {
  */
 export class Multiconstant implements PatternElement {
     /**
+     * The GameErrorMessageGenerator call data when the Multiconstant sentinel encounters an error in matching.
+     */
+    readonly error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>;
+
+    /**
      * The data of the Multiconstant sentinel.
      */
     readonly values: Set<string>;
 
     /**
      * @param values - The data of the Multiconstant sentinel.
+     * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(values: string[]) {
+    constructor(values: string[], error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>) {
+        this.error = error;
         this.values = new Set(values);
     }
 
@@ -85,9 +124,15 @@ export class Multiconstant implements PatternElement {
  */
 export class Slot<T extends GameEntity = GameEntity> implements PatternElement {
     /**
+     * The GameErrorMessageGenerator call data when the Slot element encounters an error in matching.
+     */
+    readonly error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>;
+
+    /**
      * The type of the Slot. Tokens must match this type to fit into the Slot.
      */
     readonly type: Constructor<T>;
+
     /**
      * The name to refer to the Slot with. Inherited by any Tokens that fit the Slot.
      */
@@ -96,8 +141,10 @@ export class Slot<T extends GameEntity = GameEntity> implements PatternElement {
     /**
      * @param type - The type of the Slot. Tokens must match this type to fit into the Slot.
      * @param name - The name to refer to the Slot with. Inherited by any Tokens that fit the Slot.
+     * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(type: Constructor<T>, name: string) {
+    constructor(type: Constructor<T>, name: string, error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>) {
+        this.error = error;
         this.type = type.prototype.constructor as Constructor<T>;
         this.name = name;
     }
@@ -116,13 +163,20 @@ export class Slot<T extends GameEntity = GameEntity> implements PatternElement {
  */
 export class Multislot implements PatternElement {
     /**
+     * The GameErrorMessageGenerator call data when the Multislot element encounters an error in matching.
+     */
+    readonly error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>;
+
+    /**
      * The slots that make up the Multislot.
      */
     readonly slots: Set<Constructor<GameEntity>>;
+
     /**
      * The name to refer to the Multislot with. Inherited by any Tokens that fit the Slot.
      */
     readonly name: string;
+
     /**
      * The types of Game Entities contained within a multislot.
      */
@@ -131,8 +185,10 @@ export class Multislot implements PatternElement {
     /**
      * @param slots - The slots that make up the Multislot.
      * @param name - The name to refer to the Multislot with. Inherited by any Tokens that fit the Slot.
+     * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(slots: Constructor<GameEntity>[], name: string) {
+    constructor(slots: Constructor<GameEntity>[], name: string, error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>) {
+        this.error = error;
         this.slots = new Set(slots);
         this.name = name;
         this.#types = new Set();
@@ -169,14 +225,21 @@ export class Multislot implements PatternElement {
  */
 export class Preposition implements PatternElement {
     /**
+     * The GameErrorMessageGenerator call data when the Preposition element encounters an error in matching.
+     */
+    readonly error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>;
+
+    /**
      * The name of the Slot that the Preposition refers to.
      */
     readonly name: string;
 
     /**
      * @param name - The name of the Slot that the Preposition refers to.
+     * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(name: string) {
+    constructor(name: string, error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>) {
+        this.error = error;
         this.name = name;
     }
 }
@@ -186,9 +249,15 @@ export class Preposition implements PatternElement {
  */
 export class Pocket implements PatternElement {
     /**
+     * The GameErrorMessageGenerator call data when the Pocket element encounters an error in matching.
+     */
+    readonly error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>;
+
+    /**
      * The ID of the Slot that the Pocket refers to.
      */
     readonly id: string;
+
     /**
      * The name to refer to the Pocket with. Inherited by any Tokens that fit the Pocket.
      */
@@ -197,8 +266,10 @@ export class Pocket implements PatternElement {
     /**
      * @param id - The ID of the Slot that the Pocket refers to.
      * @param name - The name to refer to the Pocket with. Inherited by any Tokens that fit the Pocket.
+     * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(id: string, name: string) {
+    constructor(id: string, name: string, error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>) {
+        this.error = error;
         this.id = id;
         this.name = name;
     }
@@ -216,9 +287,10 @@ export class Option extends Multiconstant {
     /**
      * @param name - The name to refer to the Option with.
      * @param values - The values possible in the Option element.
+     * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(name: string, values: string[]) {
-        super(values);
+    constructor(name: string, values: string[], error?: ElementError<FunctionKeys<GameErrorMessageGenerator>>) {
+        super(values, error);
         this.name = name;
     }
 }
@@ -228,7 +300,10 @@ export class Option extends Multiconstant {
  *
  * Globs must ALWAYS be the final Element of a Pattern!
  */
-export class Glob implements PatternElement {}
+export class Glob implements PatternElement {
+    /** The error property of Globs will always be undefined. */
+    readonly error: undefined;
+}
 
 /** Internal-use class for passing runtime pattern matching data between innerMatch calls. */
 class MatchData {
@@ -336,6 +411,9 @@ interface PatternConstructorArgs {
  * Grammar pattern representing a command syntax.
  */
 export class Pattern implements PatternElement {
+    /** The error property of Patterns will always be undefined. */
+    readonly error: undefined;
+
     /**
      * The grammar of the pattern.
      *
@@ -433,7 +511,8 @@ export class Pattern implements PatternElement {
             // for example, "InventoryItem" will become " inventory item". the leading space is obviously not desired, so the string is then trimmed.
             const slotType: string = element.type.name.replace(/([A-Z])/g, (match) => " " + match.toLowerCase()).trim();
 
-            data.errors.push(`Couldn't find ${slotType} "${nearMatch}" in your input.`);
+            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else data.errors.push(data.errorGenerator.generateEntityNotFoundError(slotType, nearMatch));
         }
         else if (element instanceof Multislot) {
             const slotTypes: string[] = [];
@@ -441,20 +520,46 @@ export class Pattern implements PatternElement {
                 slotTypes.push(slot.name.replace(/([A-Z])/g, (match) => " " + match.toLowerCase()).trim());
             }
 
-            data.errors.push(`Couldn't find any ${slotTypes.join("/")} "${nearMatch}" in your input.`);
+            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else data.errors.push(data.errorGenerator.generateEntityNotFoundError(slotTypes.join("/"), nearMatch));
         }
         else if (element instanceof Preposition) {
-            data.errors.push(`Couldn't find a valid preposition in your input, instead found ${nearMatch}.`);
+            /**
+             * @privateRemarks
+             * It would probably be better to create a new GameErrorMessageGenerator function for this, so that we can provide the nearMatch...?
+             * - AC
+             */
+            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else data.errors.push(data.errorGenerator.generateSpecifyError("a preposition"));
         }
         else if (element instanceof Constant) {
-            data.errors.push(`Couldn't find a required "${element.value}" in your input, instead found ${nearMatch}.`);
+            /**
+             * @privateRemarks
+             * As above...
+             * - AC
+             */
+            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else data.errors.push(data.errorGenerator.generateSpecifyError(`"${element.value}"`));
         }
         else if (element instanceof Multiconstant) {
+            /**
+             * @privateRemarks
+             * As above...
+             * Also, where do we put the constructed return of ListFormat‽
+             * - AC
+            */
+            const formatter = new Intl.ListFormat('en', { style: 'long', type: 'disjunction' })
             const values: string[] = [];
-            element.values.forEach(v => values.push(v));
-            data.errors.push(`Couldn't find a required "${values.join("/")}" in your input, instead found ${nearMatch}.`);
+            element.values.forEach(v => values.push(`"${v}"`));
+            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else data.errors.push(data.errorGenerator.generateSpecifyError(formatter.format(values)));
         }
-        else data.errors.push("An unexpected error occurred when parsing your input.");
+        /**
+         * @privateRemarks
+         * I am not really sure what to do in this case, nor do I know how we would get here...
+         * - AC
+         */
+        else throw new Error("‽");
 
         return data;
     }
@@ -462,9 +567,6 @@ export class Pattern implements PatternElement {
     /**
      * Internal matching function for Patterns. Used for recursive pattern matching.
      * @param base - MatchData for the innerMatch to use. This is cloned, and if the pattern is both optional and fails to match, is returned as-is.
-     * @privateRemarks
-     * A new TODO: If this pattern is Repeatable, it should be repeated as many times as there are tokens, or until we fail to match.
-     * - AC
      */
     private innerMatch(base: MatchData): MatchData {
         let stem = base.clone();
