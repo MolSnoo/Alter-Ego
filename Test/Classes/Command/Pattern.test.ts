@@ -836,5 +836,24 @@ describe("Pattern file from NG Commands", () => {
             expect(invocation.opts.size).toBe(0);
             expect(invocation.glob.length).toBe(0);
         });
+
+        test("Pattern.match(22)", async () => {
+            const pattern = new Pattern([
+                new Pattern([
+                    new Slot(Player, "recipient")
+                ], { repeatable: true }),
+                new Glob(),
+            ]);
+            const invocation = pattern.match(trie.tokenize(["kyra", "VIVIAN", "Astrid", "Hello", "everyone!"])) as MatchedInvocation;
+            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            expect(invocation.args.size).toBe(1);
+            const recipients = invocation.getPlayers("recipient");
+            const playerList = new Set([testGame.entityFinder.getPlayer("Kyra"), testGame.entityFinder.getPlayer("Vivian"), testGame.entityFinder.getPlayer("Astrid")]);
+            for (const recipient of recipients) {
+                expect(recipient).toBeOneOf(playerList);
+                playerList.delete(recipient);
+            }
+            expect(invocation.glob).toStrictEqual(["Hello", "everyone!"]);
+        });
     });
 });
