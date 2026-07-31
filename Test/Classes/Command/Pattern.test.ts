@@ -28,7 +28,7 @@ import { clearQueue } from "../../../Modules/messageHandler.js";
  * any suggestions for doing this in a less terrible way would be appreciated!
  * - AC
  */
-const DEBUG = true;
+const DEBUG = false;
 
 /**
  * Utility function for benchmarking. Run f() n number of times, returning the bigint representing the duration in nanoseconds of the fastest call.
