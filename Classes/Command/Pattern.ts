@@ -385,6 +385,13 @@ interface PatternConstructorArgs {
      * Whether the fulfillment of this pattern can be done repeatedly. If this is true, then the pattern will attempt to match until the token stream is exhausted or the pattern fails to match. Defaults to false.
      */
     repeatable?: boolean;
+    /**
+     * Whether the pattern can only be matched by a latched moderator. Has no effect outside of moderator commands.
+     * * `true` - The pattern can only be matched if the command is invoked by a latched moderator.
+     * * `false` - The pattern can only be matched if the command is invoked by an unlatched moderator.
+     * * `undefined` - The pattern can be matched regardless of if the command is invoked by a latched or unlatched moderator. This is the default.
+     */
+    latch?: boolean;
 }
 
 /**
@@ -417,6 +424,14 @@ export class Pattern implements PatternElement {
     readonly repeatable: boolean;
 
     /**
+     * Whether the pattern can only be matched by a latched moderator. Has no effect outside of moderator commands.
+     * * `true` - The pattern can only be matched if the command is invoked by a latched moderator.
+     * * `false` - The pattern can only be matched if the command is invoked by an unlatched moderator.
+     * * `undefined` - The pattern can be matched regardless of if the command is invoked by a latched or unlatched moderator. This is the default.
+     */
+    readonly latch?: boolean;
+
+    /**
      * The types of Game Entities contained within a pattern. Informs Contexts what must be gathered, to prevent gathering unnecessary context.
      */
     #types: Set<Constructor<GameEntity>>;
@@ -436,6 +451,7 @@ export class Pattern implements PatternElement {
         this.optional = args.optional ?? false;
         this.mandatory = args.mandatory ?? false;
         this.repeatable = args.repeatable ?? false;
+        this.latch = args.latch;
         this.#types = new Set();
         this.#constants = new Set();
         for (const element of grammar) {
