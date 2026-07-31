@@ -14,7 +14,7 @@ import { clearQueue } from "../../../Modules/messageHandler.js";
 
 /**
  * @privateRemarks
- * this is a little strange, but switching this to TRUE will print out some benchmarking times for GetLexicon() tests...
+ * this is a little strange, but switching this to TRUE will print out some benchmarking times for certain tests...
  * any suggestions for doing this in a less terrible way would be appreciated!
  * - AC
  */
