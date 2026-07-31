@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { InvalidInvocation, MatchedInvocation } from "../../../Classes/Command/Invocation.ts";
-import { Constant, Glob, Multiconstant, Option, Pattern, Pocket, Preposition, Slot, type ElementError } from "../../../Classes/Command/Pattern.ts";
+import { Constant, Glob, Multiconstant, Option, Pattern, Pocket, Preposition, Slot } from "../../../Classes/Command/Pattern.ts";
 import { ConstantToken, EntityToken, ItemContainerToken, PocketToken, PrepositionToken } from "../../../Classes/Command/Token.ts";
 import Trie from "../../../Classes/Command/Trie.ts";
 import EquipmentSlot from "../../../Data/EquipmentSlot.ts";
@@ -11,6 +11,7 @@ import Event from "../../../Data/Event.ts";
 import Exit from "../../../Data/Exit.ts";
 import Fixture from "../../../Data/Fixture.ts";
 import Flag from "../../../Data/Flag.ts";
+import type Game from "../../../Data/Game.ts";
 import Gesture from "../../../Data/Gesture.ts";
 import InventoryItem from "../../../Data/InventoryItem.ts";
 import InventorySlot from "../../../Data/InventorySlot.ts";
@@ -1047,7 +1048,7 @@ describe("Pattern file from NG Commands", () => {
 
         test("Pattern.match(23)", async () => {
             const pattern = new Pattern([
-                new Slot(Player, "recipient", { generator: "generateInsufficientArgumentsError", args: [] })
+                new Slot(Player, "recipient", (game: Game) => game.errorMessageGenerator.generateInsufficientArgumentsError())
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["nobody"]));
             const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
@@ -1062,7 +1063,7 @@ describe("Pattern file from NG Commands", () => {
         });
 
         test("Pattern.match(24)", async () => {
-            const error: ElementError<"generateInsufficientArgumentsError"> = { generator: "generateInsufficientArgumentsError", args: [] }
+            const error: (game: Game) => string = (game: Game) => game.errorMessageGenerator.generateInsufficientArgumentsError();
             const pattern = new Pattern([
                 new Slot(Player, "recipient", error)
             ]);
