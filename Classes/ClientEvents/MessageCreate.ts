@@ -19,7 +19,7 @@ export default new ClientEvent({
             console.log(`${message.author.username}: "${message.content}"`);
 
         // If the message begins with the command prefix, attempt to run a command.
-        // If the command is run successfully, the message will be deleted.
+        // If the command exists, the message will be deleted.
         const messageStartsWithCommandAlias = message.content.startsWith(game.settings.commandPrefix);
         let isCommand = messageStartsWithCommandAlias || message.channel.type === ChannelType.DM || message.channel.id === game.guildContext.commandChannel.id;
         if (isCommand) {

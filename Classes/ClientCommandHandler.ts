@@ -109,58 +109,64 @@ export default class ClientCommandHandler {
             try {
                 await command.execute(game, commandAlias, args, player, callee);
                 this.#client.logCommand(this.#client.user.username, commandStr, timestamp);
-                return true;
             }
             catch (error) {
                 game.communicationHandler.sendToCommandChannel(error.message ?? error);
-                return false;
             }
+            return true;
         }
         else if (command instanceof ModeratorCommand && this.#client.commandIssuedInValidChannel(command, message)) {
-            const messageDeletable = message.deletable && message.channel.id !== game.guildContext.commandChannel.id;
+            const messageDeletable = message.channel.id !== game.guildContext.commandChannel.id;
             if (command.config.requiresGame && !game.inProgress) {
-                game.communicationHandler.reply(message, "There is no game currently running.");
-                if (messageDeletable) await message.delete();
-                return false;
+                game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
+                return true;
             }
             const moderator = message.member ? game.entityLoader.getOrCreateModerator(message.member) : undefined;
             if (!moderator) {
-                game.communicationHandler.reply(message, "You are not a moderator.");
-                return false;
+                game.communicationHandler.reply(message, "You are not a moderator.", messageDeletable);
+                return true;
             }
             if (command.config.whitespaceSensitive)
                 args = commandStr.split(" ").slice(1);
             try {
                 await command.execute(game, message, commandAlias, args, moderator);
-                if (messageDeletable) await message.delete();
                 this.#client.logCommand(message.author.username, message.content, timestamp);
-                return true;
+                if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
                 game.communicationHandler.reply(message, error.message ?? error);
-                return false;
             }
+            return true;
         }
         else if (command instanceof PlayerCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+            let messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
-                game.communicationHandler.reply(message, "There is no game currently running.");
-                return false;
+                game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
+                return true;
             }
             const player = game.entityFinder.getLivingPlayerById(message.author.id);
             if (!player) {
-                game.communicationHandler.reply(message, "You are not on the list of living players.");
-                return false;
+                game.communicationHandler.reply(message, "You are not on the list of living players.", messageDeletable);
+                return true;
             }
             const commandName = command.config.name.substring(0, command.config.name.indexOf('_'));
+            /**
+             * @privateRemarks
+             * We make an exception here for the say command because it handles its own deletion after using some of the
+             * properties of the original message. However, if we're awaiting the command execution, is this necessary
+             * anymore? This will require some investigation.
+             * - MS
+             */
+            messageDeletable = messageDeletable && commandName !== "say";
             const status = player.getBehaviorAttributeStatusEffects("disable all");
             if (status.length > 0 && !player.hasBehaviorAttribute(`enable ${commandName}`)) {
-                if (player.hasStatus("heated")) game.communicationHandler.reply(message, "The situation is **heated**. Moderator intervention is required.");
-                else game.communicationHandler.reply(message, `You cannot do that because you are **${status[0].id}**.`);
-                return false;
+                if (player.hasStatus("heated")) game.communicationHandler.reply(message, "The situation is **heated**. Moderator intervention is required.", messageDeletable);
+                else game.communicationHandler.reply(message, `You cannot do that because you are **${status[0].id}**.`, messageDeletable);
+                return true;
             }
             if (game.editMode && commandName !== "say") {
-                game.communicationHandler.reply(message, "You cannot do that because edit mode is currently enabled.");
-                return false;
+                game.communicationHandler.reply(message, "You cannot do that because edit mode is currently enabled.", messageDeletable);
+                return true;
             }
 
             player.setOnline();
@@ -168,39 +174,29 @@ export default class ClientCommandHandler {
                 args = commandStr.split(" ").slice(1);
             try {
                 await command.execute(game, message, commandAlias, args, player);
-                /**
-                 * @privateRemarks
-                 * We make an exception here for the say command because it handles its own deletion after using some of the
-                 * properties of the original message. However, if we're awaiting the command execution, is this necessary
-                 * anymore? This will require some investigation.
-                 * - MS
-                 */
-                if (!game.settings.debug && commandName !== "say" && !game.guildContext.sentInDMChannel(message))
-                    await message.delete().catch();
                 this.#client.logCommand(player.name, message.content, timestamp);
-                return true;
+                if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
                 game.communicationHandler.reply(message, error.message ?? error);
-                return false;
             }
+            return true;
         }
         else if (command instanceof EligibleCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+            const messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
-                game.communicationHandler.reply(message, "There is no game currently running.");
-                return false;
+                game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
+                return true;
             }
             try {
                 await command.execute(game, message, commandAlias, args);
-                if (!game.settings.debug && !game.guildContext.sentInDMChannel(message))
-                    await message.delete().catch();
                 this.#client.logCommand(message.author.username, message.content, timestamp);
-                return true;
+                if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
                 game.communicationHandler.reply(message, error.message ?? error);
-                return false;
             }
+            return true;
         }
 
         return false;

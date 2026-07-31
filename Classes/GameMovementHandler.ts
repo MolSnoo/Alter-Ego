@@ -177,7 +177,7 @@ export default class GameMovementHandler {
         if (!moveProgressIndicator) return;
         this.#moveProgressIndicators.delete(player.name);
         const message = await this.#game.clientContext.getSentMessage(moveProgressIndicator);
-        if (message) await message.delete().catch();
+        await this.#game.communicationHandler.deleteMessage(message);
     }
 
     /**
