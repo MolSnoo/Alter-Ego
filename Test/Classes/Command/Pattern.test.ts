@@ -53,6 +53,16 @@ function bench<T extends unknown>(f: () => T, n: number = 1000): [T, bigint] {
     return times.reduce((a, b) => a[1] < b[1] ? a : b);
 }
 
+/**
+ * Assert that the given value is an instance of the given constructor.
+ * Mostly eliminates the need for type assertions.
+ * @param value - The value to check.
+ * @param constructor - The constructor to check against.
+ */
+function assertInstanceOf<T, C extends Constructor<any>>(value: T, constructor: C): asserts value is InstanceType<C> {
+    expect(value).toBeInstanceOf(constructor);
+}
+
 describe("Pattern file from NG Commands", () => {
     beforeAll(async () => {
         if (!testGame.inProgress) await testGame.entityLoader.loadAll();
@@ -419,24 +429,24 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "and", "PACK", "OF", "TOILET", "PAPER", "2"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(1) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("item1")).not.toBeUndefined();
             expect(invocation.args.get("item1").length).toBe(1);
             invocation.args.get("item1").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("item2")).not.toBeUndefined();
             expect(invocation.args.get("item2").length).toBe(1);
             invocation.args.get("item2").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("PACK OF TOILET PAPER");
                 expect(item.getIdentifier()).toBe("PACK OF TOILET PAPER 2");
             });
@@ -451,13 +461,13 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MG", "F", "CFF", "and", "PACK", "OF", "TOILET", "PAPER", "2"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [InvalidInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(2) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            assertInstanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(1);
             expect(invocation.errors[0]).toBe("Couldn't find inventory item \"MG F CFF\" in your input.");
         });
@@ -469,18 +479,18 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(Fixture, "destination"),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "on", "FLOOR"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(3) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
@@ -488,7 +498,7 @@ describe("Pattern file from NG Commands", () => {
             // however, two lack a preposition, and are thus excluded
             expect(invocation.args.get("destination").length).toBe(187);
             invocation.args.get("destination").forEach((fixture: Fixture) => { 
-                expect(fixture).toBeInstanceOf(Fixture);
+                assertInstanceOf(fixture, Fixture);
                 expect(fixture.name).toBe("FLOOR");
             });
         });
@@ -500,13 +510,13 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(Fixture, "destination"),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "next", "to", "FLOOR"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [InvalidInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(4) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            assertInstanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(1);
             expect(invocation.errors[0]).toBe("Couldn't find a preposition for destination.");
         });
@@ -518,24 +528,24 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(Fixture, "destination"),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "FLOOR"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(5) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(189);
             invocation.args.get("destination").forEach((fixture: Fixture) => { 
-                expect(fixture).toBeInstanceOf(Fixture);
+                assertInstanceOf(fixture, Fixture);
                 expect(fixture.name).toBe("FLOOR");
             });
         });
@@ -551,31 +561,31 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "of", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(6) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             expect(invocation.args.get("destination pocket")).not.toBeUndefined();
             expect(invocation.args.get("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
             invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
-                expect(pocket).toBeInstanceOf(InventorySlot);
+                assertInstanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
         });
@@ -589,13 +599,13 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "with"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [InvalidInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(7) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            assertInstanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(1);
             expect(invocation.errors[0]).toBe("Couldn't find anything for destination in your input.");
         });
@@ -613,31 +623,31 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "of", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(8) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             expect(invocation.args.get("destination pocket")).not.toBeUndefined();
             expect(invocation.args.get("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
             invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
-                expect(pocket).toBeInstanceOf(InventorySlot);
+                assertInstanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
         });
@@ -655,24 +665,24 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(9) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -684,18 +694,18 @@ describe("Pattern file from NG Commands", () => {
                 new Glob(),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["kyra", "Hello.\n\nI", "have", "overheard", "your", "conversation", "with", "Huiyu", "regarding", "your", "*very", "large", "rabbit*.\n\nPlease", "tell", "me", "more", "about", "the", "nature", "of", "this", "rabbit."]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(10) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
             expect(invocation.args.get("recipient")).not.toBeUndefined();
             expect(invocation.args.get("recipient").length).toBe(1);
             invocation.args.get("recipient").forEach((player: Player) => {
-                expect(player).toBeInstanceOf(Player);
+                assertInstanceOf(player, Player);
                 expect(player.name).toBe("Kyra");
             });
             expect(invocation.glob).toStrictEqual(["Hello.\n\nI", "have", "overheard", "your", "conversation", "with", "Huiyu", "regarding", "your", "*very", "large", "rabbit*.\n\nPlease", "tell", "me", "more", "about", "the", "nature", "of", "this", "rabbit."]);
@@ -707,18 +717,18 @@ describe("Pattern file from NG Commands", () => {
                 new Glob(),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["kyra"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(11) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
             expect(invocation.args.get("recipient")).not.toBeUndefined();
             expect(invocation.args.get("recipient").length).toBe(1);
             invocation.args.get("recipient").forEach((player: Player) => {
-                expect(player).toBeInstanceOf(Player);
+                assertInstanceOf(player, Player);
                 expect(player.name).toBe("Kyra");
             });
             expect(invocation.glob).toStrictEqual([]);
@@ -737,13 +747,13 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [InvalidInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(12) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            assertInstanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(4);
             expect(invocation.errors[0]).toBe("Couldn't find a required \"of\" in your input, instead found KYRAS LAB COAT 1.");
             expect(invocation.errors[1]).toBe("Couldn't find anything for destination in your input.");
@@ -756,13 +766,13 @@ describe("Pattern file from NG Commands", () => {
                 new Glob(),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize([]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(13) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual([]);
         });
@@ -780,31 +790,31 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "IN", "RIGHT", "POCKET", "OF", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(14) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             expect(invocation.args.get("destination pocket")).not.toBeUndefined();
             expect(invocation.args.get("destination pocket").length).toBe(1);
             invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
-                expect(pocket).toBeInstanceOf(InventorySlot);
+                assertInstanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
         });
@@ -814,13 +824,13 @@ describe("Pattern file from NG Commands", () => {
                 new Glob(),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize([]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(15) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual([]);
         });
@@ -830,13 +840,13 @@ describe("Pattern file from NG Commands", () => {
                 new Glob(),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["Hello", "world!"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(16) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual(["Hello", "world!"]);
         });
@@ -846,13 +856,13 @@ describe("Pattern file from NG Commands", () => {
                 new Glob(),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["Hello?"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(17) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual(["Hello?"]);
         });
@@ -864,13 +874,13 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(InventoryItem, "item 2"),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "attacks", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [InvalidInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(18) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            assertInstanceOf(invocation, InvalidInvocation);
             expect(invocation.errors.length).toBe(1);
             expect(invocation.errors[0]).toBe("Couldn't find a required \"and/with\" in your input, instead found attacks KYRAS LAB COAT 1.");
         });
@@ -885,47 +895,47 @@ describe("Pattern file from NG Commands", () => {
                 trie.insert(constant, new ConstantToken(constant));
             // first sub-case "with"
             const [tokensWith, tokenizedWith] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "with", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationWith, matchedWith] = bench(() => pattern.match(tokensWith, testGame)) as [MatchedInvocation, bigint];
+            const [invocationWith, matchedWith] = bench(() => pattern.match(tokensWith, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(19) [with] took ${Number(tokenizedWith + matchedWith) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedWith) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedWith) / 1000}μs`);
             }
-            expect(invocationWith).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocationWith, MatchedInvocation);
             expect(invocationWith.args.size).toBe(2);
             expect(invocationWith.args.get("item 1")).not.toBeUndefined();
             expect(invocationWith.args.get("item 1").length).toBe(1);
             invocationWith.args.get("item 1").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationWith.args.get("item 2")).not.toBeUndefined();
             expect(invocationWith.args.get("item 2").length).toBe(1);
             invocationWith.args.get("item 2").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             // second sub-case "and"
             const [tokensAnd, tokenizedAnd] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "and", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationAnd, matchedAnd] = bench(() => pattern.match(tokensAnd, testGame)) as [MatchedInvocation, bigint];
+            const [invocationAnd, matchedAnd] = bench(() => pattern.match(tokensAnd, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(19) [and] took ${Number(tokenizedAnd + matchedAnd) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedAnd) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedAnd) / 1000}μs`);
             }
-            expect(invocationAnd).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocationAnd, MatchedInvocation);
             expect(invocationAnd.args.size).toBe(2);
             expect(invocationAnd.args.get("item 1")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 1").length).toBe(1);
             invocationAnd.args.get("item 1").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationAnd.args.get("item 2")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 2").length).toBe(1);
             invocationAnd.args.get("item 2").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -941,24 +951,24 @@ describe("Pattern file from NG Commands", () => {
                 trie.insert(constant, new ConstantToken(constant));
             // first sub-case "with"
             const [tokensWith, tokenizedWith] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "with", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationWith, matchedWith] = bench(() => pattern.match(tokensWith, testGame)) as [MatchedInvocation, bigint];
+            const [invocationWith, matchedWith] = bench(() => pattern.match(tokensWith, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(20) [with] took ${Number(tokenizedWith + matchedWith) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedWith) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedWith) / 1000}μs`);
             }
-            expect(invocationWith).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocationWith, MatchedInvocation);
             expect(invocationWith.args.size).toBe(2);
             expect(invocationWith.args.get("item 1")).not.toBeUndefined();
             expect(invocationWith.args.get("item 1").length).toBe(1);
             invocationWith.args.get("item 1").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationWith.args.get("item 2")).not.toBeUndefined();
             expect(invocationWith.args.get("item 2").length).toBe(1);
             invocationWith.args.get("item 2").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -968,24 +978,24 @@ describe("Pattern file from NG Commands", () => {
             expect(invocationWith.getOpt("article", "and")).toBeFalsy();
             // second sub-case "and"
             const [tokensAnd, tokenizedAnd] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "and", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationAnd, matchedAnd] = bench(() => pattern.match(tokensAnd, testGame)) as [MatchedInvocation, bigint];
+            const [invocationAnd, matchedAnd] = bench(() => pattern.match(tokensAnd, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(20) [and] took ${Number(tokenizedAnd + matchedAnd) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedAnd) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedAnd) / 1000}μs`);
             }
-            expect(invocationAnd).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocationAnd, MatchedInvocation);
             expect(invocationAnd.args.size).toBe(2);
             expect(invocationAnd.args.get("item 1")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 1").length).toBe(1);
             invocationAnd.args.get("item 1").forEach((item: InventoryItem) => {
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationAnd.args.get("item 2")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 2").length).toBe(1);
             invocationAnd.args.get("item 2").forEach((item: InventoryItem) => { 
-                expect(item).toBeInstanceOf(InventoryItem);
+                assertInstanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -998,13 +1008,13 @@ describe("Pattern file from NG Commands", () => {
         test("Pattern.match(21)", async () => {
             const pattern = new Pattern([]);
             const [tokens, tokenized] = bench(() => trie.tokenize([]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(21) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.opts.size).toBe(0);
             expect(invocation.glob.length).toBe(0);
@@ -1018,13 +1028,13 @@ describe("Pattern file from NG Commands", () => {
                 new Glob(),
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["kyra", "VIVIAN", "Astrid", "Hello", "everyone!"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [MatchedInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(22) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(MatchedInvocation);
+            assertInstanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
             const recipients = invocation.getPlayers("recipient");
             const playerList = new Set([testGame.entityFinder.getPlayer("Kyra"), testGame.entityFinder.getPlayer("Vivian"), testGame.entityFinder.getPlayer("Astrid")]);
@@ -1040,13 +1050,13 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(Player, "recipient", { generator: "generateInsufficientArgumentsError", args: [] })
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["nobody"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [InvalidInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(23) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            assertInstanceOf(invocation, InvalidInvocation);
             expect(invocation.errors.length).toBe(1);
             expect(invocation.errors[0]).toBe("Insufficient arguments.");
         });
@@ -1057,13 +1067,13 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(Player, "recipient", error)
             ]);
             const [tokens, tokenized] = bench(() => trie.tokenize(["nobody"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame)) as [InvalidInvocation, bigint];
+            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
             if (DEBUG) {
                 console.log(`Pattern.match(24) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            expect(invocation).toBeInstanceOf(InvalidInvocation);
+            assertInstanceOf(invocation, InvalidInvocation);
             expect(invocation.errors.length).toBe(1);
             expect(invocation.errors[0]).toBe("Insufficient arguments.");
         });
