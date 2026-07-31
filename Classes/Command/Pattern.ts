@@ -511,17 +511,22 @@ export class Pattern implements PatternElement {
             // for example, "InventoryItem" will become " inventory item". the leading space is obviously not desired, so the string is then trimmed.
             const slotType: string = element.type.name.replace(/([A-Z])/g, (match) => " " + match.toLowerCase()).trim();
 
-            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
-            else data.errors.push(data.errorGenerator.generateEntityNotFoundError(slotType, nearMatch));
+            if (element.error !== undefined)
+                data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else
+                data.errors.push(data.errorGenerator.generateEntityNotFoundError(slotType, nearMatch));
         }
         else if (element instanceof Multislot) {
+            const formatter = new Intl.ListFormat('en', { style: 'long', type: 'disjunction' });
             const slotTypes: string[] = [];
             for (const slot of element.slots) {
                 slotTypes.push(slot.name.replace(/([A-Z])/g, (match) => " " + match.toLowerCase()).trim());
             }
 
-            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
-            else data.errors.push(data.errorGenerator.generateEntityNotFoundError(slotTypes.join("/"), nearMatch));
+            if (element.error !== undefined)
+                data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else
+                data.errors.push(data.errorGenerator.generateEntityNotFoundError(formatter.format(slotTypes), nearMatch));
         }
         else if (element instanceof Preposition) {
             /**
@@ -529,8 +534,10 @@ export class Pattern implements PatternElement {
              * It would probably be better to create a new GameErrorMessageGenerator function for this, so that we can provide the nearMatch...?
              * - AC
              */
-            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
-            else data.errors.push(data.errorGenerator.generateSpecifyError("a preposition"));
+            if (element.error !== undefined)
+                data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else
+                data.errors.push(data.errorGenerator.generateSpecifyError("a preposition"));
         }
         else if (element instanceof Constant) {
             /**
@@ -538,8 +545,10 @@ export class Pattern implements PatternElement {
              * As above...
              * - AC
              */
-            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
-            else data.errors.push(data.errorGenerator.generateSpecifyError(`"${element.value}"`));
+            if (element.error !== undefined)
+                data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else
+                data.errors.push(data.errorGenerator.generateSpecifyError(`"${element.value}"`));
         }
         else if (element instanceof Multiconstant) {
             /**
@@ -551,8 +560,16 @@ export class Pattern implements PatternElement {
             const formatter = new Intl.ListFormat('en', { style: 'long', type: 'disjunction' })
             const values: string[] = [];
             element.values.forEach(v => values.push(`"${v}"`));
-            if (element.error !== undefined) data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
-            else data.errors.push(data.errorGenerator.generateSpecifyError(formatter.format(values)));
+            if (element.error !== undefined)
+                data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else
+                data.errors.push(data.errorGenerator.generateSpecifyError(formatter.format(values)));
+        }
+        else if (element instanceof Pocket) {
+            if (element.error !== undefined)
+                data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+            else
+                data.errors.push(data.errorGenerator.generateSpecifyError("a pocket"));
         }
         /**
          * @privateRemarks
@@ -743,19 +760,47 @@ export class Pattern implements PatternElement {
             for (const index of unmatchedIndices) {
                 if (matchedIndices.has(index) || nearMatchIndices.has(index)) continue;
                 element = this.grammar[index];
-                if (element instanceof Constant)
-                    data.errors.push(`Couldn't find a required "${element.value}" in your input.`);
-                else if (element instanceof Multiconstant || element instanceof Option) {
-                    const values: string[] = [];
-                    element.values.forEach(v => values.push(v));
-                    data.errors.push(`Couldn't find a required "${values.join("/")}" in your input.`);
+                if (element instanceof Constant) {
+                    if (element.error !== undefined)
+                        data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+                    else
+                        data.errors.push(data.errorGenerator.generateSpecifyError(`"${element.value}"`));
                 }
-                else if (element instanceof Slot || element instanceof Multislot)
-                    data.errors.push(`Couldn't find anything for ${element.name} in your input.`);
-                else if (element instanceof Preposition)
-                    data.errors.push(`Couldn't find any preposition for ${element.name} in your input.`);
-                else if (element instanceof Pocket)
-                    data.errors.push(`Couldn't find any inventory slot for ${element.id} in your input.`);
+                else if (element instanceof Multiconstant) {
+                    const formatter = new Intl.ListFormat('en', { style: 'long', type: 'disjunction' })
+                    const values: string[] = [];
+                    element.values.forEach(v => values.push(`"${v}"`));
+                    if (element.error !== undefined)
+                        data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+                    else
+                        data.errors.push(data.errorGenerator.generateSpecifyError(formatter.format(values)));
+                }
+                else if (element instanceof Slot || element instanceof Multislot) {
+                    const formatter = new Intl.ListFormat('en', { style: 'long', type: 'disjunction' });
+                    let values: string[] = [];
+                    if (element instanceof Slot)
+                        values.push(element.type.name.replace(/([A-Z])/g, (match) => " " + match.toLowerCase()).trim());
+                    else
+                        for (const slot of element.slots)
+                            values.push(slot.name.replace(/([A-Z])/g, (match) => " " + match.toLowerCase()).trim());
+
+                    if (element.error !== undefined)
+                        data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+                    else
+                        data.errors.push(data.errorGenerator.generateSpecifyError(formatter.format(values.map((str) => "a " + str))));
+                }
+                else if (element instanceof Preposition) {
+                    if (element.error !== undefined)
+                        data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+                    else
+                        data.errors.push(data.errorGenerator.generateSpecifyError("a preposition"));
+                }
+                else if (element instanceof Pocket) {
+                    if (element.error !== undefined)
+                        data.errors.push(data.errorGenerator[element.error.generator].apply(data.errorGenerator, element.error.args));
+                    else
+                        data.errors.push(data.errorGenerator.generateSpecifyError("a pocket"));
+                }
             }
 
             // restrict preposition and pocket matching to only work on the root pattern
@@ -802,6 +847,13 @@ export class Pattern implements PatternElement {
             if (!slots.has(name)) {
                 // this should never appear during a normal alter ego game,
                 // and is indicative of an error in the formulation of the pattern of a command.
+                // this state represents a preposition being found for slot "name", but no corersponding game object.
+                /**
+                 * @privateRemarks
+                 * this should never appear during a normal alter ego game... so, then, what ErrorMessageGenerator would be appropriate?
+                 * it would be exceedingly rare for a player to see this message, after all.
+                 * - AC
+                 */
                 data.errors.push(`Found a preposition for ${name}, but no corresponding game object?`);
                 continue;
             }
@@ -828,7 +880,7 @@ export class Pattern implements PatternElement {
 
             // if either slots or prepositions were narrowed to a length of 0, then the slot has no valid preposition
             if (narrowedPreps.length === 0 || narrowedSlots.length === 0)
-                data.errors.push(`Couldn't find a preposition for ${name}.`);
+                data.errors.push(data.errorGenerator.generateSpecifyError(`a preposition for ${name}`));
 
             // write back narrowed prepositions and slots...
             prepositions.set(name, [prepositionElement, narrowedPreps]);
@@ -879,6 +931,14 @@ export class Pattern implements PatternElement {
                 // similarly to the identical error case in matchPrepositions(),
                 // this should never appear during a normal alter ego game,
                 // and is indicative of an error in the formulation of the pattern of a command.
+                // this state represents a pocket being found for slot "name", but no corersponding game object.
+                /**
+                 * @privateRemarks
+                 * similarly to the identical error case in matchPrepositions(),
+                 * this should never appear during a normal alter ego game... so, then, what ErrorMessageGenerator would be appropriate?
+                 * it would be exceedingly rare for a player to see this message, after all.
+                 * - AC
+                 */
                 data.errors.push(`Found a pocket for ${name}, but no corresponding game object?`);
                 continue;
             }
@@ -908,7 +968,7 @@ export class Pattern implements PatternElement {
 
             // if either slots or pockets were narrowed to a length of 0, then the slot has no valid pocket
             if (narrowedPockets.length === 0 || narrowedSlots.length === 0)
-                data.errors.push(`Couldn't find a pocket for ${name}.`);
+                data.errors.push(data.errorGenerator.generateSpecifyError(`a pocket for ${name}`));
 
             // write back narrowed pockets and slots...
             pockets.set(name, [pocketElement, narrowedPockets]);
