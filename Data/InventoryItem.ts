@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Collection } from "discord.js";
-import { parseAndExecuteBotCommands } from "../Modules/commandHandler.ts";
 import { replaceInventoryItem } from "../Modules/itemManager.ts";
 import Description from "./Description.ts";
 import type EquipmentSlot from "./EquipmentSlot.ts";
@@ -301,14 +300,14 @@ export default class InventoryItem extends ItemInstance implements PersistentGam
      * Executes the inventory item's equipped commands.
      */
     executeEquippedCommands(): void {
-        parseAndExecuteBotCommands(this.prefab.equippedCommands, this.getGame(), this, this.player);
+        this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(this.prefab.equippedCommands, this.getGame(), this, this.player);
     }
 
     /**
      * Executes the inventory item's unequipped commands.
      */
     executeUnequippedCommands(): void {
-        parseAndExecuteBotCommands(this.prefab.unequippedCommands, this.getGame(), this, this.player);
+        this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(this.prefab.unequippedCommands, this.getGame(), this, this.player);
     }
 
     /**

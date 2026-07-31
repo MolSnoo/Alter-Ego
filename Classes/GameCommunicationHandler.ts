@@ -167,13 +167,16 @@ export default class GameCommunicationHandler {
      * Replies to a message. This is usually done when a user has sent a message with an error.
      * @param message - The message to reply to.
      * @param messageText - The text of the message to send in response.
+     * @param deleteMessage - Whether or not to delete the original message after sending the reply. Defaults to false.
      */
-    reply(message: UserMessage, messageText: string) {
+    reply(message: UserMessage, messageText: string, deleteMessage: boolean = false) {
         let member = this.#game.guildContext.guild.members.resolve(message.author.id);
         if (member && member.roles.cache.has(this.#game.guildContext.moderatorRole.id) && message.channel.id !== this.#game.guildContext.commandChannel.id && message.channel.type !== ChannelType.DM) {
             messageHandler.sendGameMechanicMessage(this.#game, this.#game.guildContext.commandChannel, `<@${message.author.id}>, ${messageText}`);
-        } else {
-            messageHandler.sendReply(this.#game, message, messageText);
+            if (deleteMessage) this.deleteMessage(message);
+        }
+        else {
+            messageHandler.sendReply(this.#game, message, messageText, deleteMessage);
         }
     }
 
@@ -419,5 +422,14 @@ export default class GameCommunicationHandler {
     editMessage(message: Message, messageText: string, messageDisplayType: MessageDisplayType = MessageDisplayType.STANDARD) {
         if (!message || !message.editable || messageText === "") return;
         messageHandler.editMessage(this.#game, message, messageText, messageDisplayType);
+    }
+
+    /**
+     * Deletes a message. If the message cannot be deleted, does nothing.
+     * @param message - The message to delete.
+     */
+    async deleteMessage(message: Message) {
+        if (!message || !message.deletable) return;
+        await message.delete().catch();
     }
 }

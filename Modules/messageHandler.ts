@@ -55,8 +55,7 @@ export function processIncomingMessage(game: Game, message: UserMessage): void {
     // Forwarded messages should be deleted.
     if (message.flags.has(MessageFlags.HasSnapshot)) {
         const errorMessage = `You cannot forward messages to game channels.`;
-        game.communicationHandler.reply(message, errorMessage);
-        message.delete().catch();
+        game.communicationHandler.reply(message, errorMessage, true);
         return;
     }
 
@@ -65,7 +64,7 @@ export function processIncomingMessage(game: Game, message: UserMessage): void {
         const playerNoSpeechStatusEffects = player.getBehaviorAttributeStatusEffects("no speech");
         if (playerNoSpeechStatusEffects.length > 0) {
             game.communicationHandler.sendMessageToPlayer(player, game.notificationGenerator.generatePlayerNoSpeechNotification(playerNoSpeechStatusEffects[0].id), false, MessageDisplayType.ALERT);
-            message.delete().catch();
+            game.communicationHandler.deleteMessage(message);
             return;
         }
         const location = isInAnnouncementChannel || isInWhisperChannel ? player.location : room;
@@ -89,7 +88,7 @@ export function processIncomingMessage(game: Game, message: UserMessage): void {
                 dialog.setMessage(dialogMessage);
                 const sayAction = new SayAction(game, dialogMessage, npc, npc.location, true, whisper);
                 sayAction.performSay(dialog);
-                message.delete().catch();
+                game.communicationHandler.deleteMessage(message);
             });
         }
         else {
@@ -480,21 +479,25 @@ export function sendGameMechanicMessage(
  * @param game - The game this message was sent in.
  * @param message - The message to reply to.
  * @param messageText - The text to send in response.
+ * @param deleteMessage - Whether or not to delete the original message after sending the reply. Defaults to false.
  */
-export function sendReply(game: Game, message: UserMessage, messageText: string): void {
+export function sendReply(game: Game, message: UserMessage, messageText: string, deleteMessage: boolean = false): void {
+    const author = message?.author;
+    const channel = message?.channel;
     game.messageQueue.enqueue(
         {
             fire: async () => {
-                if (message.channel.type === ChannelType.GuildText && message.channel.id === game.guildContext.commandChannel.id) {
+                if (message && channel.type === ChannelType.GuildText && channel.id === game.guildContext.commandChannel.id) {
                     await message.reply(messageText);
                 }
                 else {
-                    await message.author.send(messageText);
+                    await author.send(messageText);
                 }
+                if (deleteMessage) await game.communicationHandler.deleteMessage(message);
             },
-            destination: message.channel.id
+            destination: channel.id
         },
-        message.channel.type === ChannelType.GuildText && message.channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
+        channel.type === ChannelType.GuildText && channel.id === game.guildContext.commandChannel.id ? "mod" : "mechanic"
     );
 }
 

@@ -260,6 +260,7 @@ export function createMockMessage({ content = '', member = createMockMember(), a
             members: new Collection(),
             channels: new Collection()
         },
+        deletable: true,
         // @ts-ignore
         delete: vi.fn(async () => ({})),
     };

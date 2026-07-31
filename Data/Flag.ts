@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { parseAndExecuteBotCommands } from "../Modules/commandHandler.ts";
 import { default as evaluateScript } from "../Modules/scriptParser.js";
 import type Game from "./Game.ts";
 import GameEntity from "./GameEntity.ts";
@@ -105,7 +104,7 @@ export default class Flag extends GameEntity implements PersistentGameEntity {
 				}
 			}
 			// Execute the command set's set commands.
-			parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
+			this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
 		}
 	}
 
@@ -140,7 +139,7 @@ export default class Flag extends GameEntity implements PersistentGameEntity {
 				}
 			}
 			// Execute the command set's cleared commands.
-			parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
+			this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(commandSet, this.getGame(), this, player);
 		}
 	}
 

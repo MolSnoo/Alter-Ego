@@ -1,7 +1,6 @@
 import { parse } from "date-fns";
 import { DateTime, type Duration } from "luxon";
 import Timer from "../Classes/Timer.ts";
-import { parseAndExecuteBotCommands } from "../Modules/commandHandler.ts";
 import EndAction from "./Actions/EndAction.ts";
 import InflictAction from "./Actions/InflictAction.ts";
 import Description from "./Description.ts";
@@ -187,7 +186,7 @@ export default class Event extends GameEntity implements PersistentGameEntity {
      * Executes the event's triggered commands.
      */
     executeTriggeredCommands(): void {
-        parseAndExecuteBotCommands(this.triggeredCommands, this.getGame(), this);
+        this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(this.triggeredCommands, this.getGame(), this);
     }
 
     /**
@@ -213,7 +212,7 @@ export default class Event extends GameEntity implements PersistentGameEntity {
      * Executes the event's ended commands.
      */
     executeEndedCommands(): void {
-        parseAndExecuteBotCommands(this.endedCommands, this.getGame(), this);
+        this.getGame().clientContext.commandHandler.parseAndExecuteBotCommands(this.endedCommands, this.getGame(), this);
     }
 
     startTimer(): void {
