@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import * as disbandModeratorCommand from './disband_moderator.js';
-import * as dismissModeratorCommand from './dismiss_moderator.js';
+//import * as disbandModeratorCommand from './disband_moderator.js';
+//import * as dismissModeratorCommand from './dismiss_moderator.js';
 import * as leadModeratorCommand from './lead_moderator.js';
 import ViewPartyAction from '../Data/Actions/ViewPartyAction.ts';
 import FormPartyAction from '../Data/Actions/FormPartyAction.ts';
@@ -53,8 +53,8 @@ export async function execute(game, message, command, args, moderator) {
             args.splice(0, 1);
     }
     // If the user wants to do something other than form or view a party, route their command appropriately.
-    if (command === "disband") return await disbandModeratorCommand.execute(game, message, command, args, moderator);
-    if (command === "dismiss") return await dismissModeratorCommand.execute(game, message, command, args, moderator);
+    //if (command === "disband") return await disbandModeratorCommand.execute(game, message, command, args, moderator);
+    //if (command === "dismiss") return await dismissModeratorCommand.execute(game, message, command, args, moderator);
     if (command === "lead") return await leadModeratorCommand.execute(game, message, command, args, moderator);
 
     const sentMessageInLatchChannel = moderator?.sentMessageInLatchChannel(message) ?? false;
