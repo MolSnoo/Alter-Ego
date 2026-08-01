@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
-    "compile": "tsc"
+    "compile": "tsc",
+    "compile:watch": "tsc --watch"
   },
   "repository": {
     "type": "git",
