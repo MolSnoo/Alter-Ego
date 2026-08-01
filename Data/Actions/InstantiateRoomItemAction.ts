@@ -124,7 +124,7 @@ export default class InstantiateRoomItemAction extends Action {
         if (args[4]) {
             try {
                 proceduralSelections = parseProceduralSelections(args[4]);
-            } catch (error) { throw new Error(error.message); }
+            } catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
         }
         if (args[5] !== undefined && isNaN(args[5])) throw new Error("The given uses is not a number.");
         if (args[5] !== undefined && args[5] < 1) throw new Error("The given uses must be greater than or equal to 1.");
