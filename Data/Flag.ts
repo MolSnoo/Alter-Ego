@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { default as evaluateScript } from "../Modules/scriptParser.js";
+import { default as evaluateScript } from "../Modules/scriptParser.ts";
 import type Game from "./Game.ts";
 import GameEntity from "./GameEntity.ts";
 import type Player from "./Player.ts";

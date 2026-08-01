@@ -2,16 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import type { Node } from 'acorn';
+import type GameEntity from '../Data/GameEntity.ts';
+import type Player from '../Data/Player.ts';
 import * as finder from './finder.js';
 import * as helpers from './helpers.ts';
-
 import { parse as parseScript } from 'acorn';
+import type { Expression, Options } from 'acorn';
 
-/** @import GameEntity from '../Data/GameEntity.ts' */
-/** @import Player from '../Data/Player.ts' */
-
-/** @type {import('acorn').Options} */
-const PARSER_OPTIONS = {
+const PARSER_OPTIONS: Options = {
     sourceType: 'script',
     ecmaVersion: 2020
 };
@@ -27,6 +26,8 @@ export const SCRIPT_SCOPE_OPTIONS = {
         parseFloat,
         parseInt,
         Math,
+        // This is a temporary error, and will exist so long as we do not do strict null checks in TypeScript.
+        // @ts-ignore-error
         undefined,
         findRoom: finder.findRoom,
         findFixture: finder.findFixture,
@@ -246,50 +247,56 @@ export const SCRIPT_SCOPE_OPTIONS = {
 };
 
 const BINARY_OPS = {
-    '==': (a, b) => a == b,
-    '!=': (a, b) => a != b,
-    '===': (a, b) => a === b,
-    '!==': (a, b) => a !== b,
-    '<': (a, b) => a < b,
-    '<=': (a, b) => a <= b,
-    '>': (a, b) => a > b,
-    '>=': (a, b) => a >= b,
-    '+': (a, b) => a + b,
-    '-': (a, b) => a - b,
-    '*': (a, b) => a * b,
-    '/': (a, b) => a / b,
-    '%': (a, b) => a % b,
-    '**': (a, b) => Math.pow(a, b),
-    'in': (a, b) => a in b
+    '==': (a: unknown, b: unknown) => a == b,
+    '!=': (a: unknown, b: unknown) => a != b,
+    '===': (a: unknown, b: unknown) => a === b,
+    '!==': (a: unknown, b: unknown) => a !== b,
+    '<': (a: unknown, b: unknown) => a < b,
+    '<=': (a: unknown, b: unknown) => a <= b,
+    '>': (a: unknown, b: unknown) => a > b,
+    '>=': (a: unknown, b: unknown) => a >= b,
+    '+': (a: any, b: any) => a + b,
+    '-': <T extends number | bigint>(a: T, b: T) => a - b,
+    '*': <T extends number | bigint>(a: T, b: T) => a * b,
+    '/': <T extends number | bigint>(a: T, b: T) => a / b,
+    '%': <T extends number | bigint>(a: T, b: T) => a % b,
+    '**': (a: number, b: number) => Math.pow(a, b),
+    'in': (a: string | number | symbol, b: object) => a in b
 };
 
 const UNARY_OPS = {
-    '+': a => +a,
-    '-': a => -a,
-    '!': a => !a
+    '+': (a: number) => +a,
+    '-': (a: number) => -a,
+    '!': (a: any) => !a
 };
 
 /**
  * Safely evaluate a single JS-like expression string with restrictions.
- * @param {string} scriptText - The script to evaluate.
- * @param {GameEntity} container - The game entity this script is attached to.
- * @param {Player} [player] - The player currently in scope.
- * @returns {string | number | boolean}
+ * @param scriptText - The script to evaluate.
+ * @param container - The game entity this script is attached to.
+ * @param [player] - The player currently in scope.
  */
-export default function evaluate(scriptText, container, player) {
+export default function evaluate(scriptText: string, container: GameEntity, player: Player) {
     /**
      * Group together the container and player into a context object.
-     * @type {ScriptEvaluationContext}
      */
-    const context = { container, player };
+    const context: ScriptEvaluationContext = { container, player };
     // Add the allowedGlobals to the context object.
-    Object.keys(SCRIPT_SCOPE_OPTIONS.allowedGlobals).forEach(k => { if (!Object.hasOwn(context, k)) context[k] = SCRIPT_SCOPE_OPTIONS.allowedGlobals[k]; });
+    Object.keys(SCRIPT_SCOPE_OPTIONS.allowedGlobals).forEach(k => {
+        if (!Object.hasOwn(context, k))
+            context[k as keyof ScriptEvaluationContext] = SCRIPT_SCOPE_OPTIONS.allowedGlobals[k as keyof typeof SCRIPT_SCOPE_OPTIONS.allowedGlobals];
+    });
 
     let script;
     try {
         script = parseExpression(scriptText);
     }
-    catch (err) { throw new Error(`Parse error: ${err.message}`); }
+    catch (err) {
+        if (err instanceof Error)
+            throw new Error(`Parse error: ${err.message}`);
+        else
+            throw new Error(`Parse error: ${err}`);
+    }
 
     const evaluatedValue = validateAndEval(script, context, 0);
     if (evaluatedValue !== null && typeof evaluatedValue !== "string" && typeof evaluatedValue !== "number" && typeof evaluatedValue !== "boolean")
@@ -299,10 +306,9 @@ export default function evaluate(scriptText, container, player) {
 
 /**
  * Converts a script from plain text into an evaluatable expression.
- * @param {string} scriptText - The script to convert.
- * @returns {import('acorn').Expression}
+ * @param scriptText - The script to convert.
  */
-function parseExpression(scriptText) {
+function parseExpression(scriptText: string): Expression {
     // Parse a single expression.
     const script = parseScript(scriptText, PARSER_OPTIONS);
     if (!script || !script.body || script.body.length !== 1 || script.body[0].type !== 'ExpressionStatement')
@@ -315,9 +321,9 @@ function parseExpression(scriptText) {
 
 /**
  * Replace ThisExpression nodes with `container` Identifier nodes so that the `this` keyword is mapped to `container`.
- * @param {any} node
+ * @param node
  */
-function replaceThisExpressions(node) {
+function replaceThisExpressions(node: any) {
     if (!node || typeof node !== 'object') return;
     if (node.type === 'ThisExpression') {
         node.type = 'Identifier';
@@ -329,7 +335,7 @@ function replaceThisExpressions(node) {
         return;
     }
     for (const key of Object.keys(node)) {
-        const child = node[key];
+        const child = node[key as keyof typeof node];
         if (Array.isArray(child)) {
             for (const c of child) replaceThisExpressions(c);
         } else if (child && typeof child === 'object') {
@@ -340,9 +346,9 @@ function replaceThisExpressions(node) {
 
 /**
  * Modify calls to finder functions to automatically insert the container into the function's arguments.
- * @param {any} node
+ * @param node
  */
-function replaceFinderCallArguments(node) {
+function replaceFinderCallArguments(node: any) {
     if (!node || typeof node !== 'object') return;
     if (node.type === 'CallExpression') {
         const args = node.arguments ? node.arguments : [];
@@ -366,9 +372,9 @@ function replaceFinderCallArguments(node) {
 
 /**
  * Returns true if the name of the property is blocked from being accessed.
- * @param {string} name - The name of the property.
+ * @param name - The name of the property.
  */
-function isBlockedProp(name) {
+function isBlockedProp(name: string) {
     if (!name || typeof name !== 'string') return false;
     // Ensure that sensitive properties cannot be accessed.
     return SCRIPT_SCOPE_OPTIONS.blockedProperties.includes(name);
@@ -377,15 +383,14 @@ function isBlockedProp(name) {
 const proxyCache = new WeakMap();
 /**
  * Create read-only proxies for objects so script evaluation cannot modify them.
- * @param {import('acorn').Node} val
+ * @param val
  */
-function makeReadOnly(val) {
+function makeReadOnly(val: Node) {
     if (val === null) return null;
     if (typeof val !== 'object' && typeof val !== 'function') return val;
     if (proxyCache.has(val)) return proxyCache.get(val);
 
-    /** @type {ScriptProxyHandler} */
-    const handler = {
+    const handler: ScriptProxyHandler = {
         get(targetObject, propKey, thisReceiver) {
             const prop = Reflect.get(targetObject, propKey, thisReceiver);
             if (typeof prop === 'function') {
@@ -394,8 +399,7 @@ function makeReadOnly(val) {
                 if (SCRIPT_SCOPE_OPTIONS.blockedMutators.includes(methodName)) {
                     return function () { throw new Error('Mutation prohibited'); };
                 }
-                /** @param {any[]} args */
-                return function (...args) {
+                return function (...args: any[]) {
                     // Call original function with the original target as `this` so Maps and Collections work correctly.
                     return prop.apply(targetObject, args);
                 };
@@ -422,12 +426,15 @@ function makeReadOnly(val) {
 
 /**
  * Recursively validates and evaluates a script expression.
- * @param {any} node - The node to evaluate.
- * @param {ScriptEvaluationContext} context - Variables in the script's context.
- * @param {number} nodeCount - The total number of nodes that have been traversed since we began evaluating.
+ * @param node - The node to evaluate.
+ * @param context - Variables in the script's context.
+ * @param nodeCount - The total number of nodes that have been traversed since we began evaluating.
  * @returns
+ * @privateRemarks
+ * Why is node any?
+ * - AC
  */
-function validateAndEval(node, context, nodeCount) {
+function validateAndEval(node: any, context: ScriptEvaluationContext, nodeCount: number): any {
     nodeCount++;
     if (nodeCount > SCRIPT_SCOPE_OPTIONS.maxNodes) throw new Error('Expression too complex');
 
@@ -435,18 +442,25 @@ function validateAndEval(node, context, nodeCount) {
         case 'Literal':
             return node.value;
         case 'Identifier':
+            /**
+             * @privateRemarks
+             * We make a lot of assumptions here...
+             * But, I do not know how to make an assumption such that this does not cry and return an error...
+             * - AC
+             */
+            // @ts-expect-error
             if (Object.hasOwn(context, node.name)) return makeReadOnly(context[node.name]);
             throw new Error(`Unknown identifier: ${node.name}`);
         case 'UnaryExpression': {
-            if (!UNARY_OPS[node.operator]) throw new Error(`Unsupported unary operator ${node.operator}`);
+            if (!UNARY_OPS[node.operator as keyof typeof UNARY_OPS]) throw new Error(`Unsupported unary operator ${node.operator}`);
             const val = validateAndEval(node.argument, context, nodeCount);
-            return UNARY_OPS[node.operator](val);
+            return UNARY_OPS[node.operator as keyof typeof UNARY_OPS](val);
         }
         case 'BinaryExpression': {
-            if (!BINARY_OPS[node.operator]) throw new Error(`Unsupported binary operator ${node.operator}`);
+            if (!BINARY_OPS[node.operator as keyof typeof BINARY_OPS]) throw new Error(`Unsupported binary operator ${node.operator}`);
             const left = validateAndEval(node.left, context, nodeCount);
             const right = validateAndEval(node.right, context, nodeCount);
-            return BINARY_OPS[node.operator](left, right);
+            return BINARY_OPS[node.operator as keyof typeof BINARY_OPS](left, right);
         }
         case 'LogicalExpression': {
             if (node.operator === '||') {
@@ -488,7 +502,7 @@ function validateAndEval(node, context, nodeCount) {
             if (objectNode.type === 'Identifier') {
                 const rootName = objectNode.name;
                 if (!Object.hasOwn(context, rootName)) throw new Error(`Unknown root identifier: ${rootName}`);
-                current = context[rootName];
+                current = context[rootName as keyof ScriptEvaluationContext];
             }
             else if (objectNode.type === 'CallExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name)) {
                 // Make an exception to allow the root to be an expression in allowedGlobals.
@@ -507,13 +521,13 @@ function validateAndEval(node, context, nodeCount) {
             let constructor;
             if (callee.type === 'Identifier') {
                 if (!Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedConstructors, callee.name)) throw new Error(`Unknown constructor ${callee.name}`);
-                constructor = context[callee.name];
+                constructor = context[callee.name as keyof ScriptEvaluationContext];
             }
             else {
                 throw new Error('Unsupported constructor type');
             }
             if (typeof constructor !== 'function') throw new Error('Constructor is not a function');
-            const args = node.arguments.map(arg => validateAndEval(arg, context, nodeCount));
+            const args = node.arguments.map((arg: any) => validateAndEval(arg, context, nodeCount));
             // Use Reflect.construct to call constructor with args
             return Reflect.construct(constructor, args);
         }
@@ -526,7 +540,7 @@ function validateAndEval(node, context, nodeCount) {
             let thisArg = null;
             if (callee.type === 'Identifier') {
                 if (!Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, callee.name)) throw new Error(`Unknown function ${callee.name}`);
-                fn = SCRIPT_SCOPE_OPTIONS.allowedGlobals[callee.name];
+                fn = SCRIPT_SCOPE_OPTIONS.allowedGlobals[callee.name as keyof typeof SCRIPT_SCOPE_OPTIONS.allowedGlobals];
                 thisArg = null;
             }
             else if (callee.type === 'MemberExpression') {
@@ -553,7 +567,7 @@ function validateAndEval(node, context, nodeCount) {
                 if (objectNode.type === 'Identifier') {
                     const rootName = objectNode.name;
                     if (!Object.hasOwn(context, rootName)) throw new Error(`Unknown root identifier: ${rootName}`);
-                    rootObj = context[rootName];
+                    rootObj = context[rootName as keyof ScriptEvaluationContext];
                 }
                 // Allow function calls if the root object is in allowedGlobals or allowedConstructors.
                 else if (objectNode.type === 'CallExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name) ||
@@ -577,17 +591,18 @@ function validateAndEval(node, context, nodeCount) {
             }
             if (typeof fn !== 'function') throw new Error('Callee is not a function');
             // Evaluate args before calling the function.
-            const args = node.arguments.map(arg => validateAndEval(arg, context, nodeCount));
+            const args = node.arguments.map((arg: any) => validateAndEval(arg, context, nodeCount));
             const result = fn.apply(thisArg, args);
             return makeReadOnly(result);
         }
         case 'ArrayExpression':
-            return node.elements.map(el => validateAndEval(el, context, nodeCount));
+            return node.elements.map((el: any) => validateAndEval(el, context, nodeCount));
         case 'ObjectExpression': {
             const obj = {};
             for (const prop of node.properties) {
                 if (prop.key.type !== 'Identifier' && prop.key.type !== 'Literal') throw new Error('Object keys must be literal/identifier');
                 const key = prop.key.type === 'Identifier' ? prop.key.name : prop.key.value;
+                // @ts-expect-error
                 obj[key] = validateAndEval(prop.value, context, nodeCount);
             }
             return obj;
