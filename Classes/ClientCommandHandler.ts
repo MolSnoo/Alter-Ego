@@ -125,8 +125,14 @@ export default class ClientCommandHandler {
         const errors: InvalidInvocation[] = [];
         const matches: MatchedInvocation[] = [];
         const validations: ValidatedInvocation[] = [];
+        let patterns: Pattern[] = [];
+        if (context instanceof ModeratorContext) {
+            const latch = context.moderator.getLatch() !== null
+            patterns = command.patterns.filter(pattern => pattern.latch === latch || pattern.latch === undefined);
+        }
+        else patterns = command.patterns;
 
-        const matchResults = await this.matchTokens(tokens, command.patterns, game);
+        const matchResults = await this.matchTokens(tokens, patterns, game);
         for (const result of matchResults) {
             if (result instanceof MatchedInvocation) matches.push(result);
             else errors.push(result);
