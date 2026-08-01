@@ -52,7 +52,7 @@ export function parseCredentialsFile(file: string): Credentials {
     try {
         return JSON.parse(file);
     } catch (err) {
-        throw new Error(`Cannot parse credentials file. Please check that the file is valid JSON and has the correct fields. Error: ${err.message}`);
+        throw new Error(`Cannot parse credentials file. Please check that the file is valid JSON and has the correct fields. Error: ${err instanceof Error ? err.message : err}`);
     }
 }
 
