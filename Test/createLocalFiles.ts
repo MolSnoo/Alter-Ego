@@ -16,7 +16,7 @@ async function main() {
 	// Fetch the master sheet and save it as JSON files for faster loading during testing.
 	const constants = GameConstants.Instance;
 	const masterTestSheetId = '1yFV7s2d7lGwK4pdit8_sib8ypNtXQviNx81TR2DjtRY';
-	const entityMappings = [
+	const entityMappings: [keyof GameConstants, string][] = [
 		['roomSheetDataCells', './Test/__mocks__/gamedata/rooms.json'],
 		['fixtureSheetDataCells', './Test/__mocks__/gamedata/fixtures.json'],
 		['prefabSheetDataCells', './Test/__mocks__/gamedata/prefabs.json'],
