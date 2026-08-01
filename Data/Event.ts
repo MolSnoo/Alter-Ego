@@ -21,7 +21,7 @@ interface ParsedTriggerTime {
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/event.html
  */
-export default class Event extends GameEntity implements PersistentGameEntity {
+export default class Event extends GameEntity implements PersistentGameEntity<EventField> {
     /**
      * The unique ID of the event.
      */

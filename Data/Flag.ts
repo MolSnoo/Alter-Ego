@@ -23,7 +23,7 @@ export interface FlagCommandSet {
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/flag.html
  */
-export default class Flag extends GameEntity implements PersistentGameEntity {
+export default class Flag extends GameEntity implements PersistentGameEntity<FlagField> {
 	/**
 	 * The unique identifier for this flag.
 	 */

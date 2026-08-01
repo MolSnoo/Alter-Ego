@@ -15,7 +15,7 @@ export type RoomField = "id"|"displayName"|"tags"|"iconURL"|"exits"|"description
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/room.html
  */
-export default class Room extends GameEntity implements PersistentGameEntity {
+export default class Room extends GameEntity implements PersistentGameEntity<RoomField> {
     /**
      * The unique ID of the room.
      */

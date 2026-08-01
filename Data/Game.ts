@@ -281,7 +281,7 @@ export default class Game {
                     if (this.inProgress && !this.editMode) this.entitySaver.saveGame();
                 }
                 catch (error) {
-                    if (error.hasOwnProperty("code") && error.code !== 503 && error.code !== 500) {
+                    if (error && typeof error === 'object' && 'code' in error && error.code !== 503 && error.code !== 500) {
                         console.log(error);
                     }
                 }
