@@ -28,7 +28,7 @@ import type Recipe from "../Data/Recipe.ts";
 import type Event from "../Data/Event.ts";
 import type Party from "../Data/Party.ts";
 
-type GameEntityMatcher = (entity: GameEntity, criteria: string | number | boolean, normalize?: boolean) => boolean;
+type GameEntityMatcher<E extends GameEntity> = (entity: E, criteria: any, normalize?: boolean) => boolean;
 
 /**
  * A set of functions to easily find in-game entities without parsing inputs yourself.
@@ -74,7 +74,7 @@ export default class GameEntityFinder {
      */
     getFixture(name: string, location?: string): Fixture {
         if (!name) return;
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<Fixture>>();
         selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
         if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
         return this.game.fixtures.find(fixture => selectedFilters.every((filterFunction, key) => filterFunction(fixture, key)));
@@ -101,7 +101,7 @@ export default class GameEntityFinder {
      */
     getRoomItem(identifier: string, location?: string, containerType?: string, containerName?: string, proceduralSelections?: string): RoomItem {
         if (!identifier) return;
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<RoomItem>>();
         selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
         if (identifier && location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
         if (identifier && containerType) {
@@ -127,7 +127,7 @@ export default class GameEntityFinder {
      */
     getPuzzle(name: string, location?: string, type?: string, accessible?: boolean): Puzzle {
         if (!name) return;
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string | boolean, GameEntityMatcher<Puzzle>>();
         selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
         if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
         if (type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
@@ -244,7 +244,7 @@ export default class GameEntityFinder {
      */
     getPlayerHandHoldingItem(player: Player, identifier: string, proceduralSelections?: string, excludedItemRow?: number, resultContext: string = 'moderator'): EquipmentSlot {
         if (!player || !identifier) return;
-        let selectedFilters = new Collection<string|number, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|number, GameEntityMatcher<InventoryItem>>();
         if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
         else if (resultContext === 'combined') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameMatches);
         else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
@@ -262,7 +262,7 @@ export default class GameEntityFinder {
      */
     getPlayerEquipmentSlotWithEquippedItem(player: Player, identifier: string, equipmentSlotId: string = "", resultContext: string = 'moderator'): EquipmentSlot {
         if (!player || !identifier) return;
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<InventoryItem>>();
         if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
         else if (resultContext === 'combined') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameMatches);
         else selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
@@ -286,7 +286,7 @@ export default class GameEntityFinder {
      */
     getInventoryItem(identifier: string, player?: string, containerName?: string, equipmentSlotId?: string, proceduralSelections?: string): InventoryItem {
         if (!identifier) return;
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<InventoryItem>>();
         selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
         if (identifier && player) selectedFilters.set(Game.generateValidEntityName(player), matchers.inventoryItemPlayerNameMatches);
         if (identifier && containerName) selectedFilters.set(Game.generateValidEntityName(containerName), matchers.itemContainerNamePropertyMatches);
@@ -488,7 +488,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose ID only contains the given ID. Defaults to false.
      */
     getRooms(id?: string, tag?: string, occupied?: boolean, fuzzySearch: boolean = false): Room[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Room>>();
         if (id) selectedFilters.set(Room.generateValidId(id), fuzzySearch ? matchers.roomIdContains : matchers.roomIdMatches);
         if (tag) selectedFilters.set(tag.trim(), matchers.roomTagMatches);
         if (occupied !== undefined && occupied !== null) selectedFilters.set(occupied, matchers.roomOccupiedMatches);
@@ -504,7 +504,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose name only contains the given name. Defaults to false.
      */
     getExits(room: Room, name?: string, dest?: string, locked?: boolean, fuzzySearch: boolean = false): Exit[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Exit>>();
         if (name) selectedFilters.set(Game.generateValidEntityName(name), fuzzySearch ? matchers.exitNameContains : matchers.exitNameMatches);
         if (dest) selectedFilters.set(Room.generateValidId(dest), matchers.exitDestMatches);
         if (locked !== undefined && locked !== null) selectedFilters.set(locked, matchers.exitLockedMatches);
@@ -520,7 +520,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose name only contains the given name. Defaults to false.
      */
     getFixtures(name?: string, location?: string, accessible?: boolean, recipeTag?: string, fuzzySearch: boolean = false): Fixture[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Fixture>>();
         if (name) selectedFilters.set(Game.generateValidEntityName(name), fuzzySearch ? matchers.entityNameContains : matchers.entityNameMatches);
         if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
         if (accessible !== undefined && accessible !== null) selectedFilters.set(accessible, matchers.entityAccessibleMatches);
@@ -538,7 +538,7 @@ export default class GameEntityFinder {
      * @param resultContext - Either `moderator`, `player`, or `combined`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
      */
     getPrefabs(id?: string, effectsString?: string, curesString?: string, equipmentSlotsString?: string, fuzzySearch: boolean = false, resultContext: string = 'moderator'): Prefab[] {
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<Prefab>>();
         if (id) {
             if (fuzzySearch) selectedFilters.set(Game.generateValidEntityName(id), matchers.prefabIdOrNameContains)
             else if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(id), matchers.prefabNameMatches);
@@ -571,7 +571,7 @@ export default class GameEntityFinder {
      * @param productsString - Filter the recipes to only those with the given comma-separated products.
      */
     getRecipes(type?: string, fixtureTag?: string, ingredientsString?: string, productsString?: string): Recipe[] {
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<Recipe>>();
         if (type) selectedFilters.set(type.toLowerCase().trim(), matchers.recipeTypeMatches);
         if (fixtureTag) selectedFilters.set(fixtureTag.trim(), matchers.recipeFixtureTagMatches);
         if (ingredientsString) {
@@ -600,7 +600,7 @@ export default class GameEntityFinder {
      * @param resultContext - Either `moderator`, `player`, or `combined`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
      */
     getRoomItems(identifier?: string, location?: string, accessible?: boolean, containerType?: string, containerName?: string, slotId?: string, proceduralSelections?: string, fuzzySearch: boolean = false, resultContext: string = 'moderator'): RoomItem[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<RoomItem>>();
         if (identifier) {
             if (fuzzySearch) selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameContains)
             else if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
@@ -637,7 +637,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose name only contains the given name. Defaults to false.
      */
     getPuzzles(name?: string, location?: string, type?: string, accessible?: boolean, fuzzySearch: boolean = false): Puzzle[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Puzzle>>();
         if (name) selectedFilters.set(Game.generateValidEntityName(name), fuzzySearch ? matchers.entityNameContains : matchers.entityNameMatches);
         if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
         if (type) selectedFilters.set(type.trim(), matchers.puzzleTypeMatches);
@@ -655,7 +655,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose ID only contains the given ID. Defaults to false.
      */
     getEvents(id?: string, ongoing?: boolean, roomTag?: string, effectsString?: string, refreshesString?: string, fuzzySearch: boolean = false): Event[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Event>>();
         if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.entityIdContains : matchers.entityIdMatches);
         if (ongoing !== undefined && ongoing !== null) selectedFilters.set(ongoing, matchers.eventOngoingMatches);
         if (roomTag) selectedFilters.set(roomTag.trim(), matchers.eventRoomTagMatches);
@@ -680,7 +680,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose ID only contains the given ID. Defaults to false.
      */
     getStatusEffects(id?: string, modifiedStatsString?: string, attributesString?: string, fuzzySearch: boolean = false): Status[] {
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<Status>>();
         if (id) selectedFilters.set(Status.generateValidId(id), fuzzySearch ? matchers.statusIdContains : matchers.statusIdMatches);
         if (modifiedStatsString) {
             let modifiedStats = modifiedStatsString.split(',');
@@ -702,7 +702,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose name or display name only contains the given name. Defaults to false.
      */
     getPlayers(name?: string, isNPC?: boolean, fuzzySearch: boolean = false): Player[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Player>>();
         if (name) selectedFilters.set(name.toLowerCase().trim(), fuzzySearch ? matchers.playerNameOrDisplayNameContains : matchers.playerNameOrDisplayNameMatches);
         if (isNPC !== undefined && isNPC !== null) selectedFilters.set(isNPC, matchers.playerNPCMatches);
         return this.game.players.filter(player => selectedFilters.every((filterFunction, key) => filterFunction(player, key))).map(player => player);
@@ -718,7 +718,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose name or display name only contains the given name. Defaults to false.
      */
     getLivingPlayers(name?: string, isNPC?: boolean, location?: string, hidingSpot?: string, statusString?: string, fuzzySearch: boolean = false): Player[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Player>>();
         if (name) selectedFilters.set(name.toLowerCase().trim(), fuzzySearch ? matchers.playerNameOrDisplayNameContains : matchers.playerNameOrDisplayNameMatches);
         if (isNPC !== undefined && isNPC !== null) selectedFilters.set(isNPC, matchers.playerNPCMatches);
         if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
@@ -738,7 +738,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose name or display name only contains the given name. Defaults to false.
      */
     getDeadPlayers(name?: string, isNPC?: boolean, fuzzySearch: boolean = false): Player[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Player>>();
         if (name) selectedFilters.set(name.toLowerCase().trim(), fuzzySearch ? matchers.playerNameOrDisplayNameContains : matchers.playerNameOrDisplayNameMatches);
         if (isNPC !== undefined && isNPC !== null) selectedFilters.set(isNPC, matchers.playerNPCMatches);
         return this.game.deadPlayers.filter(player => selectedFilters.every((filterFunction, key) => filterFunction(player, key))).map(player => player);
@@ -756,7 +756,7 @@ export default class GameEntityFinder {
      * @param resultContext - Either `moderator`, `player`, or `combined`. Determines whether to search only identifiers, names, or both. Defaults to `moderator`.
      */
     getInventoryItems(identifier?: string, player?: string, containerName?: string, slotId?: string, equipmentSlotId?: string, proceduralSelections?: string, fuzzySearch: boolean = false, resultContext: string = 'moderator'): InventoryItem[] {
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<InventoryItem>>();
         if (identifier) {
             if (fuzzySearch) selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierOrNameContains)
             else if (resultContext === 'player') selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
@@ -782,7 +782,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose ID only contains the given ID. Defaults to false.
      */
     getGestures(id?: string, fuzzySearch: boolean = false): Gesture[] {
-        let selectedFilters = new Collection<string, GameEntityMatcher>();
+        let selectedFilters = new Collection<string, GameEntityMatcher<Gesture>>();
         if (id) selectedFilters.set(Gesture.generateValidId(id), fuzzySearch ? matchers.gestureIdContains : matchers.gestureIdMatches);
         return this.game.gestures.filter(gesture => selectedFilters.every((filterFunction, key) => filterFunction(gesture, key))).map(gesture => gesture);
     }
@@ -793,7 +793,7 @@ export default class GameEntityFinder {
      * @param fuzzySearch - Whether or not to include results whose ID only contains the given ID. Defaults to false.
      */
     getFlags(id?: string, fuzzySearch: boolean = false): Flag[] {
-        let selectedFilters = new Collection<string|boolean, GameEntityMatcher>();
+        let selectedFilters = new Collection<string|boolean, GameEntityMatcher<Flag>>();
         if (id) selectedFilters.set(Game.generateValidEntityName(id), fuzzySearch ? matchers.entityIdContains : matchers.entityIdMatches);
         return this.game.flags.filter(flag => selectedFilters.every((filterFunction, key) => filterFunction(flag, key))).map(flag => flag);
     }
