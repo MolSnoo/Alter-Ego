@@ -114,13 +114,15 @@ export default class HelpAction extends Action {
         const fieldName = (entryIndex: number) => commandListPages[page][entryIndex].command;
         const fieldValue = (entryIndex: number) => commandListPages[page][entryIndex].description;
         let embed = createPaginatedEmbed(this.getGame(), page, commandListPages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
-        const prevPageCallback = (interaction: ButtonInteraction) => {
+        const prevPageCallback = (interaction: BotInteraction) => {
+            if (!interaction.isButton()) return;
             if (page > 0)
                 page--;
             embed = createPaginatedEmbed(this.getGame(), page, commandListPages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
             interaction.update({ embeds: [embed] });
         };
-        const nextPageCallback = (interaction: ButtonInteraction) => {
+        const nextPageCallback = (interaction: BotInteraction) => {
+            if (!interaction.isButton()) return;
             if (page < commandListPages.length - 1)
                 page++;
             embed = createPaginatedEmbed(this.getGame(), page, commandListPages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
