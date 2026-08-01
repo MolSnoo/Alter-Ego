@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -10,12 +11,14 @@ describe('GameEntityManager test', () => {
         let astrid: Player;
         let nero: Player;
         let asuka: Player;
+        let existingWhispersCount: number;
 
         beforeAll(async () => {
             await testGame.entityLoader.loadAll();
             astrid = testGame.entityFinder.getLivingPlayer("Astrid");
             nero = testGame.entityFinder.getLivingPlayer("Nero");
             asuka = testGame.entityFinder.getLivingPlayer("Asuka");
+            existingWhispersCount = testGame.whispers.size;
         });
 
         test('createWhisper', async () => {
@@ -23,7 +26,7 @@ describe('GameEntityManager test', () => {
             const whisper = await testGame.entityLoader.createWhisper(players);
             expect(whisper).toBeInstanceOf(Whisper);
             expect(whisper.channel).toBeDefined();
-            expect(testGame.whispers.size).toBe(1);
+            expect(testGame.whispers.size).toBe(existingWhispersCount + 1);
             expect(testGame.whispers.has("lobby-astrid-asuka-nero")).toBe(true);
             for (const player of players) {
                 expect(whisper.channel.permissionOverwrites.resolve(player.id)).toMatchObject({
@@ -39,7 +42,7 @@ describe('GameEntityManager test', () => {
             const whisper = testGame.entityFinder.getWhisper(oldPlayers);
             const newId = Whisper.generateValidId(newPlayers, astrid.location);
             testGame.entityLoader.updateWhisperId(whisper, newId);
-            expect(testGame.whispers.size).toBe(1);
+            expect(testGame.whispers.size).toBe(existingWhispersCount + 1);
             expect(testGame.whispers.has("lobby-astrid-asuka-nero")).toBe(false);
             expect(testGame.whispers.has("lobby-astrid-asuka")).toBe(true);
             expect(whisper.channelName).toBe("lobby-astrid-asuka");

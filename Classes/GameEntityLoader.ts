@@ -61,17 +61,18 @@ export default class GameEntityLoader extends GameEntityManager {
     loadAll(startGame: boolean = false, sendPlayerRoomDescriptions: boolean = false): Promise<string> {
         return new Promise(async (resolve) => {
             let errors: Error[] = [];
-            const roomCount = await this.loadRooms(false, errors);
-            const fixtureCount = await this.loadFixtures(false, errors);
+            // Load all entities into the game in an order that takes into account all of the entities they depend on.
+            const statusEffectCount = await this.loadStatusEffects(false, errors);
+            const gestureCount = await this.loadGestures(false, errors);
             const prefabCount = await this.loadPrefabs(false, errors);
             const recipeCount = await this.loadRecipes(false, errors);
-            const roomItemCount = await this.loadRoomItems(false, errors);
-            const puzzleCount = await this.loadPuzzles(false, errors);
+            const roomCount = await this.loadRooms(false, errors);
             const eventCount = await this.loadEvents(false, errors);
-            const statusEffectCount = await this.loadStatusEffects(false, errors);
             const playerCount = await this.loadPlayers(false, errors);
             const inventoryItemCount = this.game.inventoryItems.length;
-            const gestureCount = await this.loadGestures(false, errors);
+            const fixtureCount = await this.loadFixtures(false, errors);
+            const puzzleCount = await this.loadPuzzles(false, errors);
+            const roomItemCount = await this.loadRoomItems(false, errors);
             const flagCount = await this.loadFlags(false, errors);
 
             for (const room of this.game.rooms.values()) {
@@ -580,7 +581,7 @@ export default class GameEntityLoader extends GameEntityManager {
             const columnPreposition = 9;
             const columnDescription = 10;
 
-            this.clearFixtures();
+            await this.clearFixtures();
             let errors: Error[] = [];
             for (let row = 0; row < sheet.length; row++) {
                 // Convert old spreadsheet values.
@@ -614,7 +615,7 @@ export default class GameEntityLoader extends GameEntityManager {
                     if (error instanceof Error) errors.push(error);
                 }
                 this.game.fixtures.push(fixture);
-                this.updateFixtureReferences(fixture);
+                await this.updateFixtureReferences(fixture);
             }
             if (errors.length > 0) {
                 this.game.loadedEntitiesWithErrors.add("Fixtures");
@@ -1873,7 +1874,7 @@ export default class GameEntityLoader extends GameEntityManager {
                                         }
                                     } else timeRemaining = null;
                                     const inflictAction = new InflictAction(this.game, undefined, player, player.location, true);
-                                    await inflictAction.performInflict(status, false, false, false, undefined, timeRemaining, false);
+                                    await inflictAction.performInflict(status, false, false, false, undefined, timeRemaining, true);
                                 }
                             }
                             if (invalidStatusFound) continue;

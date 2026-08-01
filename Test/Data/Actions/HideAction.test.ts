@@ -125,8 +125,8 @@ describe('HideAction test', () => {
         test('player hides in empty hiding spot', async () => {
             const hideAction = new HideAction(testGame, undefined, astrid, astrid.location, false);
             await hideAction.performHide(stall1);
-            expect(stall1.occupants.length).toBe(1);
-            expect(stall1.occupants).toContainEqual(astrid);
+            expect(stall1.occupants).toHaveSize(1);
+            expect(stall1.hasOccupant(astrid)).toBe(true);
             expect(astrid.hasStatus("hidden")).toBe(true);
             expect(deleteWhisperSpy).not.toHaveBeenCalled();
             expect(createWhisperSpy).toHaveBeenCalledOnce();
@@ -153,9 +153,9 @@ describe('HideAction test', () => {
 
             const hideAction2 = new HideAction(testGame, undefined, asuka, asuka.location, false);
             await hideAction2.performHide(stall1);
-            expect(stall1.occupants.length).toBe(2);
-            expect(stall1.occupants).toContainEqual(astrid);
-            expect(stall1.occupants).toContainEqual(asuka);
+            expect(stall1.occupants).toHaveSize(2);
+            expect(stall1.hasOccupant(astrid)).toBe(true);
+            expect(stall1.hasOccupant(asuka)).toBe(true);
             expect(astrid.hasStatus("hidden")).toBe(true);
             expect(asuka.hasStatus("hidden")).toBe(true);
             expect(deleteWhisperSpy).toHaveBeenCalledOnce();
@@ -186,9 +186,9 @@ describe('HideAction test', () => {
 
             const hideAction2 = new HideAction(testGame, undefined, nero, nero.location, false);
             await hideAction2.performHide(stall1);
-            expect(stall1.occupants.length).toBe(2);
-            expect(stall1.occupants).toContainEqual(astrid);
-            expect(stall1.occupants).toContainEqual(nero);
+            expect(stall1.occupants).toHaveSize(2);
+            expect(stall1.hasOccupant(astrid)).toBe(true);
+            expect(stall1.hasOccupant(nero)).toBe(true);
             expect(astrid.hasStatus("hidden")).toBe(true);
             expect(nero.hasStatus("hidden")).toBe(true);
             expect(deleteWhisperSpy).toHaveBeenCalledOnce();
@@ -221,10 +221,10 @@ describe('HideAction test', () => {
 
             const hideAction3 = new HideAction(testGame, undefined, asuka, asuka.location, false);
             await hideAction3.performHide(stall1);
-            expect(stall1.occupants.length).toBe(2);
-            expect(stall1.occupants).toContainEqual(astrid);
-            expect(stall1.occupants).toContainEqual(nero);
-            expect(stall1.occupants).not.toContainEqual(asuka);
+            expect(stall1.occupants).toHaveSize(2);
+            expect(stall1.hasOccupant(astrid)).toBe(true);
+            expect(stall1.hasOccupant(nero)).toBe(true);
+            expect(stall1.hasOccupant(asuka)).toBe(false);
             expect(astrid.hasStatus("hidden")).toBe(true);
             expect(nero.hasStatus("hidden")).toBe(true);
             expect(asuka.hasStatus("hidden")).toBe(false);
@@ -259,10 +259,10 @@ describe('HideAction test', () => {
 
             const hideAction3 = new HideAction(testGame, undefined, asuka, asuka.location, true);
             await hideAction3.performHide(stall1);
-            expect(stall1.occupants.length).toBe(3);
-            expect(stall1.occupants).toContainEqual(astrid);
-            expect(stall1.occupants).toContainEqual(nero);
-            expect(stall1.occupants).toContainEqual(asuka);
+            expect(stall1.occupants).toHaveSize(3);
+            expect(stall1.hasOccupant(astrid)).toBe(true);
+            expect(stall1.hasOccupant(nero)).toBe(true);
+            expect(stall1.hasOccupant(asuka)).toBe(true);
             expect(astrid.hasStatus("hidden")).toBe(true);
             expect(nero.hasStatus("hidden")).toBe(true);
             expect(asuka.hasStatus("hidden")).toBe(true);
@@ -308,9 +308,9 @@ describe('HideAction test', () => {
         test('party of two hide in empty hiding spot', async () => {
             const hideAction = new HideAction(testGame, undefined, astrid, astrid.location, false);
             await hideAction.performHide(stall1);
-            expect(stall1.occupants.length).toBe(2);
-            expect(stall1.occupants).toContainEqual(astrid);
-            expect(stall1.occupants).toContainEqual(asuka);
+            expect(stall1.occupants).toHaveSize(2);
+            expect(stall1.hasOccupant(astrid)).toBe(true);
+            expect(stall1.hasOccupant(asuka)).toBe(true);
             expect(astrid.hasStatus("hidden")).toBe(true);
             expect(asuka.hasStatus("hidden")).toBe(true);
             expect(deleteWhisperSpy).not.toHaveBeenCalled();
@@ -342,10 +342,10 @@ describe('HideAction test', () => {
 
             const hideAction2 = new HideAction(testGame, undefined, astrid, astrid.location, false);
             await hideAction2.performHide(stall1);
-            expect(stall1.occupants.length).toBe(1);
-            expect(stall1.occupants).not.toContainEqual(astrid);
-            expect(stall1.occupants).not.toContainEqual(asuka);
-            expect(stall1.occupants).toContainEqual(nero);
+            expect(stall1.occupants).toHaveSize(1);
+            expect(stall1.hasOccupant(astrid)).toBe(false);
+            expect(stall1.hasOccupant(asuka)).toBe(false);
+            expect(stall1.hasOccupant(nero)).toBe(true);
             expect(astrid.hasStatus("hidden")).toBe(false);
             expect(asuka.hasStatus("hidden")).toBe(false);
             expect(nero.hasStatus("hidden")).toBe(true);
@@ -378,10 +378,10 @@ describe('HideAction test', () => {
 
             const hideAction2 = new HideAction(testGame, undefined, astrid, astrid.location, true);
             await hideAction2.performHide(stall1);
-            expect(stall1.occupants.length).toBe(3);
-            expect(stall1.occupants).toContainEqual(astrid);
-            expect(stall1.occupants).toContainEqual(asuka);
-            expect(stall1.occupants).toContainEqual(nero);
+            expect(stall1.occupants).toHaveSize(3);
+            expect(stall1.hasOccupant(astrid)).toBe(true);
+            expect(stall1.hasOccupant(asuka)).toBe(true);
+            expect(stall1.hasOccupant(nero)).toBe(true);
             expect(astrid.hasStatus("hidden")).toBe(true);
             expect(asuka.hasStatus("hidden")).toBe(true);
             expect(nero.hasStatus("hidden")).toBe(true);
@@ -430,10 +430,10 @@ describe('HideAction test', () => {
         test('party of three cannot hide in empty hiding spot', async () => {
             const hideAction1 = new HideAction(testGame, undefined, astrid, astrid.location, false);
             await hideAction1.performHide(stall1);
-            expect(stall1.occupants.length).toBe(0);
-            expect(stall1.occupants).not.toContainEqual(astrid);
-            expect(stall1.occupants).not.toContainEqual(asuka);
-            expect(stall1.occupants).not.toContainEqual(nero);
+            expect(stall1.occupants).toHaveSize(0);
+            expect(stall1.hasOccupant(astrid)).toBe(false);
+            expect(stall1.hasOccupant(asuka)).toBe(false);
+            expect(stall1.hasOccupant(nero)).toBe(false);
             expect(astrid.hasStatus("hidden")).toBe(false);
             expect(asuka.hasStatus("hidden")).toBe(false);
             expect(nero.hasStatus("hidden")).toBe(false);
