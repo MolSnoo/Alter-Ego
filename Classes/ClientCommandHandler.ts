@@ -111,7 +111,7 @@ export default class ClientCommandHandler {
                 this.#client.logCommand(this.#client.user.username, commandStr, timestamp);
             }
             catch (error) {
-                game.communicationHandler.sendToCommandChannel(error.message ?? error);
+                game.communicationHandler.sendToCommandChannel(error instanceof Error ? error.message : String(error));
             }
             return true;
         }
@@ -134,7 +134,7 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error.message ?? error);
+                game.communicationHandler.reply(message, error instanceof Error ? error.message : String(error));
             }
             return true;
         }
@@ -178,7 +178,7 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error.message ?? error);
+                game.communicationHandler.reply(message, error instanceof Error ? error.message : String(error));
             }
             return true;
         }
@@ -194,7 +194,7 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error.message ?? error);
+                game.communicationHandler.reply(message, error instanceof Error ? error.message : String(error));
             }
             return true;
         }

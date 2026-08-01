@@ -1021,7 +1021,7 @@ export default class ClientInteractableManager {
      * @param user - The user these interactables are being created for.
      * @returns An array of button interactables, if the number of fields is less than or equal to 5. Otherwise, returns an array containing one string select menu interactable.
      */
-    private createViewFieldActionInteractables<T extends PersistentGameEntity>(entity: T, fields: EntityField<T>[], user: User): ButtonOrStringSelectMenuInteractable[] {
+    private createViewFieldActionInteractables<T extends PersistentGameEntity<any>>(entity: T, fields: EntityField<T>[], user: User): ButtonOrStringSelectMenuInteractable[] {
         const interactableOptions: InteractableOptions<ViewAction>[] = [];
         for (const field of fields) {
             const actionDirective = this.#createActionDirective(ViewAction, [entity.getEntityType(), entity.row, field], undefined, user);
@@ -1041,7 +1041,7 @@ export default class ClientInteractableManager {
      * @param entities - A list of entities to view.
      * @param user - The user these interactables are being created for.
      */
-    private createViewActionInteractables(entities: PersistentGameEntity[], user: User): StringSelectMenuInteractable[] {
+    private createViewActionInteractables(entities: PersistentGameEntity<any>[], user: User): StringSelectMenuInteractable[] {
         const interactableOptions: InteractableOptions<ViewAction>[] = [];
         for (const entity of entities) {
             const actionDirective = this.#createActionDirective(ViewAction, [entity.getEntityType(), entity.row], undefined, user);
@@ -1542,7 +1542,7 @@ export default class ClientInteractableManager {
      * @param relatedEntities - Related entities to view. These will always be collated into a string select menu interactable.
      * @param user - The user these interactables are being created for.
      */
-    getViewInteractables<T extends PersistentGameEntity>(entity: T, fields: EntityField<T>[], relatedEntities: PersistentGameEntity[], user: User): Interactable[] {
+    getViewInteractables<T extends PersistentGameEntity<any>>(entity: T, fields: EntityField<T>[], relatedEntities: PersistentGameEntity<any>[], user: User): Interactable[] {
         let interactables: Interactable[] = [];
         if (entity && fields.length > 0)
             interactables = interactables.concat(this.createViewFieldActionInteractables(entity, fields, user));
