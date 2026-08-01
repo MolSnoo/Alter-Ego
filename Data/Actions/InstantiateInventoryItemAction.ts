@@ -120,7 +120,7 @@ export default class InstantiateInventoryItemAction extends Action {
         if (args[5]) {
             try {
                 proceduralSelections = parseProceduralSelections(args[5]);
-            } catch (error) { throw new Error(error.message); }
+            } catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
         }
         if (args[6] !== undefined && isNaN(args[6])) throw new Error("The given uses is not a number.");
         if (args[6] !== undefined && args[6] < 1) throw new Error("The given uses must be greater than or equal to 1.");
