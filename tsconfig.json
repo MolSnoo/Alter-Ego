@@ -28,6 +28,7 @@
         "rewriteRelativeImportExtensions": true,
         "erasableSyntaxOnly": true,
         // Type checking
+        "strict": true,
         "strictNullChecks": false,
         "noImplicitOverride": true,
     },
