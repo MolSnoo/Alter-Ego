@@ -183,7 +183,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.rooms.size);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -203,7 +206,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.fixtures.length);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -223,7 +229,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.prefabs.size);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -243,7 +252,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.recipes.length);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -263,7 +275,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.roomItems.length);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -283,7 +298,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.puzzles.length);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -303,7 +321,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.events.size);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -323,7 +344,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.statusEffects.size);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -343,7 +367,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.players.size);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -364,7 +391,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.inventoryItems.length);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -385,7 +415,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.gestures.size);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -406,7 +439,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.flags.size);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
                 resolve(0);
             }
         });
@@ -1891,7 +1927,10 @@ export default class GameEntityLoader extends GameEntityManager {
                 await this.#getInventoryItems(false);
             }
             catch (error) {
-                errors.push(...error);
+                if (error instanceof Array)
+                    errors.push(...error);
+                else
+                    errors.push(error instanceof Error ? error : new Error(String(error)));
             }
             if (doErrorChecking) {
                 for (const player of this.game.players.values()) {
@@ -2377,7 +2416,7 @@ export default class GameEntityLoader extends GameEntityManager {
             try {
                 const value = flag.evaluate(flag.valueScript);
                 flag.value = value;
-            } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
+            } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err instanceof Error ? err.message : err}`) }
         }
     }
 
@@ -2399,7 +2438,7 @@ export default class GameEntityLoader extends GameEntityManager {
      * Prints an array or map of entities to the console.
      * @param data - The data to print.
      */
-    #printData(data: PersistentGameEntity[] | Map<string, PersistentGameEntity>): void {
+    #printData(data: PersistentGameEntity<any>[] | Map<string, PersistentGameEntity<any>>): void {
         if (data instanceof Array) {
             for (let i = 0; i < data.length; i++) {
                 console.log(this.game.clientContext.prettyPrinter.prettyObject(data[i]));
