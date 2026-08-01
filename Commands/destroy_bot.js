@@ -230,7 +230,7 @@ export async function execute(game, command, args, player, callee) {
             // Check if an inventory item was specified.
             /** @type {InventoryItem} */
             let containerItem = null;
-            /** @type {InventorySlot} */
+            /** @type {InventorySlot<InventoryItem>} */
             let containerItemSlot = null;
             const playerItems = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null && (item.quantity > 0 || isNaN(item.quantity)));
             for (let i = 0; i < newArgs.length; i++) {

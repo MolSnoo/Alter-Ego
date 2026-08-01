@@ -97,13 +97,14 @@ export async function execute(game, message, command, args, moderator) {
             proceduralSelections = parseProceduralSelections(parsedInput);
         }
         catch (error) {
-            return game.communicationHandler.reply(message, error.message);
+            return game.communicationHandler.reply(message, error instanceof Error ? error.message : String(error));
         }
         input = input.substring(0, input.indexOf('(')) + input.substring(input.indexOf(')') + 1).trimStart();
         parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')') + 1).trimStart();
     }
     args = parsedInput.split(' ');
 
+    /** @type import('../Data/Player.ts').default | null */
     let player = null;
     // Room was found. Look for the container in it.
     if (room !== null) {

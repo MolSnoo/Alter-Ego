@@ -78,6 +78,6 @@ export async function execute(game, message, command, args, moderator) {
         action.performFind(input);
     }
     catch (error) {
-        game.communicationHandler.reply(message, `${error.message} Usage:\n${usage(game.settings)}`);
+        game.communicationHandler.reply(message, `${error instanceof Error ? error.message : error} Usage:\n${usage(game.settings)}`);
     }
 }
