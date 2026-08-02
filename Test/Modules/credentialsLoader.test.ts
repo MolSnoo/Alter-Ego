@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
-//
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+// 
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 vi.mock("fs", () => ({
@@ -19,6 +20,9 @@ describe("credentialsLoader tests", () => {
         vi.unstubAllEnvs();
         mockEmptyCredentialsEnv();
         vi.resetModules();
+        // Due to circular dependencies downstream, these "hanging imports" are vital to importing the credentials loader correctly.
+        await import('../../Modules/envLoader.ts');
+        await import('../../Classes/ClientContext.ts');
         const module = await import("../../Modules/credentialsLoader.ts");
         loadCredentials = module.loadCredentials;
         parseCredentialsFile = module.parseCredentialsFile;
