@@ -1,4 +1,9 @@
-import {readFileSync} from "fs";
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+import { readFileSync } from "fs";
 import { getErrorMessage } from "./helpers.ts";
 
 const CREDENTIALS_FILE_PATH = "./Configs/credentials.json";
