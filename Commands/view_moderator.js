@@ -1,4 +1,5 @@
 import ViewAction from '../Data/Actions/ViewAction.ts';
+import { getErrorMessage } from '../Modules/helpers.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
@@ -153,6 +154,6 @@ export async function execute(game, message, command, args, moderator) {
         action.performView(entity);
     }
     catch (error) {
-        game.communicationHandler.reply(message, `${error instanceof Error ? error.message : error} Usage:\n${usage(game.settings)}`);
+        game.communicationHandler.reply(message, `${getErrorMessage(error)} Usage:\n${usage(game.settings)}`);
     }
 }

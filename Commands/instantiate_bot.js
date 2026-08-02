@@ -1,6 +1,7 @@
 import InstantiateInventoryItemAction from "../Data/Actions/InstantiateInventoryItemAction.ts";
 import InstantiateRoomItemAction from "../Data/Actions/InstantiateRoomItemAction.ts";
 import RoomItem from "../Data/RoomItem.ts";
+import { getErrorMessage } from "../Modules/helpers.ts";
 import { parseProceduralSelections } from '../Modules/stringDataExtractor.ts';
 
 /** @import GameSettings from '../Classes/GameSettings.ts' */
@@ -103,7 +104,7 @@ export async function execute(game, command, args, player, callee) {
             proceduralSelections = parseProceduralSelections(parsedInput);
         }
         catch (error) {
-            return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${error instanceof Error ? error.message : error}`);
+            return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${getErrorMessage(error)}`);
         }
         input = input.substring(0, input.indexOf('(')) + input.substring(input.indexOf(')') + 1).trimStart();
         parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')') + 1).trimStart();

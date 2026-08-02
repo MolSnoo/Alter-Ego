@@ -11,7 +11,7 @@ import Puzzle from "../Puzzle.ts";
 import RoomItem from "../RoomItem.ts";
 import { parseProceduralSelections } from "../../Modules/stringDataExtractor.ts";
 import { instantiateRoomItem } from "../../Modules/itemManager.ts";
-import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
+import { generateListString, getErrorMessage, makeCopyable } from "../../Modules/helpers.ts";
 
 /**
  * Represents an instantiate room item action.
@@ -124,7 +124,7 @@ export default class InstantiateRoomItemAction extends Action {
         if (args[4]) {
             try {
                 proceduralSelections = parseProceduralSelections(args[4]);
-            } catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            } catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (args[5] !== undefined && isNaN(args[5])) throw new Error("The given uses is not a number.");
         if (args[5] !== undefined && args[5] < 1) throw new Error("The given uses must be greater than or equal to 1.");

@@ -14,6 +14,7 @@ import BotCommand from '../Classes/BotCommand.ts';
 import ModeratorCommand from '../Classes/ModeratorCommand.ts';
 import PlayerCommand from '../Classes/PlayerCommand.ts';
 import EligibleCommand from '../Classes/EligibleCommand.ts';
+import { getErrorMessage } from '../Modules/helpers.ts';
 
 export type CommandType = "Bot" | "Moderator" | "Player" | "Eligible";
 export type CommandOf<T extends CommandType> =
@@ -111,7 +112,7 @@ export default class ClientCommandHandler {
                 this.#client.logCommand(this.#client.user.username, commandStr, timestamp);
             }
             catch (error) {
-                game.communicationHandler.sendToCommandChannel(error instanceof Error ? error.message : String(error));
+                game.communicationHandler.sendToCommandChannel(getErrorMessage(error));
             }
             return true;
         }
@@ -134,7 +135,7 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error instanceof Error ? error.message : String(error));
+                game.communicationHandler.reply(message, getErrorMessage(error));
             }
             return true;
         }
@@ -178,7 +179,7 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error instanceof Error ? error.message : String(error));
+                game.communicationHandler.reply(message, getErrorMessage(error));
             }
             return true;
         }
@@ -194,7 +195,7 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error instanceof Error ? error.message : String(error));
+                game.communicationHandler.reply(message, getErrorMessage(error));
             }
             return true;
         }

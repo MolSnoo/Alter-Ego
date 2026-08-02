@@ -42,6 +42,7 @@ import { ButtonInteraction, ModalSubmitInteraction, StringSelectMenuInteraction 
 import type { Interaction, InteractionCallbackResponse } from "discord.js";
 import HideAction from "../Data/Actions/HideAction.ts";
 import EmergeAction from "../Data/Actions/EmergeAction.ts";
+import { getErrorMessage } from '../Modules/helpers.ts';
 
 /**
  * A set of functions for handling Interactions.
@@ -138,7 +139,7 @@ export default class ClientInteractionHandler {
             }
             catch (error) {
                 successfullyProcessedInteractable = false;
-                errorMessage = error instanceof Error ? error.message : String(error);
+                errorMessage = getErrorMessage(error);
             }
         }
         if (!successfullyProcessedInteractable) this.#replyToInteraction(errorMessage, interaction);
@@ -175,7 +176,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof FollowAction) {
             const args = interactable.actionDirective.getArgs();
@@ -189,7 +190,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof LeadAction) {
             const args = interactable.actionDirective.getArgs();
@@ -203,7 +204,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DismissAction) {
             const args = interactable.actionDirective.getArgs();
@@ -217,7 +218,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DisbandPartyAction) {
             const args = interactable.actionDirective.getArgs();
@@ -231,7 +232,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof ViewPartyAction) {
             if (player.canUseCommand("party") || action.forced) {
@@ -261,7 +262,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof HideAction) {
             const args = interactable.actionDirective.getArgs();
@@ -275,7 +276,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof EmergeAction) {
             const args = interactable.actionDirective.getArgs();
@@ -289,7 +290,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof TakeAction) {
             const args = interactable.actionDirective.getArgs();
@@ -303,7 +304,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DropAction) {
             const args = interactable.actionDirective.getArgs();
@@ -317,7 +318,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof StashAction) {
             const args = interactable.actionDirective.getArgs();
@@ -416,7 +417,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DeactivateAction) {
             const args = interactable.actionDirective.getArgs();
@@ -430,7 +431,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof AttemptAction) {
             const args = interactable.actionDirective.getArgs();
@@ -462,7 +463,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof InstantiateInventoryItemAction) {
             if (interaction instanceof ModalSubmitInteraction) {
@@ -481,7 +482,7 @@ export default class ClientInteractionHandler {
                     this.#logInteraction("InstantiateInventoryItemAction", author, timestamp, validatedArgs);
                     return true;
                 }
-                catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+                catch (error) { throw new Error(getErrorMessage(error)); }
             }
             else {
                 const args = interactable.actionDirective.getArgs();
@@ -509,7 +510,7 @@ export default class ClientInteractionHandler {
                     this.#logInteraction("InstantiateRoomItemAction", author, timestamp, validatedArgs);
                     return true;
                 }
-                catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+                catch (error) { throw new Error(getErrorMessage(error)); }
             }
             else {
                 const args = interactable.actionDirective.getArgs();
@@ -530,7 +531,7 @@ export default class ClientInteractionHandler {
                 this.#logInteraction("DestroyInventoryItemAction", author, timestamp, validatedArgs);
                 return true;
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DestroyRoomItemAction) {
             const args = interactable.actionDirective.getArgs();
@@ -553,7 +554,7 @@ export default class ClientInteractionHandler {
                 }
                 return true;
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof FindAction) {
             const args = interactable.actionDirective.getArgs();
@@ -564,7 +565,7 @@ export default class ClientInteractionHandler {
                 if (reply) reply.resource.message.delete();
                 return true;
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof ViewAction) {
             const args = interactable.actionDirective.getArgs();
@@ -575,7 +576,7 @@ export default class ClientInteractionHandler {
                 if (reply) reply.resource.message.delete();
                 return true;
             }
-            catch (error) { throw new Error(error instanceof Error ? error.message : String(error)); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         return false;
     }

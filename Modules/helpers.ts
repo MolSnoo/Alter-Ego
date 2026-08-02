@@ -278,3 +278,21 @@ export function addPages<T>(pages: T[][], array: T[], pageSize = 5): void {
         pages[pageNo].push(array[i]);
     }
 }
+
+/**
+ * Get the error message from any arbitrary error. It is safe to pass the output of try-catch into this function.
+ * @param error - The error to get the message from.
+ */
+export function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) return error.message;
+    else return String(error);
+}
+
+/**
+ * Get an error from any arbitrary error. It is safe to pass the output of try-catch into this function.
+ * @param error - The error to return from.
+ */
+export function convertToError(error: unknown): Error {
+    if (error instanceof Error) return error;
+    else return new Error(String(error));
+}

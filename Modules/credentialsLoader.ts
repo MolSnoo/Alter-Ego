@@ -1,4 +1,5 @@
 import {readFileSync} from "fs";
+import { getErrorMessage } from "./helpers.ts";
 
 const CREDENTIALS_FILE_PATH = "./Configs/credentials.json";
 
@@ -52,7 +53,7 @@ export function parseCredentialsFile(file: string): Credentials {
     try {
         return JSON.parse(file);
     } catch (err) {
-        throw new Error(`Cannot parse credentials file. Please check that the file is valid JSON and has the correct fields. Error: ${err instanceof Error ? err.message : err}`);
+        throw new Error(`Cannot parse credentials file. Please check that the file is valid JSON and has the correct fields. Error: ${getErrorMessage(err)}`);
     }
 }
 

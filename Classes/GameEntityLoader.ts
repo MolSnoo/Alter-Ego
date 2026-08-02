@@ -24,7 +24,7 @@ import Gesture from '../Data/Gesture.ts';
 import { default as Flag, type FlagCommandSet } from '../Data/Flag.ts';
 import InflictAction from '../Data/Actions/InflictAction.ts';
 import { getSheetValues } from '../Modules/sheets.js';
-import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration } from '../Modules/helpers.ts';
+import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration, convertToError, getErrorMessage } from '../Modules/helpers.ts';
 import { parsePrefabPossibleNames } from '../Modules/stringDataExtractor.ts';
 import { ChannelType, Collection, type GuildBasedChannel, type GuildMember } from 'discord.js';
 import { Duration } from 'luxon';
@@ -186,7 +186,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -209,7 +209,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -232,7 +232,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -255,7 +255,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -278,7 +278,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -301,7 +301,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -324,7 +324,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -347,7 +347,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -370,7 +370,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -394,7 +394,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -418,7 +418,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -442,7 +442,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
                 resolve(0);
             }
         });
@@ -1930,7 +1930,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (error instanceof Array)
                     errors.push(...error);
                 else
-                    errors.push(error instanceof Error ? error : new Error(String(error)));
+                    errors.push(convertToError(error));
             }
             if (doErrorChecking) {
                 for (const player of this.game.players.values()) {
@@ -2416,7 +2416,7 @@ export default class GameEntityLoader extends GameEntityManager {
             try {
                 const value = flag.evaluate(flag.valueScript);
                 flag.value = value;
-            } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err instanceof Error ? err.message : err}`) }
+            } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${getErrorMessage(err)}`) }
         }
     }
 

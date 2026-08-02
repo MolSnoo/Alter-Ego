@@ -292,7 +292,7 @@ export default function evaluate(scriptText: string, container: GameEntity, play
         script = parseExpression(scriptText);
     }
     catch (err) {
-        throw new Error(`Parse error: ${err instanceof Error ? err.message : err}`);
+        throw new Error(`Parse error: ${helpers.getErrorMessage(err)}`);
     }
 
     const evaluatedValue = validateAndEval(script, context, 0);
