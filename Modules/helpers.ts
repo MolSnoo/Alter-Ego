@@ -4,8 +4,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import ItemInstance from '../Data/ItemInstance.ts';
 import { Duration } from 'luxon';
+import type ItemInstance from '../Data/ItemInstance.ts';
 import type Player from '../Data/Player.ts';
 import type { DurationObjectUnits } from 'luxon';
 
