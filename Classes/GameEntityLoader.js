@@ -1835,12 +1835,12 @@ export default class GameEntityLoader extends GameEntityManager {
 			let errors = [];
             for (let row = 0; row < sheet.length; row++) {
 				const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
-                if (sheet[row][columnName] === "") {
-                    errors.push(new Error(`Couldn't load player on row ${row}. The name of a player cannot be blank.`));
+                if (sheet[row][columnName] === "" || sheet[row][columnName] === null || sheet[row][columnName] === undefined) {
+                    errors.push(new Error(`Couldn't load player on row ${row + 3}. No player name was given.`));
                     continue;
                 }
                 else if (spectateChannelName === "") {
-                    errors.push(new Error(`Couldn't load player on row ${row}. The name of a player cannot be only special characters.`));
+                    errors.push(new Error(`Couldn't load player on row ${row + 3}. The name of a player cannot be only special characters.`));
                     continue;
                 }
 				const stats = {
@@ -1994,8 +1994,6 @@ export default class GameEntityLoader extends GameEntityManager {
 		const canDmPlayer = !player.isNPC ? await this.#checkCanDmPlayer(player) : true;
 		if (!canDmPlayer)
 			return new Error(`Couldn't load player on row ${player.row}. Cannot send direct messages. Please ask <@${player.id}> to allow direct messages from server members in their privacy settings for this server.`);
-		if (player.name === "" || player.name === null || player.name === undefined)
-			return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
 		if (player.name.includes(" "))
 			return new Error(`Couldn't load player on row ${player.row}. Player names must not have any spaces.`);
 		if (player.originalPronouns.sbj === null || player.originalPronouns.sbj === "")
