@@ -440,9 +440,10 @@ export function createEntityViewComponents(entityType, entityRow, fields, color,
 export function createPaginatedEmbed(game, page, pages, authorName, authorIcon, description, getFieldName, getFieldValue) {
 	let embed = new EmbedBuilder()
 		.setColor(Number(`0x${game.settings.embedAccentColor}`))
-		.setAuthor({ name: authorName, iconURL: authorIcon })
 		.setDescription(description)
-		.setFooter({ text: `Page ${page + 1}/${pages.length}` });
+        .setFooter({ text: `Page ${page + 1}/${pages.length}` });
+    if (authorIcon !== "null")
+        embed.setAuthor({ name: authorName, iconURL: authorIcon });
 	let fields = [];
 	for (let entryIndex = 0; entryIndex < pages[page].length; entryIndex++)
 		fields.push({ name: getFieldName(entryIndex), value: getFieldValue(entryIndex) });
