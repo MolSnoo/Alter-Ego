@@ -1801,7 +1801,8 @@ export default class GameEntityLoader extends GameEntityManager {
                     errors.push(new Error(`Couldn't load player on row ${row + 3}. No player name was given.`));
                     continue;
                 }
-                const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
+                const playerName = Player.generateValidName(sheet[row][columnName], true) ?? "";
+                const spectateChannelName = Room.generateValidId(playerName) ?? "";
                 if (spectateChannelName === "") {
                     errors.push(new Error(`Couldn't load player on row ${row + 3}. The name of a player cannot be only special characters.`));
                     continue;
@@ -1831,17 +1832,14 @@ export default class GameEntityLoader extends GameEntityManager {
                 if (sheet[row][columnTitle] !== "NPC") {
                     try {
                         member = sheet[row][columnId] ? this.game.guildContext.getMember(sheet[row][columnId].trim()) : null;
-                        notificationChannel = await member.createDM();
+                        notificationChannel = await this.game.guildContext.createDM(member);
                     } catch (error) { }
-                    spectateChannel = this.game.guildContext.findChannel(spectateChannelName, this.game.guildContext.spectateCategoryId);
-                    const spectateChannelCount = this.game.guildContext.countChannelsInCategory(this.game.guildContext.spectateCategoryId);
-                    if (!spectateChannel && spectateChannelCount < 50)
-                        spectateChannel = await this.game.guildContext.createChannel(spectateChannelName, this.game.guildContext.spectateCategoryId);
+                    spectateChannel = await this.game.guildContext.getOrCreateSpectateChannel(spectateChannelName);
                 }
                 const player = new Player(
                     sheet[row][columnId] ? sheet[row][columnId].trim() : "",
                     member,
-                    sheet[row][columnName] ? sheet[row][columnName].trim() : "",
+                    playerName ? playerName : "",
                     sheet[row][columnTitle] ? sheet[row][columnTitle].trim() : "",
                     sheet[row][columnPronouns] ? sheet[row][columnPronouns].trim().toLowerCase() : "",
                     sheet[row][columnVoice] ? sheet[row][columnVoice].trim() : "",

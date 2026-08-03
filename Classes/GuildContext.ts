@@ -225,7 +225,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in a DM channel.
      * @param message
      */
-    sentInDMChannel(message: UserMessage) {
+    sentInDMChannel(message: UserMessage): boolean {
         return message.channel.type === ChannelType.DM;
     }
 
@@ -233,7 +233,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in the moderator command channel.
      * @param message
      */
-    sentInCommandChannel(message: UserMessage) {
+    sentInCommandChannel(message: UserMessage): boolean {
         return message.channel.id === this.commandChannel.id;
     }
 
@@ -241,7 +241,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in a room channel.
      * @param message
      */
-    sentInRoomChannel(message: UserMessage) {
+    sentInRoomChannel(message: UserMessage): boolean {
         return message.channel.type === ChannelType.GuildText && this.roomCategories.includes(message.channel.parentId);
     }
 
@@ -249,7 +249,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in a whisper channel.
      * @param message
      */
-    sentInWhisperChannel(message: UserMessage) {
+    sentInWhisperChannel(message: UserMessage): boolean {
         return message.channel.type === ChannelType.GuildText && message.channel.parentId === this.whisperCategoryId;
     }
 
@@ -257,7 +257,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in the testing channel.
      * @param message
      */
-    sentInTestingChannel(message: UserMessage) {
+    sentInTestingChannel(message: UserMessage): boolean {
         return message.channel.id === this.testingChannel.id;
     }
 
@@ -265,7 +265,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in the general channel.
      * @param message
      */
-    sentInGeneralChannel(message: UserMessage) {
+    sentInGeneralChannel(message: UserMessage): boolean {
         return message.channel.id === this.generalChannel.id;
     }
 
@@ -274,7 +274,7 @@ export default class GuildContext {
      * @param name - The name of the channel to find.
      * @param parentId - The parent ID the channel must have. Optional.
      */
-    findChannel(name: string, parentId?: string) {
+    findChannel(name: string, parentId?: string): GuildBasedChannel {
         if (parentId)
             return this.guild.channels.cache.find(channel => channel.parent && channel.parentId === parentId && channel.name === name);
         else return this.guild.channels.cache.find(channel => channel.name === name);
@@ -284,7 +284,7 @@ export default class GuildContext {
      * Gets the guild channel with the given ID.
      * @param id - The ID of the channel to get.
      */
-    getChannelWithId(id: string) {
+    getChannelWithId(id: string): GuildBasedChannel {
         return this.guild.channels.resolve(id);
     }
 
@@ -308,5 +308,18 @@ export default class GuildContext {
             parent: parent,
             type: type
         });
+    }
+
+    /**
+     * Gets the spectate channel with the given name. If no such channel exists, creates it.
+     * If there are already 50 channels in the spectate category, returns null.
+     * @param name - The name of the spectate channel to get or create. This should be a valid channel name, as it will be used to create the channel if it doesn't exist.
+     */
+    async getOrCreateSpectateChannel(name: string): Promise<TextChannel | null> {
+        let spectateChannel = this.findChannel(name, this.spectateCategoryId);
+        const spectateChannelCount = this.countChannelsInCategory(this.spectateCategoryId);
+        if (!spectateChannel && spectateChannelCount < 50)
+            spectateChannel = await this.createChannel(name, this.spectateCategoryId, ChannelType.GuildText).catch();
+        return spectateChannel as TextChannel ?? null;
     }
 }
