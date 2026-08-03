@@ -85,48 +85,6 @@ declare global {
      */
     type BotInteraction = ButtonInteraction|StringSelectMenuInteraction|ModalSubmitInteraction;
 
-	/**
-	 * Represents an abstract command with its configuration.
-	 */
-	interface ICommand {
-        /** The specific configuration of the command. */
-		config: CommandConfig<Set<string>>;
-        /** Examples of the command's usage. */
-		usage: (settings: GameSettings) => string;
-	}
-
-    /**
-     * A command usable by the bot itself. Command sets can be written for some in-game data structures to be executed when certain conditions are met.
-     */
-	interface IBotCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, command: string, args: string[], player?: Player, callee?: Callee) => Promise<void>;
-	}
-
-    /**
-     * A command usable by a moderator.
-     */
-	interface IModeratorCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[], moderator: Moderator) => Promise<void>;
-	}
-
-    /**
-     * A command usable by a player.
-     */
-	interface IPlayerCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[], player: Player) => Promise<void>;
-	}
-
-    /**
-     * A command usable by someone with the eligible role.
-     */
-	interface IEligibleCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[]) => Promise<void>;
-	}
-
     type PersistentGameEntityName = "Room"|"Exit"|"Fixture"|"Prefab"|"Recipe"|"RoomItem"|"Puzzle"|"Event"|"StatusEffect"|"Player"|"InventoryItem"|"Gesture"|"Flag";
 
     interface PersistentGameEntity extends GameEntity {
