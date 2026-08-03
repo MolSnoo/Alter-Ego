@@ -367,41 +367,28 @@ function generateActionRows(interactables, componentCount = 0) {
  * @param {string} color - The color as a hex code.
  */
 export function createCommandHelpComponents(title, description, aliasString, usage, details, thumbnailURL, color) {
-    /**
-     * @privateRemarks
-     * IMPORTANT: thumbnailURL will not be null if it is unset, it will be "null".
-     * What is here so far will not work... The fix bundled with 2.0.2 will need to be repeated here.
-     * - AC
-     */
-    const section = new SectionBuilder();
-    if (thumbnailURL !== "null") section.setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnailURL));
-    section.addTextDisplayComponents(
+    const containerComponent = new ContainerBuilder().setAccentColor(Number(`0x${color}`));
+    /** @type {TextDisplayBuilder[]} */
+    const inlineComponents = [
         new TextDisplayBuilder().setContent(title),
-        new TextDisplayBuilder().setContent(description),
-    )
-    return [
-        new ContainerBuilder()
-            .setAccentColor(Number(`0x${color}`))
-            .addSectionComponents(section)
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent("**Aliases**")
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(aliasString)
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent("**Examples**")
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(usage)
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent("**Details**")
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(details)
-            )
+        new TextDisplayBuilder().setContent(description)
     ];
+    if (thumbnailURL && thumbnailURL !== "null") {
+        const sectionBuilder = new SectionBuilder()
+            .setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnailURL))
+            .addTextDisplayComponents(inlineComponents);
+        containerComponent.addSectionComponents(sectionBuilder);
+    }
+    else
+        containerComponent.addTextDisplayComponents(inlineComponents);
+    containerComponent.addTextDisplayComponents(new TextDisplayBuilder().setContent("**Aliases**"))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(aliasString))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent("**Examples**"))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(usage))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent("**Details**"))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(details))
+
+    return [containerComponent];
 }
 
 /**
@@ -452,7 +439,7 @@ export function createPaginatedEmbed(game, page, pages, authorName, authorIcon, 
 		.setColor(Number(`0x${game.settings.embedAccentColor}`))
 		.setDescription(description)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
-    if (authorIcon !== "null")
+    if (authorIcon && authorIcon !== "null")
         embed.setAuthor({ name: authorName, iconURL: authorIcon });
 	let fields = [];
 	for (let entryIndex = 0; entryIndex < pages[page].length; entryIndex++)
