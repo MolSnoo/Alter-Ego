@@ -1,4 +1,4 @@
-import { ChannelType, type Guild, type GuildMember, type Role, type TextChannel } from "discord.js";
+import { ChannelType, type Guild, type GuildMember, type Role, type TextChannel, type User } from "discord.js";
 
 /**
  * Represents the guild in which a Game is occurring and all of the parts of a Guild needed by the bot.
@@ -78,7 +78,7 @@ export default class GuildContext {
 	 * @param generalChannel - The channel where startgame and endgame announcements are posted when debug mode is disabled.
 	 * @param roomCategories - An array of IDs for room channel parent categories.
 	 * @param whisperCategoryId - The ID of the category channel that houses whisper channels.
-	 * @param spectateCategoryId - The ID of the category channel that houses spectate channels. 
+	 * @param spectateCategoryId - The ID of the category channel that houses spectate channels.
 	 * @param testerRole - The tester role. Members with this role can use eligible commands when debug mode is enabled.
 	 * @param eligibleRole - The eligible role. Members with this role can use eligible commands when debug mode is disabled.
 	 * @param playerRole - The player role. Members with this role can use player commands.
@@ -111,13 +111,13 @@ export default class GuildContext {
 		this.announcementChannel = announcementChannel;
 		this.testingChannel = testingChannel;
 		this.generalChannel = generalChannel;
-		
+
 		for (let i = 0; i < roomCategories.length; i++)
 			roomCategories[i] = roomCategories[i].trim();
 		this.roomCategories = roomCategories;
 		this.whisperCategoryId = whisperCategoryId;
 		this.spectateCategoryId = spectateCategoryId;
-		
+
 		this.testerRole = testerRole;
 		this.eligibleRole = eligibleRole;
   		this.playerRole = playerRole;
@@ -129,10 +129,18 @@ export default class GuildContext {
 
     /**
      * Gets a member of the guild by their user ID. If no such member exists, returns undefined.
-     * @param userId 
+     * @param userId
      */
     getMember(userId: string): GuildMember {
         return this.guild.members.resolve(userId);
+    }
+
+    /**
+     * Creates a direct message channel with the given user.
+     * @param user - The user to create a DM channel with. Can be a guild member or a Discord user.
+     */
+    async createDM(user: GuildMember | User): Promise<Messageable> {
+        return await user?.createDM();
     }
 
     /**
@@ -147,7 +155,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given guild member has the tester role.
-     * @param member 
+     * @param member
      */
     hasTesterRole(member: GuildMember): boolean {
         return this.hasRole(member, this.testerRole);
@@ -155,7 +163,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given guild member has the eligible role.
-     * @param member 
+     * @param member
      */
     hasEligibleRole(member: GuildMember): boolean {
         return this.hasRole(member, this.eligibleRole);
@@ -163,7 +171,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given guild member has the player role.
-     * @param member 
+     * @param member
      */
     hasPlayerRole(member: GuildMember): boolean {
         return this.hasRole(member, this.playerRole);
@@ -171,7 +179,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given guild member has the free movement role.
-     * @param member 
+     * @param member
      */
     hasFreeMovementRole(member: GuildMember): boolean {
         return this.hasRole(member, this.freeMovementRole);
@@ -179,7 +187,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given guild member has the moderator role.
-     * @param member 
+     * @param member
      */
     hasModeratorRole(member: GuildMember): boolean {
         return this.hasRole(member, this.moderatorRole);
@@ -187,7 +195,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given guild member has the dead role.
-     * @param member 
+     * @param member
      */
     hasDeadRole(member: GuildMember): boolean {
         return this.hasRole(member, this.deadRole);
@@ -195,7 +203,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given guild member has the spectator role.
-     * @param member 
+     * @param member
      */
     hasSpectatorRole(member: GuildMember): boolean {
         return this.hasRole(member, this.spectatorRole);
@@ -203,7 +211,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given message was sent in a DM channel.
-     * @param message 
+     * @param message
      */
     sentInDMChannel(message: UserMessage) {
         return message.channel.type === ChannelType.DM;
@@ -211,7 +219,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given message was sent in the moderator command channel.
-     * @param message 
+     * @param message
      */
     sentInCommandChannel(message: UserMessage) {
         return message.channel.id === this.commandChannel.id;
@@ -219,7 +227,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given message was sent in a room channel.
-     * @param message 
+     * @param message
      */
     sentInRoomChannel(message: UserMessage) {
         return message.channel.type === ChannelType.GuildText && this.roomCategories.includes(message.channel.parentId);
@@ -227,7 +235,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given message was sent in a whisper channel.
-     * @param message 
+     * @param message
      */
     sentInWhisperChannel(message: UserMessage) {
         return message.channel.type === ChannelType.GuildText && message.channel.parentId === this.whisperCategoryId;
@@ -235,7 +243,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given message was sent in the testing channel.
-     * @param message 
+     * @param message
      */
     sentInTestingChannel(message: UserMessage) {
         return message.channel.id === this.testingChannel.id;
@@ -243,7 +251,7 @@ export default class GuildContext {
 
     /**
      * Returns true if the given message was sent in the general channel.
-     * @param message 
+     * @param message
      */
     sentInGeneralChannel(message: UserMessage) {
         return message.channel.id === this.generalChannel.id;
