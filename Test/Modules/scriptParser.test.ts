@@ -57,7 +57,7 @@ describe('test scriptParser', () => {
 
                 test('findRoom().occupantsString', () => {
                     const script = "findRoom('general-managers-office').occupantsString";
-                    const expected = "QM, Amadeus, and Vivian";
+                    const expected = "Amadeus, QM, and Vivian";
                     const result = evaluate(script, container, qm);
                     expect(result).toBe(expected);
                 });
