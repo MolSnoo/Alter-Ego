@@ -23,6 +23,14 @@ import type { CommandConfig } from "./Classes/Command/Command.ts";
 export { };
 
 declare global {
+    /**
+     * Utility type that indicates an array that is not empty.
+     * 
+     * This only means that at least one of T exists in the array.
+     * As long as the length of the array is greater than 0, then it is an ArrayNonEmpty.
+     */
+    type ArrayNonEmpty<T> = [T, ...T[]];
+
     /** Utility type that indicates that something is to be a value of T. Used for enums. */
     type valueof<T> = T[keyof T];
 

@@ -988,9 +988,10 @@ export class Pattern implements PatternElement {
         let data = new MatchData(streams, game);
         data.hasConsumed.set(this, false);
         data = this.innerMatch(data);
-        if (data.errors.length > 0) return new InvalidInvocation(data.errors);
+        if (data.errors.length > 0)
+            return new InvalidInvocation(data.errors as ArrayNonEmpty<string>);
         else {
-            const args: Collection<string, GameEntity[]> = new Collection();
+            const args: Collection<string, ArrayNonEmpty<GameEntity>> = new Collection();
             const opts: DefaultMap<string, DefaultMap<string, boolean>> = new DefaultMap(
                 () => new DefaultMap(
                     () => false
@@ -1002,7 +1003,7 @@ export class Pattern implements PatternElement {
                         key.name,
                         val.map(
                             (token: EntityToken<GameEntity>) => token.reference
-                        ),
+                        ) as ArrayNonEmpty<GameEntity>,
                     );
                 else if (key instanceof Option)
                     opts.get(key.name).set(val.find((token) => token instanceof ConstantToken).value, true);

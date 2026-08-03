@@ -52,7 +52,7 @@ const command = new PlayerCommand({
         if (status.length > 0)
             return new InvalidInvocation([`You cannot do that because you are **${status[0].id}**.`]);
 
-        const args: Collection<string, GameEntity[]> = new Collection();
+        const args: Collection<string, ArrayNonEmpty<GameEntity>> = new Collection();
         const item1 = inv.getInventoryItems("item 1").find(item => ctx.heldItems.has(item));
         const item2 = inv.getInventoryItems("item 2").find(item => ctx.heldItems.has(item));
 

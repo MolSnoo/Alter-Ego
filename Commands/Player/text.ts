@@ -56,7 +56,7 @@ const command = new PlayerCommand({
         if (inv.glob.length === 0 && ctx.message.attachments.size === 0)
             return new InvalidInvocation([ctx.game.errorMessageGenerator.generateCannotEmptyTextError()]);
 
-        const args: Collection<string, GameEntity[]> = new Collection();
+        const args: Collection<string, ArrayNonEmpty<GameEntity>> = new Collection();
         args.set("recipient", [recipient]);
         return new ValidatedInvocation({ glob: inv.glob, args: args });
     },
