@@ -1801,7 +1801,7 @@ export default class GameEntityLoader extends GameEntityManager {
                     errors.push(new Error(`Couldn't load player on row ${row + 3}. No player name was given.`));
                     continue;
                 }
-                const playerName = Player.generateValidName(sheet[row][columnName], true) ?? "";
+                const playerName = Player.generateValidName(sheet[row][columnName]) ?? "";
                 const spectateChannelName = Room.generateValidId(playerName) ?? "";
                 if (spectateChannelName === "") {
                     errors.push(new Error(`Couldn't load player on row ${row + 3}. The name of a player cannot be only special characters.`));
@@ -1839,7 +1839,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 const player = new Player(
                     sheet[row][columnId] ? sheet[row][columnId].trim() : "",
                     member,
-                    playerName ? playerName : "",
+                    sheet[row][columnName] ? Player.generateValidName(sheet[row][columnName], true) : "",
                     sheet[row][columnTitle] ? sheet[row][columnTitle].trim() : "",
                     sheet[row][columnPronouns] ? sheet[row][columnPronouns].trim().toLowerCase() : "",
                     sheet[row][columnVoice] ? sheet[row][columnVoice].trim() : "",
