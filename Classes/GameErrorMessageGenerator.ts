@@ -140,6 +140,35 @@ export default class GameErrorMessageGenerator {
     }
 
     /**
+     * Generates an error message indicating that the player cannot send text messages.
+     */
+    generateCannotSendTextError() {
+        return `You do not have a device with which to send a text message.`;
+    }
+
+    /**
+     * Generates an error message indicating that the intended recipient cannot send receive messages.
+     * @param player - The player that does not have a device for receiving messages.
+     */
+    generateCannotReceiveTextError(player: Player) {
+        return `${player.name} does not have a device with which to receive a text message.`;
+    }
+
+    /**
+     * Generates an error message indicating that the player cannot send text messages to themselves.
+     */
+    generateCannotTextSelfError() {
+        return `You cannot send a message to yourself.`;
+    }
+
+    /**
+     * Generates an error message indicating that the player cannot send empty text messages.
+     */
+    generateCannotEmptyTextError() {
+        return `Text message cannot be empty. Please send a message and/or an attachment.`;
+    }
+
+    /**
      * Generates an error message indicating that the players are not in the same room.
      * @param players - A list of players.
      */
