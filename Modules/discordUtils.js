@@ -359,23 +359,20 @@ function generateActionRows(interactables, componentCount = 0) {
  * @param {string} aliasString - A comma-separated list of aliases for the command.
  * @param {string} usage - A newline-separated list of examples of the command's usage.
  * @param {string} details - Details about the command's usage.
- * @param {string} thumbnailURL - The URL of an image to use as the thumbnail of the display.
+ * @param {string | null} thumbnailURL - The URL of an image to use as the thumbnail of the display.
  * @param {string} color - The color as a hex code.
  */
 export function createCommandHelpComponents(title, description, aliasString, usage, details, thumbnailURL, color) {
+    const section = new SectionBuilder();
+    if (thumbnailURL !== null) section.setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnailURL));
+    section.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(title),
+        new TextDisplayBuilder().setContent(description),
+    )
     return [
         new ContainerBuilder()
             .setAccentColor(Number(`0x${color}`))
-            .addSectionComponents(
-                new SectionBuilder()
-                    .setThumbnailAccessory(
-                        new ThumbnailBuilder().setURL(thumbnailURL)
-                    )
-                    .addTextDisplayComponents(
-                        new TextDisplayBuilder().setContent(title),
-                        new TextDisplayBuilder().setContent(description)
-                    )
-            )
+            .addSectionComponents(section)
             .addTextDisplayComponents(
                 new TextDisplayBuilder().setContent("**Aliases**")
             )
