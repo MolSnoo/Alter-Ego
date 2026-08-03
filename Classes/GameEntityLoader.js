@@ -1833,7 +1833,16 @@ export default class GameEntityLoader extends GameEntityManager {
 			this.clearPlayers();
 			/** @type {Error[]} */
 			let errors = [];
-			for (let row = 0; row < sheet.length; row++) {
+            for (let row = 0; row < sheet.length; row++) {
+				const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
+                if (sheet[row][columnName] === "") {
+                    errors.push(new Error(`Couldn't load player on row ${row}. The name of a player cannot be blank.`));
+                    continue;
+                }
+                else if (spectateChannelName === "") {
+                    errors.push(new Error(`Couldn't load player on row ${row}. The name of a player cannot be only special characters.`));
+                    continue;
+                }
 				const stats = {
 					strength: parseInt(sheet[row][columnStrength]),
 					perception: parseInt(sheet[row][columnPerception]),
@@ -1862,7 +1871,6 @@ export default class GameEntityLoader extends GameEntityManager {
 						member = sheet[row][columnId] ? this.game.guildContext.guild.members.resolve(sheet[row][columnId].trim()) : null;
 						notificationChannel = await member.createDM();
 					} catch (error) { }
-					const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
 					spectateChannel = this.game.guildContext.guild.channels.cache.find(channel =>
 						channel.parent
 						&& channel.parentId === this.game.guildContext.spectateCategoryId
