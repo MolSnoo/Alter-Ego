@@ -41,7 +41,7 @@ export async function executeCommand(commandStr: string, game: Game, message?: U
             }
             else {
                 message.author.send("There is no game currently running.");
-                message.delete();
+                message.delete().catch();
                 return false;
             }
         }
@@ -55,7 +55,7 @@ export async function executeCommand(commandStr: string, game: Game, message?: U
         }
         command.execute(game, message, commandAlias, args, moderator);
         if (message.channel.id !== game.guildContext.commandChannel.id)
-            message.delete();
+            message.delete().catch();
         game.botContext.logCommand(message.author.username, message.content, timestamp);
         return true;
     }
