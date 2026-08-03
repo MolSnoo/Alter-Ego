@@ -88,7 +88,8 @@ export async function execute(game, message, command, args, moderator) {
     );
 
     // Only add them to the player collections if an actual game isn't currently ongoing.
-    if (!game.inProgress || game.canJoin) {
+    const addPlayer = !game.inProgress || game.canJoin;
+    if (addPlayer) {
         game.players.set(Game.generateValidEntityName(player.name), player);
         game.livingPlayers.set(Game.generateValidEntityName(player.name), player);
     }
@@ -119,7 +120,7 @@ export async function execute(game, message, command, args, moderator) {
         row = row.concat(playerdefaults.defaultInventory[i]);
         for (let j = 0; j < row.length; j++) {
             if (row[j].includes('#'))
-                row[j] = row[j].replace(/#/g, String(game.players.size));
+                row[j] = row[j].replace(/#/g, String(game.players.size + (addPlayer ? 0 : 1)));
         }
         inventoryCells.push(row);
     }

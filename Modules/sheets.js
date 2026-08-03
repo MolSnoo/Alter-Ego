@@ -151,10 +151,15 @@ export function batchUpdateSheet (requests, spreadsheetId) {
  * @returns {Promise<any>} {@link https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/append#response-body}
  */
 export function appendRowsToSheet (sheetRange, data, spreadsheetId, overwrite = false) {
+    // Google Sheets attempts to detect the table of existing data, and if there are any gaps,
+    // it determines that to be where to append data. So, we need to extract only the first column in the range.
+    // This ensures that rows will always be appended starting in the first column.
+    const appendRange = sheetRange.includes(":") ? sheetRange.split(":")[0] : sheetRange;
+
     const request = {
         spreadsheetId: spreadsheetId,
 
-        range: sheetRange,
+        range: appendRange,
 
         valueInputOption: 'RAW',
 
