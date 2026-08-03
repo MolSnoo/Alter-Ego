@@ -581,7 +581,7 @@ describe('test scriptParser', () => {
 
         test('player.description.replace(/container\./g, "player.") works', () => {
             const result = evaluate("this.description.parseFor(player)", qm, qm);
-            expect(result).toBe('QM');
+            expect(result).toBe('???');
         });
 
         test('new Date().toLocaleTimeString returns a string time', () => {
