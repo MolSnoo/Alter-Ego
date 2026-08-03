@@ -17,7 +17,7 @@ describe('DieAction test', () => {
 
     test('DieAction perform', () => {
         const mockMessage = createMockMessage();
-        const player = game.entityFinder.getLivingPlayer("???");
+        const player = game.entityFinder.getLivingPlayer("QM");
         expect(player).toBeInstanceOf(Player);
         const death = new DieAction(game, mockMessage, player, player.location, true);
         death.performDie();

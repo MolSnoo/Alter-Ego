@@ -116,7 +116,7 @@ describe('Player test', () => {
 
     describe('Procedural selection preservation', () => {
         test('Procedural selections are preserved during crafting and uncrafting', () => {
-            const player = game.entityFinder.getPlayer('???');
+            const player = game.entityFinder.getPlayer('QM');
             let rightHand = game.entityFinder.getPlayerHandHoldingItem(player, 'FIRED CLAY POT 91');
             let leftHand = game.entityFinder.getPlayerHandHoldingItem(player, 'GLAZE');
             expect(rightHand).not.toBeUndefined();
