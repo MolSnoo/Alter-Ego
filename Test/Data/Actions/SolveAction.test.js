@@ -1,3 +1,0 @@
-describe('SolveAction test', () => {
-    test('', () => {});
-});

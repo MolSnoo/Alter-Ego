@@ -1,3 +1,0 @@
-describe('InflictAction test', () => {
-    test('', () => {});
-});

@@ -1,3 +1,0 @@
-describe('Whisper test', () => {
-    test('', () => {});
-});

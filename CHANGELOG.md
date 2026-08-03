@@ -9,6 +9,24 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 All notable changes to this project will be documented in this file.
 This project does **not** adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [v2.0.2] - 2026-07-04
+
+## Fixed
+
+- Room description messages used to fail to send if the Room had no icon URL, the `DEFAULT_ROOM_ICON_URL` setting was
+  blank, and no server icon was set. They should send without issue now!
+
+## Full Changelog
+
+- Converted tests to TypeScript by @MsVBLANK in https://github.com/MsVBLANK/Alter-Ego/pull/443
+- Prevented empty ThumbnailBuilder creation by @MsVBLANK in https://github.com/MsVBLANK/Alter-Ego/pull/453
+
+## Addendum
+
+We're hard at work developing version 2.1! It will introduce a lot of exciting new features, so stay tuned!
+
+---
+
 # [v2.0.1] - 2026-06-04
 
 ## Fixed
@@ -28,6 +46,8 @@ This project does **not** adhere to [Semantic Versioning](https://semver.org/spe
   in a Recipe, Alter Ego would mistakenly consider the Recipe to be satisfied by those Room Items, and attempt to
   process it. This could potentially cause an infinite loop, causing it to stop responding. It now correctly identifies
   the Recipe as not being satisfied by those Room Items.
+
+---
 
 # [v2.0.0] - 2026-05-20
 
@@ -1098,6 +1118,7 @@ https://docs.google.com/spreadsheets/d/1MqdWPqUmhR6qqJJsC5zMwyvIYmIwENEFcYENBd50
 
 ---
 
+[v2.0.2]: https://github.com/MsVBLANK/Alter-Ego/compare/2.0.1...2.0.2
 [v2.0.1]: https://github.com/MsVBLANK/Alter-Ego/compare/2.0.0...2.0.1
 [v2.0.0]: https://github.com/MsVBLANK/Alter-Ego/compare/1.10.1...2.0.0
 [v1.10.1]: https://github.com/MsVBLANK/Alter-Ego/compare/1.10.0...1.10.1

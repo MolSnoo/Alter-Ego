@@ -1,3 +1,0 @@
-describe('HideAction test', () => {
-    test('', () => {});
-});

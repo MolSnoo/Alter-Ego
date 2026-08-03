@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import {readFile} from "fs/promises";
 import {readFileSync} from "fs";
 import {loadServerConfig, type ServerConfig} from "../../Modules/serverManager.js";

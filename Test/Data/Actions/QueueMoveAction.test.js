@@ -1,3 +1,0 @@
-describe('QueueMoveAction test', () => {
-    test('', () => {});
-});

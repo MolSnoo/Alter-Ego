@@ -1,3 +1,0 @@
-describe('InspectAction test', () => {
-    test('', () => {});
-});

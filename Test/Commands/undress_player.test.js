@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import PlayerCommand from "../../Classes/PlayerCommand.ts";
 import { usage, execute, config } from '../../Commands/undress_player.js'
 import UndressAction from "../../Data/Actions/UndressAction.ts";

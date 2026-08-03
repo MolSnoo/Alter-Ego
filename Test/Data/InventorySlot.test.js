@@ -1,3 +1,0 @@
-describe('InventorySlot test', () => {
-    test('', () => {});
-});

@@ -1,3 +1,0 @@
-describe('Flag test', () => {
-    test('', () => {});
-});

@@ -7,7 +7,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 # Alter Ego Docs
 
 <div class="alter-ego-version">
-Version: 2.0.1
+Version: 2.0.2
 </div>
 
 Welcome to the Alter Ego Docs! This documentation website serves as a knowledge hub for Alter Ego, a game engine to

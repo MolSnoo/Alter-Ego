@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import ModeratorCommand from '../../Classes/ModeratorCommand.ts';
 import { usage, execute, config } from '../../Commands/destroy_moderator.js'
 import DestroyInventoryItemAction from '../../Data/Actions/DestroyInventoryItemAction.ts';

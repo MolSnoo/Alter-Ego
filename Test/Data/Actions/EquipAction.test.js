@@ -1,3 +1,0 @@
-describe('EquipAction test', () => {
-    test('', () => {});
-});

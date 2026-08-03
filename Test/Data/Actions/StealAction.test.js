@@ -1,3 +1,0 @@
-describe('StealAction test', () => {
-    test('', () => {});
-});

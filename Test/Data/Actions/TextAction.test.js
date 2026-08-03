@@ -1,3 +1,0 @@
-describe('TextAction test', () => {
-    test('', () => {});
-});

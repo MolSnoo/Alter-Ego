@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 export default (actual: Array<unknown>, length: number) => {
     if (!('length' in actual)) throw new TypeError('This must have size attribute!');
     if (typeof actual.length !== 'number' || typeof length !== 'number') throw new TypeError('These must be of type number!');

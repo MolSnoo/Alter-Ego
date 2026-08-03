@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import ModeratorCommand from "../../Classes/ModeratorCommand.ts";
 import { usage, execute, config } from '../../Commands/createroomcategory_moderator.js'
 import { clearQueue, sendQueuedMessages } from "../../Modules/messageHandler.js";

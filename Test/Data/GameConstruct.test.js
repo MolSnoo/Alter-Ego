@@ -1,3 +1,0 @@
-describe('GameConstruct test', () => {
-    test('', () => {});
-});

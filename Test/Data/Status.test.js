@@ -1,3 +1,0 @@
-describe('Status test', () => {
-    test('', () => {});
-});

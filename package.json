@@ -1,13 +1,13 @@
 {
   "name": "alter-ego",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A game engine to create immersive text adventure role playing games for Discord.",
   "main": "bot.js",
   "type": "module",
   "scripts": {
     "run": "node bot.js",
     "start": "node bot.js",
-    "createLocalFiles": "node Test/createLocalFiles.js",
+    "createLocalFiles": "node Test/createLocalFiles.ts",
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage"
@@ -40,8 +40,8 @@
     "@tsconfig/node24": "^24.0.4",
     "@types/luxon": "^3.7.1",
     "@types/node": "24.10.1",
-    "@vitest/coverage-v8": "4.0.17",
+    "@vitest/coverage-v8": "4.1.9",
     "typescript": "5.9.3",
-    "vitest": "4.0.17"
+    "vitest": "4.1.9"
   }
 }

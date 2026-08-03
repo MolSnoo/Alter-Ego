@@ -1,3 +1,0 @@
-describe('GiveAction test', () => {
-    test('', () => {});
-});

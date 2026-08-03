@@ -1,3 +1,0 @@
-describe('UseAction test', () => {
-    test('', () => {});
-});

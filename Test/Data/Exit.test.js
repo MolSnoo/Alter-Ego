@@ -1,3 +1,0 @@
-describe('Exit test', () => {
-    test('', () => {});
-});

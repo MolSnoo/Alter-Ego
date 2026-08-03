@@ -1,3 +1,0 @@
-describe('Gesture test', () => {
-    test('', () => {});
-});

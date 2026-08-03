@@ -1,3 +1,0 @@
-describe('GameNarrationHandler test', () => {
-    test('', () => {});
-});

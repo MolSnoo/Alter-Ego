@@ -1,3 +1,0 @@
-describe('UnequipAction test', () => {
-    test('', () => {});
-});

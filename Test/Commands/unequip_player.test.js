@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import PlayerCommand from '../../Classes/PlayerCommand.ts';
 import { usage, execute, config } from '../../Commands/unequip_player.js'
 import UnequipAction from '../../Data/Actions/UnequipAction.ts';

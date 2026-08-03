@@ -4,12 +4,12 @@ import { plugins } from '@vitest/pretty-format';
 import demodata from './__mocks__/configs/demodata.js';
 import serverconfig from './__mocks__/configs/serverconfig.js';
 
-import toBeWithinRange from './__extenders__/toBeWithinRange.js';
+import toBeWithinRange from './__extenders__/toBeWithinRange.ts';
 import toBeLength from './__extenders__/toBeLength.ts';
-import toHaveSize from './__extenders__/toHaveSize.js';
-import toBeInvokedWith from './__extenders__/toBeInvokedWith.js';
-import toBeWebhookMessage from './__extenders__/toBeWebhookMessage.js';
-import toBeMessageWith from './__extenders__/toBeMessageWith.js';
+import toHaveSize from './__extenders__/toHaveSize.ts';
+import toBeInvokedWith from './__extenders__/toBeInvokedWith.ts';
+import toBeWebhookMessage from './__extenders__/toBeWebhookMessage.ts';
+import toBeMessageWith from './__extenders__/toBeMessageWith.ts';
 
 import * as sheetsMock from './__mocks__/libs/sheets.js';
 vi.mock('../Modules/sheets.js', () => sheetsMock);

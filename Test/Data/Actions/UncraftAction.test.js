@@ -1,3 +1,0 @@
-describe('UncraftAction test', () => {
-    test('', () => {});
-});

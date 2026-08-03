@@ -1,3 +1,0 @@
-describe('ItemContainer test', () => {
-    test('', () => {});
-});

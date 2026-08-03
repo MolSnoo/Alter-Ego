@@ -1,3 +1,0 @@
-describe('UndressAction test', () => {
-    test('', () => {});
-});

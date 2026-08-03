@@ -1,3 +1,0 @@
-describe('Die test', () => {
-    test('', () => {});
-});

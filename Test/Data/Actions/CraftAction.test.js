@@ -1,3 +1,0 @@
-describe('CraftAction test', () => {
-    test('', () => {});
-});
