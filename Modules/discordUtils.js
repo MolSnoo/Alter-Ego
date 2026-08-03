@@ -359,12 +359,18 @@ function generateActionRows(interactables, componentCount = 0) {
  * @param {string} aliasString - A comma-separated list of aliases for the command.
  * @param {string} usage - A newline-separated list of examples of the command's usage.
  * @param {string} details - Details about the command's usage.
- * @param {string | null} thumbnailURL - The URL of an image to use as the thumbnail of the display.
+ * @param {string} thumbnailURL - The URL of an image to use as the thumbnail of the display.
  * @param {string} color - The color as a hex code.
  */
 export function createCommandHelpComponents(title, description, aliasString, usage, details, thumbnailURL, color) {
+    /**
+     * @privateRemarks
+     * IMPORTANT: thumbnailURL will not be null if it is unset, it will be "null".
+     * What is here so far will not work... The fix bundled with 2.0.2 will need to be repeated here.
+     * - AC
+     */
     const section = new SectionBuilder();
-    if (thumbnailURL !== null) section.setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnailURL));
+    if (thumbnailURL !== "null") section.setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnailURL));
     section.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(title),
         new TextDisplayBuilder().setContent(description),
