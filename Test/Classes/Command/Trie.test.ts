@@ -19,12 +19,7 @@ import { bench } from "../../benchmark.ts";
  * any suggestions for doing this in a less terrible way would be appreciated!
  * - AC
  */
-const DEBUG = true;
-
-/** Number of iterations used for the heavy full‑load benchmark – keep it low to avoid OOM. */
-const LOAD_ITERATIONS = 100;
-/** Number of iterations for lightweight lookup benchmarks. */
-const LOOKUP_ITERATIONS = 100;
+const DEBUG = false;
 
 describe("Trie class from NG Commands", () => {
     beforeAll(async () => {
@@ -184,7 +179,6 @@ describe("Trie class from NG Commands", () => {
 
                     return t;
                 },
-                iterations: LOAD_ITERATIONS,
                 shortcircuit: !DEBUG,
             });
 
@@ -205,25 +199,21 @@ describe("Trie class from NG Commands", () => {
             const [amaResult, amaTime] = bench({
                 function: lookupAmadeus,
                 args: [loadedTrie],
-                iterations: LOOKUP_ITERATIONS,
                 shortcircuit: !DEBUG,
             });
             const [potResult, potTime] = bench({
                 function: lookupPot,
                 args: [loadedTrie],
-                iterations: LOOKUP_ITERATIONS,
                 shortcircuit: !DEBUG,
             });
             const [filledPotResult, filledPotTime] = bench({
                 function: lookupFilledPot,
                 args: [loadedTrie],
-                iterations: LOOKUP_ITERATIONS,
                 shortcircuit: !DEBUG,
             });
             const [complexResult, complexTime] = bench({
                 function: lookupComplex,
                 args: [loadedTrie],
-                iterations: LOOKUP_ITERATIONS,
                 shortcircuit: !DEBUG,
             });
 
