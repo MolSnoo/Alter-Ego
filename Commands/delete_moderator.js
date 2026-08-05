@@ -57,7 +57,7 @@ export async function execute(game, message, command, args, moderator) {
                 size = actualMessages.length;
             }
             channel.bulkDelete(messages, true).then(() => {
-                channel.send(`Deleted ${size} messages.`).then(message => { setTimeout(() => message.delete(), 3000); });
+                channel.send(`Deleted ${size} messages.`).then(message => { setTimeout(() => message.delete().catch(), 3000); });
             }).catch(error => console.log(error.stack));
         });
     }

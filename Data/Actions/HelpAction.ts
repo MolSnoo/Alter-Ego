@@ -28,6 +28,9 @@ export default class HelpAction extends Action {
         if (!this.message) return;
         const roleCommands = await this.#getRoleCommands(role);
         if (commandAlias) {
+            if (commandAlias.startsWith(this.getGame().settings.commandPrefix))
+                commandAlias = commandAlias.substring(this.getGame().settings.commandPrefix.length);
+            commandAlias = commandAlias.toLowerCase();
             const command = roleCommands.find(command => command.config.aliases.includes(commandAlias));
             if (!command) return this.getGame().communicationHandler.reply(this.message, `Couldn't find command "${commandAlias}".`);
             this.getGame().communicationHandler.sendCommandHelp(this.#channel, command);

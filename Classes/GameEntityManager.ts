@@ -332,7 +332,7 @@ export default abstract class GameEntityManager {
 	 * @param whisper - The whisper to delete.
 	 */
 	async deleteWhisper(whisper: Whisper): Promise<void> {
-		if (this.game.settings.autoDeleteWhisperChannels) await whisper.channel.delete();
+		if (this.game.settings.autoDeleteWhisperChannels) await whisper.channel.delete().catch();
 		else await whisper.channel.edit({ name: `archived-${whisper.location.id}`, lockPermissions: true });
 		whisper.players.clear();
 		this.game.whispers.delete(whisper.id);

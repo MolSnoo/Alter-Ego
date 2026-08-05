@@ -5,7 +5,7 @@ export default defineConfig({
         globals: true,
         coverage: {
             provider: "v8",
-            enabled: true,
+            enabled: false,
             reportOnFailure: true,
             include: ["Classes/*.{js,ts}", "Commands/*.{js,ts}", "Data/*.{js,ts}", "Data/Actions/*.{js,ts}", "Modules/*.{js,ts}"],
         },

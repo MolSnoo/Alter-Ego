@@ -371,7 +371,7 @@ export default class BotInteractionHandler {
             try {
                 const validatedArgs = action.validateInteractionArgs(parsedArgs);
                 action.performFind(validatedArgs);
-                if (reply) reply.resource.message.delete();
+                if (reply) reply.resource.message.delete().catch();
                 return true;
             }
             catch (error) { throw new Error(error.message); }
@@ -382,7 +382,7 @@ export default class BotInteractionHandler {
             try {
                 const validatedArgs = action.validateInteractionArgs(parsedArgs);
                 await action.performView(validatedArgs[0], validatedArgs[1]);
-                if (reply) reply.resource.message.delete();
+                if (reply) reply.resource.message.delete().catch();
                 return true;
             }
             catch (error) { throw new Error(error.message); }
@@ -402,7 +402,7 @@ export default class BotInteractionHandler {
         if (!interaction.message) return false;
         if (interactable instanceof PaginationInteractable) {
             interactable.callback(interaction);
-            if (reply) reply.resource.message.delete();
+            if (reply) reply.resource.message.delete().catch();
         }
        return true;
     }
@@ -415,7 +415,7 @@ export default class BotInteractionHandler {
      */
     #replyOrDeleteActionResponse(action: Action, interaction: BotInteraction, reply?: InteractionCallbackResponse<boolean>) {
         if (action.forced && action.successMessage) this.#replyToInteraction(action.successMessage, interaction);
-        else if (reply) reply.resource.message.delete();
+        else if (reply) reply.resource.message.delete().catch();
     }
 
 	/**
