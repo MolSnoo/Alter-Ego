@@ -1,5 +1,6 @@
 ﻿import Game from '../Data/Game.ts';
 import Player from '../Data/Player.ts';
+import Room from '../Data/Room.ts';
 import { Collection } from 'discord.js';
 import {loadPlayerDefaults} from "../Modules/settingsLoader.ts";
 
@@ -36,13 +37,24 @@ export async function execute(game, message, command, args) {
     }
     if (!game.canJoin) return game.communicationHandler.reply(message, "You were too late to join the game. Contact a moderator to be added before the game starts.");
 
-    const [playerdefaults] = loadPlayerDefaults();
     const member = await game.guildContext.guild.members.fetch(message.author.id);
+    const playerName = Player.generateValidName(member.displayName);
+    if (!playerName || playerName === "")
+        return game.communicationHandler.reply(message, `Your username consists entirely of invalid characters. Please edit your username or ask a moderator to set your nickname first, preferably without any spaces or special characters.`);
+    /** @type {Messageable} */
+    let notificationChannel;
+    try {
+        notificationChannel = await game.guildContext.createDM(member);
+    } catch (error) { console.error(error); }
+    if (!notificationChannel)
+        return game.communicationHandler.reply(message, `Couldn't create a DM channel with you. Please edit your privacy settings for this server to allow direct messages from server members.`);
+    const spectateChannel = await game.guildContext.getOrCreateSpectateChannel(Room.generateValidId(playerName));
 
+    const [playerdefaults] = loadPlayerDefaults();
     const player = new Player(
         message.author.id,
         member,
-        member.displayName,
+        playerName,
         "",
         playerdefaults.defaultPronouns,
         playerdefaults.defaultVoice,
@@ -53,8 +65,8 @@ export async function execute(game, message, command, args) {
         [],
         playerdefaults.defaultDescription,
         new Collection(),
-        null,
-        null,
+        notificationChannel,
+        spectateChannel,
         0,
         game
     );

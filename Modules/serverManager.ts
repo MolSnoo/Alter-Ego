@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { ChannelType, Client, Role, TextChannel, type Guild, type GuildBasedChannel } from "discord.js";
+import { ChannelType, Client, PermissionFlagsBits, Role, TextChannel, type Guild, type GuildBasedChannel } from "discord.js";
 import { access, constants, readFile, writeFile, mkdir } from "node:fs/promises";
 import type Game from "../Data/Game.ts";
 import GuildContext from "../Classes/GuildContext.ts";
@@ -83,6 +83,28 @@ export async function createGuildContext(client: Client): Promise<[GuildContext,
         if (errors.length > 0) {
             console.log(errors.join('\n'));
             return process.exit(3);
+        }
+        const adminRoles = guild.members.me.roles.cache.filter(role => role.permissions.has(PermissionFlagsBits.Administrator));
+        if (adminRoles.size === 0) {
+            console.log("Error: Bot must have the Administrator permission.");
+            return process.exit(4);
+        }
+        const adminRole = adminRoles.sort((a, b) => b.position - a.position).first();
+        if (adminRole.comparePositionTo(testerRole) < 0)
+            errors.push("Error: Bot's Administrator role must be higher than testerRole in the role list.");
+        if (adminRole.comparePositionTo(eligibleRole) < 0)
+            errors.push("Error: Bot's Administrator role must be higher than eligibleRole in the role list.");
+        if (adminRole.comparePositionTo(playerRole) < 0)
+            errors.push("Error: Bot's Administrator role must be higher than playerRole in the role list.");
+        if (adminRole.comparePositionTo(freeMovementRole) < 0)
+            errors.push("Error: Bot's Administrator role must be higher than freeMovementRole in the role list.");
+        if (adminRole.comparePositionTo(deadRole) < 0)
+            errors.push("Error: Bot's Administrator role must be higher than deadRole in the role list.");
+        if (adminRole.comparePositionTo(spectatorRole) < 0)
+            errors.push("Error: Bot's Administrator role must be higher than spectatorRole in the role list.");
+        if (errors.length > 0) {
+            console.log(errors.join('\n'));
+            return process.exit(4);
         }
         const guildContext = new GuildContext(
             guild,

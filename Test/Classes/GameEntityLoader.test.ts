@@ -861,6 +861,7 @@ describe('GameEntityLoader test', () => {
                     ["665168062697177107","fff","","a/b/c/d//"],
                     ["665168062697177107","ggg","","a/b/c/d/e/"],
                     ["665168062697177107","hhh","","neutral",""],
+                    ["665168062697177107","???","","neutral","shrill"],
                 ]);
                 const playerCount = await testGame.entityLoader.loadPlayers(true, errors);
                 const errorStrings = errors.join('\n').split('\n');
@@ -874,6 +875,7 @@ describe('GameEntityLoader test', () => {
                     "Error: Couldn't load player on row 9. No reflexive pronoun was given.",
                     "Error: Couldn't load player on row 10. Whether the player's pronouns pluralize verbs was not specified.",
                     "Error: Couldn't load player on row 11. No voice descriptor was given.",
+                    "Error: Couldn't load player on row 12. The name of a player cannot be only special characters.",
                 ];
                 expect(errors).not.toEqual([]);
                 expect(playerCount).toBe(0);

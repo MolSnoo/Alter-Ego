@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 'use strict';
 
 import { readFileSync } from 'fs';

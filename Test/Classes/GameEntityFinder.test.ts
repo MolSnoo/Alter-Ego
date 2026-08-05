@@ -341,9 +341,9 @@ describe("GameEntityFinder test", () => {
             expect(player.name).toBe("Amadeus");
         });
         test("Get valid player with special characters by name", () => {
-            let player = testGame.entityFinder.getPlayer("???");
+            let player = testGame.entityFinder.getPlayer("QM");
             expect(player).toBeInstanceOf(Player);
-            expect(player.name).toBe("???");
+            expect(player.name).toBe("QM");
         });
         test("Get invalid player by name", () => {
             let player = testGame.entityFinder.getPlayer("INVALID");
