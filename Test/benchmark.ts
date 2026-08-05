@@ -8,8 +8,8 @@
 interface benchArgs<F extends (...args: any) => any, T = unknown> {
     /** A function, taking in the given args. */
     function: F;
-    /** The "this" paramter to F. */
-    context: T;
+    /** The "this" paramter to F. Defaults to undefined. */
+    context?: T;
     /** Args to F. Defaults to an empty array. */
     args?: Parameters<F>;
     /** The iterations to run for. */
