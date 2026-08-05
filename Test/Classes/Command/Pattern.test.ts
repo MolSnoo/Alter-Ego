@@ -22,6 +22,7 @@ import Room from "../../../Data/Room.ts";
 import RoomItem from "../../../Data/RoomItem.ts";
 import Status from "../../../Data/Status.ts";
 import { clearQueue } from "../../../Modules/messageHandler.js";
+import { bench } from "../../benchmark.ts";
 
 /**
  * @privateRemarks
@@ -30,29 +31,6 @@ import { clearQueue } from "../../../Modules/messageHandler.js";
  * - AC
  */
 const DEBUG = false;
-
-/**
- * Utility function for benchmarking. Run f() n number of times, returning the bigint representing the duration in nanoseconds of the fastest call.
- * @param f - The function to benchmark.
- * @param n - The number of times to run the function.
- */
-function bench<T extends unknown>(f: () => T, n: number = 1000): [T, bigint] {
-    // short-circuit outside of DEBUG
-    if (!DEBUG) return [f(), 0n];
-    // try to warmup
-    for (let i = 0; i < 10; i++)
-        f();
-    // benchmark
-    const times: [T, bigint][] = [];
-    for (let i = 0; i < n; i++) {
-        const start = process.hrtime.bigint();
-        const out = f();
-        const end = process.hrtime.bigint();
-        times.push([out, end - start]);
-    }
-    // return
-    return times.reduce((a, b) => a[1] < b[1] ? a : b);
-}
 
 /**
  * Assert that the given value is an instance of the given constructor.
@@ -429,8 +407,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "and", "PACK", "OF", "TOILET", "PAPER", "2"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "and", "PACK", "OF", "TOILET", "PAPER", "2"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(1) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -461,8 +439,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MG", "F", "CFF", "and", "PACK", "OF", "TOILET", "PAPER", "2"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MG", "F", "CFF", "and", "PACK", "OF", "TOILET", "PAPER", "2"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(2) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -479,8 +457,8 @@ describe("Pattern file from NG Commands", () => {
                 new Preposition("destination"),
                 new Slot(Fixture, "destination"),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "on", "FLOOR"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "on", "FLOOR"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(3) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -510,8 +488,8 @@ describe("Pattern file from NG Commands", () => {
                 new Preposition("destination"),
                 new Slot(Fixture, "destination"),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "next", "to", "FLOOR"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "next", "to", "FLOOR"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(4) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -528,8 +506,8 @@ describe("Pattern file from NG Commands", () => {
                 new Preposition("destination"),
                 new Slot(Fixture, "destination"),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "FLOOR"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "in", "FLOOR"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(5) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -561,8 +539,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "of", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "of", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(6) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -599,8 +577,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "with"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "with"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(7) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -623,8 +601,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "of", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "of", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(8) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -665,8 +643,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "in", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(9) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -694,8 +672,8 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(Player, "recipient"),
                 new Glob(),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["kyra", "Hello.\n\nI", "have", "overheard", "your", "conversation", "with", "Huiyu", "regarding", "your", "*very", "large", "rabbit*.\n\nPlease", "tell", "me", "more", "about", "the", "nature", "of", "this", "rabbit."]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["kyra", "Hello.\n\nI", "have", "overheard", "your", "conversation", "with", "Huiyu", "regarding", "your", "*very", "large", "rabbit*.\n\nPlease", "tell", "me", "more", "about", "the", "nature", "of", "this", "rabbit."]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(10) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -717,8 +695,8 @@ describe("Pattern file from NG Commands", () => {
                 new Slot(Player, "recipient"),
                 new Glob(),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["kyra"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["kyra"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(11) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -747,8 +725,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "in", "RIGHT", "POCKET", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(12) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -766,8 +744,8 @@ describe("Pattern file from NG Commands", () => {
             const pattern = new Pattern([
                 new Glob(),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize([]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [[]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(13) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -790,8 +768,8 @@ describe("Pattern file from NG Commands", () => {
             ]);
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "IN", "RIGHT", "POCKET", "OF", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "IN", "RIGHT", "POCKET", "OF", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(14) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -824,8 +802,8 @@ describe("Pattern file from NG Commands", () => {
             const pattern = new Pattern([
                 new Glob(),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize([]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [[]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(15) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -840,8 +818,8 @@ describe("Pattern file from NG Commands", () => {
             const pattern = new Pattern([
                 new Glob(),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["Hello", "world!"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["Hello", "world!"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(16) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -856,8 +834,8 @@ describe("Pattern file from NG Commands", () => {
             const pattern = new Pattern([
                 new Glob(),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["Hello?"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["Hello?"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(17) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -874,8 +852,8 @@ describe("Pattern file from NG Commands", () => {
                 new Multiconstant(["and", "with"]),
                 new Slot(InventoryItem, "item 2"),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "attacks", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "attacks", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(18) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -895,8 +873,8 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             // first sub-case "with"
-            const [tokensWith, tokenizedWith] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "with", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationWith, matchedWith] = bench(() => pattern.match(tokensWith, testGame));
+            const [tokensWith, tokenizedWith] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "with", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocationWith, matchedWith] = bench({function: pattern.match, context: pattern, args: [tokensWith, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(19) [with] took ${Number(tokenizedWith + matchedWith) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedWith) / 1000}μs`);
@@ -918,8 +896,8 @@ describe("Pattern file from NG Commands", () => {
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             // second sub-case "and"
-            const [tokensAnd, tokenizedAnd] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "and", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationAnd, matchedAnd] = bench(() => pattern.match(tokensAnd, testGame));
+            const [tokensAnd, tokenizedAnd] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "and", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocationAnd, matchedAnd] = bench({function: pattern.match, context: pattern, args: [tokensAnd, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(19) [and] took ${Number(tokenizedAnd + matchedAnd) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedAnd) / 1000}μs`);
@@ -951,8 +929,8 @@ describe("Pattern file from NG Commands", () => {
             for (const constant of pattern.constants)
                 trie.insert(constant, new ConstantToken(constant));
             // first sub-case "with"
-            const [tokensWith, tokenizedWith] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "with", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationWith, matchedWith] = bench(() => pattern.match(tokensWith, testGame));
+            const [tokensWith, tokenizedWith] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "with", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocationWith, matchedWith] = bench({function: pattern.match, context: pattern, args: [tokensWith, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(20) [with] took ${Number(tokenizedWith + matchedWith) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedWith) / 1000}μs`);
@@ -978,8 +956,8 @@ describe("Pattern file from NG Commands", () => {
             expect(invocationWith.getOpt("article", "with")).toBeTruthy();
             expect(invocationWith.getOpt("article", "and")).toBeFalsy();
             // second sub-case "and"
-            const [tokensAnd, tokenizedAnd] = bench(() => trie.tokenize(["MUG", "OF", "COFFEE", "and", "KYRAS", "LAB", "COAT", "1"]));
-            const [invocationAnd, matchedAnd] = bench(() => pattern.match(tokensAnd, testGame));
+            const [tokensAnd, tokenizedAnd] = bench({function: trie.tokenize, context: trie, args: [["MUG", "OF", "COFFEE", "and", "KYRAS", "LAB", "COAT", "1"]], shortcircuit: !DEBUG});
+            const [invocationAnd, matchedAnd] = bench({function: pattern.match, context: pattern, args: [tokensAnd, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(20) [and] took ${Number(tokenizedAnd + matchedAnd) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenizedAnd) / 1000}μs`);
@@ -1008,8 +986,8 @@ describe("Pattern file from NG Commands", () => {
 
         test("Pattern.match(21)", async () => {
             const pattern = new Pattern([]);
-            const [tokens, tokenized] = bench(() => trie.tokenize([]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [[]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(21) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -1028,8 +1006,8 @@ describe("Pattern file from NG Commands", () => {
                 ], { repeatable: true }),
                 new Glob(),
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["kyra", "VIVIAN", "Astrid", "Hello", "everyone!"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["kyra", "VIVIAN", "Astrid", "Hello", "everyone!"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(22) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -1050,8 +1028,8 @@ describe("Pattern file from NG Commands", () => {
             const pattern = new Pattern([
                 new Slot(Player, "recipient", (game: Game) => game.errorMessageGenerator.generateInsufficientArgumentsError())
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["nobody"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["nobody"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(23) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
@@ -1067,8 +1045,8 @@ describe("Pattern file from NG Commands", () => {
             const pattern = new Pattern([
                 new Slot(Player, "recipient", error)
             ]);
-            const [tokens, tokenized] = bench(() => trie.tokenize(["nobody"]));
-            const [invocation, matched] = bench(() => pattern.match(tokens, testGame));
+            const [tokens, tokenized] = bench({function: trie.tokenize, context: trie, args: [["nobody"]], shortcircuit: !DEBUG});
+            const [invocation, matched] = bench({function: pattern.match, context: pattern, args: [tokens, testGame], shortcircuit: !DEBUG});
             if (DEBUG) {
                 console.log(`Pattern.match(24) took ${Number(tokenized + matched) / 1000}μs`);
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
