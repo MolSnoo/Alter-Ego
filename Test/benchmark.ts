@@ -12,7 +12,7 @@ interface benchArgs<F extends (...args: any) => any, T = unknown> {
     context?: T;
     /** Args to F. Defaults to an empty array. */
     args?: Parameters<F>;
-    /** The iterations to run for. */
+    /** The iterations to run for. Defaults to 1000. */
     iterations?: number;
     /** Whether or not bench should immediately return a single invocation of the function instead of benchmarking. */
     shortcircuit?: boolean;
@@ -35,13 +35,14 @@ export function bench<F extends (...args: any) => any>(args: benchArgs<F>): [Ret
     for (let i = 0; i < 10; i++)
         f.apply(c, a);
     // benchmark
-    const times: [ReturnType<F>, bigint][] = [];
+    let output: [ReturnType<F>, bigint];
     for (let i = 0; i < n; i++) {
         const start = process.hrtime.bigint();
         const out = f.apply(c, a);
         const end = process.hrtime.bigint();
-        times.push([out, end - start]);
+        if (output === undefined || output[1] >= (end - start))
+            output = [out, end - start];
     }
     // return
-    return times.reduce((a, b) => a[1] < b[1] ? a : b);
+    return output;
 }
