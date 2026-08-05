@@ -26,7 +26,7 @@ import InflictAction from '../Data/Actions/InflictAction.ts';
 import { getSheetValues } from '../Modules/sheets.js';
 import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration } from '../Modules/helpers.ts';
 import { parsePrefabPossibleNames } from '../Modules/stringDataExtractor.ts';
-import { ChannelType, Collection, type GuildBasedChannel, type GuildMember } from 'discord.js';
+import { ChannelType, Collection, type TextChannel, type GuildMember } from 'discord.js';
 import { Duration } from 'luxon';
 
 /**
@@ -61,17 +61,18 @@ export default class GameEntityLoader extends GameEntityManager {
     loadAll(startGame: boolean = false, sendPlayerRoomDescriptions: boolean = false): Promise<string> {
         return new Promise(async (resolve) => {
             let errors: Error[] = [];
-            const roomCount = await this.loadRooms(false, errors);
-            const fixtureCount = await this.loadFixtures(false, errors);
+            // Load all entities into the game in an order that takes into account all of the entities they depend on.
+            const statusEffectCount = await this.loadStatusEffects(false, errors);
+            const gestureCount = await this.loadGestures(false, errors);
             const prefabCount = await this.loadPrefabs(false, errors);
             const recipeCount = await this.loadRecipes(false, errors);
-            const roomItemCount = await this.loadRoomItems(false, errors);
-            const puzzleCount = await this.loadPuzzles(false, errors);
+            const roomCount = await this.loadRooms(false, errors);
             const eventCount = await this.loadEvents(false, errors);
-            const statusEffectCount = await this.loadStatusEffects(false, errors);
             const playerCount = await this.loadPlayers(false, errors);
             const inventoryItemCount = this.game.inventoryItems.length;
-            const gestureCount = await this.loadGestures(false, errors);
+            const fixtureCount = await this.loadFixtures(false, errors);
+            const puzzleCount = await this.loadPuzzles(false, errors);
+            const roomItemCount = await this.loadRoomItems(false, errors);
             const flagCount = await this.loadFlags(false, errors);
 
             for (const room of this.game.rooms.values()) {
@@ -580,7 +581,7 @@ export default class GameEntityLoader extends GameEntityManager {
             const columnPreposition = 9;
             const columnDescription = 10;
 
-            this.clearFixtures();
+            await this.clearFixtures();
             let errors: Error[] = [];
             for (let row = 0; row < sheet.length; row++) {
                 // Convert old spreadsheet values.
@@ -614,7 +615,7 @@ export default class GameEntityLoader extends GameEntityManager {
                     if (error instanceof Error) errors.push(error);
                 }
                 this.game.fixtures.push(fixture);
-                this.updateFixtureReferences(fixture);
+                await this.updateFixtureReferences(fixture);
             }
             if (errors.length > 0) {
                 this.game.loadedEntitiesWithErrors.add("Fixtures");
@@ -1788,6 +1789,16 @@ export default class GameEntityLoader extends GameEntityManager {
             this.clearPlayers();
             let errors: Error[] = [];
             for (let row = 0; row < sheet.length; row++) {
+                if (sheet[row][columnName] === "" || sheet[row][columnName] === null || sheet[row][columnName] === undefined) {
+                    errors.push(new Error(`Couldn't load player on row ${row + 3}. No player name was given.`));
+                    continue;
+                }
+                const playerName = Player.generateValidName(sheet[row][columnName]) ?? "";
+                const spectateChannelName = Room.generateValidId(playerName) ?? "";
+                if (spectateChannelName === "") {
+                    errors.push(new Error(`Couldn't load player on row ${row + 3}. The name of a player cannot be only special characters.`));
+                    continue;
+                }
                 const stats: Stats = {
                     strength: parseInt(sheet[row][columnStrength]),
                     perception: parseInt(sheet[row][columnPerception]),
@@ -1809,22 +1820,18 @@ export default class GameEntityLoader extends GameEntityManager {
                 });
                 let member: GuildMember = null;
                 let notificationChannel: Messageable = null;
-                let spectateChannel: GuildBasedChannel = null;
+                let spectateChannel: TextChannel = null;
                 if (sheet[row][columnTitle] !== "NPC") {
                     try {
                         member = sheet[row][columnId] ? this.game.guildContext.getMember(sheet[row][columnId].trim()) : null;
-                        notificationChannel = await member.createDM();
+                        notificationChannel = await this.game.guildContext.createDM(member);
                     } catch (error) { }
-                    const spectateChannelName = Room.generateValidId(sheet[row][columnName]);
-                    spectateChannel = this.game.guildContext.findChannel(spectateChannelName, this.game.guildContext.spectateCategoryId);
-                    const spectateChannelCount = this.game.guildContext.countChannelsInCategory(this.game.guildContext.spectateCategoryId);
-                    if (!spectateChannel && spectateChannelCount < 50)
-                        spectateChannel = await this.game.guildContext.createChannel(spectateChannelName, this.game.guildContext.spectateCategoryId);
+                    spectateChannel = await this.game.guildContext.getOrCreateSpectateChannel(spectateChannelName);
                 }
                 const player = new Player(
                     sheet[row][columnId] ? sheet[row][columnId].trim() : "",
                     member,
-                    sheet[row][columnName] ? sheet[row][columnName].trim() : "",
+                    sheet[row][columnName] ? Player.generateValidName(sheet[row][columnName], true) : "",
                     sheet[row][columnTitle] ? sheet[row][columnTitle].trim() : "",
                     sheet[row][columnPronouns] ? sheet[row][columnPronouns].trim().toLowerCase() : "",
                     sheet[row][columnVoice] ? sheet[row][columnVoice].trim() : "",
@@ -1873,7 +1880,7 @@ export default class GameEntityLoader extends GameEntityManager {
                                         }
                                     } else timeRemaining = null;
                                     const inflictAction = new InflictAction(this.game, undefined, player, player.location, true);
-                                    await inflictAction.performInflict(status, false, false, false, undefined, timeRemaining, false);
+                                    await inflictAction.performInflict(status, false, false, false, undefined, timeRemaining, true);
                                 }
                             }
                             if (invalidStatusFound) continue;
@@ -1934,8 +1941,6 @@ export default class GameEntityLoader extends GameEntityManager {
         const canDmPlayer = !player.isNPC ? await this.#checkCanDmPlayer(player) : true;
         if (!canDmPlayer)
             return new Error(`Couldn't load player on row ${player.row}. Cannot send direct messages. Please ask <@${player.id}> to allow direct messages from server members in their privacy settings for this server.`);
-        if (player.name === "" || player.name === null || player.name === undefined)
-            return new Error(`Couldn't load player on row ${player.row}. No player name was given.`);
         if (player.name.includes(" "))
             return new Error(`Couldn't load player on row ${player.row}. Player names must not have any spaces.`);
         if (player.originalPronouns.sbj === null || player.originalPronouns.sbj === "")

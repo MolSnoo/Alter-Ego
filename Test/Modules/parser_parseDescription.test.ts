@@ -32,7 +32,7 @@ describe('test parseDescription', () => {
         luna = testGame.entityFinder.getLivingPlayer("Luna");
         kiara = testGame.entityFinder.getLivingPlayer("Kiara");
         amadeus = testGame.entityFinder.getLivingPlayer("Amadeus");
-        qm = testGame.entityFinder.getLivingPlayer("???");
+        qm = testGame.entityFinder.getLivingPlayer("QM");
     });
 
     describe('test item lists', () => {

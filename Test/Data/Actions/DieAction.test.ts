@@ -92,7 +92,7 @@ describe('DieAction test', () => {
         expect(nero.alive).toBe(false);
         expect(astrid.location.occupants).not.toContain(nero);
         expect(hidingSpot.whisper.players.has("Nero")).toBe(false);
-        expect(hidingSpot.occupants).not.toContain(nero);
+        expect(hidingSpot.hasOccupant(nero)).toBe(false);
         expect(nero.location).toBeNull();
         expect(nero.hidingSpot).toBe("");
         expect(nero.isMoving).toBe(false);

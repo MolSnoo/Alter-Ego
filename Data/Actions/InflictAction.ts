@@ -28,9 +28,9 @@ export default class InflictAction extends Action {
      * @param narrate - Whether or not to send any narrations caused by the status being inflicted. Defaults to true.
      * @param item - The inventory item that caused the status to be inflicted, if applicable.
      * @param duration - A custom duration that overrides the status's default duration.
-     * @param log - Whether or not to send a log message in the bot log channel. Defaults to true.
+     * @param inflictedByLoading - Whether or not the status is being inflicted by loading players. If this is true, no log message will be sent, and players will not be removed from hiding spot whispers. Defaults to false.
      */
-    async performInflict(status: Status, notify: boolean = true, doCures: boolean = true, narrate: boolean = true, item?: InventoryItem, duration: Duration<true> = null, log: boolean = true): Promise<void> {
+    async performInflict(status: Status, notify: boolean = true, doCures: boolean = true, narrate: boolean = true, item?: InventoryItem, duration: Duration<true> = null, inflictedByLoading: boolean = false): Promise<void> {
         if (this.performed) return;
         super.perform();
         const playerStatusIds = this.player.status.map(statusEffect => statusEffect.id);
@@ -68,7 +68,8 @@ export default class InflictAction extends Action {
             this.getGame().heated = true;
         if (status.behaviorAttributes.has("no channel")) {
             this.location.leaveChannel(this.player);
-            if (status.behaviorAttributes.has("hidden") && !this.player.party)
+            const stayInHidingSpot = status.id === "hidden" && inflictedByLoading && !!this.player.hidingSpot;
+            if (status.behaviorAttributes.has("hidden") && !this.player.party && !stayInHidingSpot)
                 removeFromWhisperNarration = this.getGame().notificationGenerator.generateNoChannelLeaveWhisperNotification(this.player, status.id);
         }
         if (status.behaviorAttributes.has("no hearing")) {
@@ -115,7 +116,7 @@ export default class InflictAction extends Action {
         }
         if (narrate) this.getGame().narrationHandler.narrateInflict(this, status, this.player);
         if (removeFromWhisperNarration) await this.player.removeFromWhispers(removeFromWhisperNarration, this);
-        if (log) this.getGame().logHandler.logInflict(status, this.player);
+        if (!inflictedByLoading) this.getGame().logHandler.logInflict(status, this.player);
         this.successMessage = `Successfully added status effect ${status.id} to ${this.player?.name}.`;
     }
 }

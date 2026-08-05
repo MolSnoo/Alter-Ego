@@ -9,6 +9,32 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 All notable changes to this project will be documented in this file.
 This project does **not** adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# [v2.0.3] - 2026-08-04
+
+## Fixed
+
+- Help messages used to fail to send if Alter Ego had no avatar set. They should send without issue now!
+- Made the `help` commands less strict in parsing commands the user wants help with.
+- Previously, if Alter Ego didn't have Administrator privileges, or its role wasn't high up enough on the list of roles
+  in the server, it would be unable to do many of the server management tasks it's required to do. Now, it will fail to
+  boot up and display an error message in the console if it doesn't have the proper permissions.
+- If Alter Ego failed to delete a message for any reason, it would throw an error that halted execution of whatever it
+  was doing. Now, if it can't delete a message, it should still be able to continue what it was doing regardless.
+- Improved Alter Ego's handling of Player names. It should automatically remove special characters (symbols, emoji,
+  etc.) from them, while still allowing Player names to use diacritics and characters from non-Latin scripts.
+- It was previously possible to insert incomplete Players into an ongoing game's data using the `addplayer` Moderator
+  command, which could cause runtime errors. Now, it and the `play` Eligible command will check for errors before adding
+  a Player, and create them with their notification channels and spectate channels initialized.
+- If a Moderator deleted the headers on the Players or Inventory Items sheets, it was possible for Google Sheets to
+  put Player and Inventory Item data created with the `addplayer` Moderator command in the wrong columns. Now, Alter Ego
+  strictly specifies which column new rows should start in.
+
+## Under the Hood Changes
+
+- Rewrote the GameEntityLoader in TypeScript.
+
+---
+
 # [v2.0.2] - 2026-07-04
 
 ## Fixed
@@ -1118,6 +1144,7 @@ https://docs.google.com/spreadsheets/d/1MqdWPqUmhR6qqJJsC5zMwyvIYmIwENEFcYENBd50
 
 ---
 
+[v2.0.3]: https://github.com/MsVBLANK/Alter-Ego/compare/2.0.2...2.0.3
 [v2.0.2]: https://github.com/MsVBLANK/Alter-Ego/compare/2.0.1...2.0.2
 [v2.0.1]: https://github.com/MsVBLANK/Alter-Ego/compare/2.0.0...2.0.1
 [v2.0.0]: https://github.com/MsVBLANK/Alter-Ego/compare/1.10.1...2.0.0
