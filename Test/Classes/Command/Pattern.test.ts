@@ -32,16 +32,6 @@ import { bench } from "../../benchmark.ts";
  */
 const DEBUG = false;
 
-/**
- * Assert that the given value is an instance of the given constructor.
- * Mostly eliminates the need for type assertions.
- * @param value - The value to check.
- * @param constructor - The constructor to check against.
- */
-function assertInstanceOf<T, C extends Constructor<any>>(value: T, constructor: C): asserts value is InstanceType<C> {
-    expect(value).toBeInstanceOf(constructor);
-}
-
 describe("Pattern file from NG Commands", () => {
     beforeAll(async () => {
         if (!testGame.inProgress) await testGame.entityLoader.loadAll();
@@ -414,18 +404,18 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("item1")).not.toBeUndefined();
             expect(invocation.args.get("item1").length).toBe(1);
             invocation.args.get("item1").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("item2")).not.toBeUndefined();
             expect(invocation.args.get("item2").length).toBe(1);
             invocation.args.get("item2").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("PACK OF TOILET PAPER");
                 expect(item.getIdentifier()).toBe("PACK OF TOILET PAPER 2");
             });
@@ -446,7 +436,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, InvalidInvocation);
+            expect.assert.instanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(1);
             expect(invocation.errors[0]).toBe("Couldn't find inventory item \"MG F CFF\" in your input.");
         });
@@ -464,12 +454,12 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
@@ -477,7 +467,7 @@ describe("Pattern file from NG Commands", () => {
             // however, two lack a preposition, and are thus excluded
             expect(invocation.args.get("destination").length).toBe(187);
             invocation.args.get("destination").forEach((fixture: Fixture) => { 
-                assertInstanceOf(fixture, Fixture);
+                expect.assert.instanceOf(fixture, Fixture);
                 expect(fixture.name).toBe("FLOOR");
             });
         });
@@ -495,7 +485,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, InvalidInvocation);
+            expect.assert.instanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(1);
             expect(invocation.errors[0]).toBe("Couldn't find a preposition for destination.");
         });
@@ -513,18 +503,18 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(189);
             invocation.args.get("destination").forEach((fixture: Fixture) => { 
-                assertInstanceOf(fixture, Fixture);
+                expect.assert.instanceOf(fixture, Fixture);
                 expect(fixture.name).toBe("FLOOR");
             });
         });
@@ -546,25 +536,25 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             expect(invocation.args.get("destination pocket")).not.toBeUndefined();
             expect(invocation.args.get("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
             invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
-                assertInstanceOf(pocket, InventorySlot);
+                expect.assert.instanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
         });
@@ -584,7 +574,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, InvalidInvocation);
+            expect.assert.instanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(1);
             expect(invocation.errors[0]).toBe("Couldn't find anything for destination in your input.");
         });
@@ -608,25 +598,25 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             expect(invocation.args.get("destination pocket")).not.toBeUndefined();
             expect(invocation.args.get("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
             invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
-                assertInstanceOf(pocket, InventorySlot);
+                expect.assert.instanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
         });
@@ -650,18 +640,18 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -679,12 +669,12 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
             expect(invocation.args.get("recipient")).not.toBeUndefined();
             expect(invocation.args.get("recipient").length).toBe(1);
             invocation.args.get("recipient").forEach((player: Player) => {
-                assertInstanceOf(player, Player);
+                expect.assert.instanceOf(player, Player);
                 expect(player.name).toBe("Kyra");
             });
             expect(invocation.glob).toStrictEqual(["Hello.\n\nI", "have", "overheard", "your", "conversation", "with", "Huiyu", "regarding", "your", "*very", "large", "rabbit*.\n\nPlease", "tell", "me", "more", "about", "the", "nature", "of", "this", "rabbit."]);
@@ -702,12 +692,12 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
             expect(invocation.args.get("recipient")).not.toBeUndefined();
             expect(invocation.args.get("recipient").length).toBe(1);
             invocation.args.get("recipient").forEach((player: Player) => {
-                assertInstanceOf(player, Player);
+                expect.assert.instanceOf(player, Player);
                 expect(player.name).toBe("Kyra");
             });
             expect(invocation.glob).toStrictEqual([]);
@@ -732,7 +722,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, InvalidInvocation);
+            expect.assert.instanceOf(invocation, InvalidInvocation);
             expect(invocation.errors).toBeLength(4);
             expect(invocation.errors[0]).toBe("Couldn't find a required \"of\" in your input, instead found KYRAS LAB COAT 1.");
             expect(invocation.errors[1]).toBe("Couldn't find anything for destination in your input.");
@@ -751,7 +741,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual([]);
         });
@@ -775,25 +765,25 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
             expect(invocation.args.get("target")).not.toBeUndefined();
             expect(invocation.args.get("target").length).toBe(1);
             invocation.args.get("target").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocation.args.get("destination")).not.toBeUndefined();
             expect(invocation.args.get("destination").length).toBe(1);
             invocation.args.get("destination").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
             expect(invocation.args.get("destination pocket")).not.toBeUndefined();
             expect(invocation.args.get("destination pocket").length).toBe(1);
             invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
-                assertInstanceOf(pocket, InventorySlot);
+                expect.assert.instanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
         });
@@ -809,7 +799,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual([]);
         });
@@ -825,7 +815,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual(["Hello", "world!"]);
         });
@@ -841,7 +831,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.glob).toStrictEqual(["Hello?"]);
         });
@@ -859,7 +849,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, InvalidInvocation);
+            expect.assert.instanceOf(invocation, InvalidInvocation);
             expect(invocation.errors.length).toBe(1);
             expect(invocation.errors[0]).toBe("Couldn't find a required \"and/with\" in your input, instead found attacks KYRAS LAB COAT 1.");
         });
@@ -880,18 +870,18 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenizedWith) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedWith) / 1000}μs`);
             }
-            assertInstanceOf(invocationWith, MatchedInvocation);
+            expect.assert.instanceOf(invocationWith, MatchedInvocation);
             expect(invocationWith.args.size).toBe(2);
             expect(invocationWith.args.get("item 1")).not.toBeUndefined();
             expect(invocationWith.args.get("item 1").length).toBe(1);
             invocationWith.args.get("item 1").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationWith.args.get("item 2")).not.toBeUndefined();
             expect(invocationWith.args.get("item 2").length).toBe(1);
             invocationWith.args.get("item 2").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -903,18 +893,18 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenizedAnd) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedAnd) / 1000}μs`);
             }
-            assertInstanceOf(invocationAnd, MatchedInvocation);
+            expect.assert.instanceOf(invocationAnd, MatchedInvocation);
             expect(invocationAnd.args.size).toBe(2);
             expect(invocationAnd.args.get("item 1")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 1").length).toBe(1);
             invocationAnd.args.get("item 1").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationAnd.args.get("item 2")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 2").length).toBe(1);
             invocationAnd.args.get("item 2").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -936,18 +926,18 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenizedWith) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedWith) / 1000}μs`);
             }
-            assertInstanceOf(invocationWith, MatchedInvocation);
+            expect.assert.instanceOf(invocationWith, MatchedInvocation);
             expect(invocationWith.args.size).toBe(2);
             expect(invocationWith.args.get("item 1")).not.toBeUndefined();
             expect(invocationWith.args.get("item 1").length).toBe(1);
             invocationWith.args.get("item 1").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationWith.args.get("item 2")).not.toBeUndefined();
             expect(invocationWith.args.get("item 2").length).toBe(1);
             invocationWith.args.get("item 2").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -963,18 +953,18 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenizedAnd) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matchedAnd) / 1000}μs`);
             }
-            assertInstanceOf(invocationAnd, MatchedInvocation);
+            expect.assert.instanceOf(invocationAnd, MatchedInvocation);
             expect(invocationAnd.args.size).toBe(2);
             expect(invocationAnd.args.get("item 1")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 1").length).toBe(1);
             invocationAnd.args.get("item 1").forEach((item: InventoryItem) => {
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationAnd.args.get("item 2")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 2").length).toBe(1);
             invocationAnd.args.get("item 2").forEach((item: InventoryItem) => { 
-                assertInstanceOf(item, InventoryItem);
+                expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
@@ -993,7 +983,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(0);
             expect(invocation.opts.size).toBe(0);
             expect(invocation.glob.length).toBe(0);
@@ -1013,7 +1003,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, MatchedInvocation);
+            expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
             const recipients = invocation.getPlayers("recipient");
             const playerList = new Set([testGame.entityFinder.getPlayer("Kyra"), testGame.entityFinder.getPlayer("Vivian"), testGame.entityFinder.getPlayer("Astrid")]);
@@ -1035,7 +1025,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, InvalidInvocation);
+            expect.assert.instanceOf(invocation, InvalidInvocation);
             expect(invocation.errors.length).toBe(1);
             expect(invocation.errors[0]).toBe("Insufficient arguments.");
         });
@@ -1052,7 +1042,7 @@ describe("Pattern file from NG Commands", () => {
                 console.log(`  tokenization took ${Number(tokenized) / 1000}μs`);
                 console.log(`  pattern match took ${Number(matched) / 1000}μs`);
             }
-            assertInstanceOf(invocation, InvalidInvocation);
+            expect.assert.instanceOf(invocation, InvalidInvocation);
             expect(invocation.errors.length).toBe(1);
             expect(invocation.errors[0]).toBe("Insufficient arguments.");
         });
