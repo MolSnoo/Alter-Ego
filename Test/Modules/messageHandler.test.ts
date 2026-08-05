@@ -181,7 +181,7 @@ describe('messageHandler test', () => {
         luna = game.entityFinder.getLivingPlayer("Luna");
         kiara = game.entityFinder.getLivingPlayer("Kiara");
         amadeus = game.entityFinder.getLivingPlayer("Amadeus");
-        qm = game.entityFinder.getLivingPlayer("???");
+        qm = game.entityFinder.getLivingPlayer("QM");
         breakRoom = game.entityFinder.getRoom("break-room");
         gmOffice = game.entityFinder.getRoom("general-managers-office");
         f1h1 = game.entityFinder.getRoom("floor-1-hall-1");
@@ -4240,7 +4240,7 @@ describe('messageHandler test', () => {
                         expect(receiverRoom.channel.messages.cache).toHaveSize(1);
                         const roomNarrationMessage = receiverRoom.channel.messages.cache.first();
                         expect(roomNarrationMessage).not.toBeWebhookMessage();
-                        expect(roomNarrationMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                        expect(roomNarrationMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                         for (const occupant of receiverRoom.occupants) {
                             if (occupant.isNPC) continue;
                             expect(occupant.spectateChannel.messages.cache).toHaveSize(1);
@@ -4248,12 +4248,12 @@ describe('messageHandler test', () => {
                             expect(spectateMessage).not.toBeWebhookMessage();
                             if (occupant.knows("Nero")) {
                                 expect(occupant.notificationChannel.messages.cache).toHaveSize(1);
-                                expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
-                                expect(spectateMessage.content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
+                                expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
+                                expect(spectateMessage.content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
                             }
                             else {
                                 expect(occupant.notificationChannel.messages.cache).toHaveSize(0);
-                                expect(spectateMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                                expect(spectateMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                             }
                         }
                     }
@@ -4402,7 +4402,7 @@ describe('messageHandler test', () => {
                         expect(receiverRoom.channel.messages.cache).toHaveSize(1);
                         const roomNarrationMessage = receiverRoom.channel.messages.cache.first();
                         expect(roomNarrationMessage).not.toBeWebhookMessage();
-                        expect(roomNarrationMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                        expect(roomNarrationMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                         for (const occupant of receiverRoom.occupants) {
                             if (occupant.isNPC) continue;
                             expect(occupant.spectateChannel.messages.cache).toHaveSize(1);
@@ -4410,12 +4410,12 @@ describe('messageHandler test', () => {
                             expect(spectateMessage).not.toBeWebhookMessage();
                             if (occupant.knows("Nero")) {
                                 expect(occupant.notificationChannel.messages.cache).toHaveSize(1);
-                                expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
-                                expect(spectateMessage.content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
+                                expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
+                                expect(spectateMessage.content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
                             }
                             else {
                                 expect(occupant.notificationChannel.messages.cache).toHaveSize(0);
-                                expect(spectateMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                                expect(spectateMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                             }
                         }
                     }
@@ -4443,7 +4443,7 @@ describe('messageHandler test', () => {
                         expect(receiverRoom.channel.messages.cache).toHaveSize(1);
                         const roomNarrationMessage = receiverRoom.channel.messages.cache.first();
                         expect(roomNarrationMessage).not.toBeWebhookMessage();
-                        expect(roomNarrationMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                        expect(roomNarrationMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                         for (const occupant of receiverRoom.occupants) {
                             if (occupant.isNPC) continue;
                             expect(occupant.spectateChannel.messages.cache).toHaveSize(1);
@@ -4451,12 +4451,12 @@ describe('messageHandler test', () => {
                             expect(spectateMessage).not.toBeWebhookMessage();
                             if (occupant.knows("Nero")) {
                                 expect(occupant.notificationChannel.messages.cache).toHaveSize(1);
-                                expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
-                                expect(spectateMessage.content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
+                                expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
+                                expect(spectateMessage.content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
                             }
                             else {
                                 expect(occupant.notificationChannel.messages.cache).toHaveSize(0);
-                                expect(spectateMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                                expect(spectateMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                             }
                         }
                     }
@@ -4484,7 +4484,7 @@ describe('messageHandler test', () => {
                             expect(receiverRoom.channel.messages.cache).toHaveSize(1);
                             const roomNarrationMessage = receiverRoom.channel.messages.cache.first();
                             expect(roomNarrationMessage).not.toBeWebhookMessage();
-                            expect(roomNarrationMessage.content).toBe('A bitter voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                            expect(roomNarrationMessage.content).toBe('A bitter voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                             for (const occupant of receiverRoom.occupants) {
                                 if (occupant.isNPC) continue;
                                 expect(occupant.spectateChannel.messages.cache).toHaveSize(1);
@@ -4492,12 +4492,12 @@ describe('messageHandler test', () => {
                                 expect(spectateMessage).not.toBeWebhookMessage();
                                 if (occupant.name === "Vivian") {
                                     expect(occupant.notificationChannel.messages.cache).toHaveSize(1);
-                                    expect(occupant.notificationChannel.messages.cache.first().content).toBe('Someone speaking through ???\'s WALKIE TALKIE says "`Hello.`" in your voice!');
-                                    expect(spectateMessage.content).toBe('Someone speaking through ???\'s WALKIE TALKIE says "`Hello.`" in your voice!');
+                                    expect(occupant.notificationChannel.messages.cache.first().content).toBe('Someone speaking through QM\'s WALKIE TALKIE says "`Hello.`" in your voice!');
+                                    expect(spectateMessage.content).toBe('Someone speaking through QM\'s WALKIE TALKIE says "`Hello.`" in your voice!');
                                 }
                                 else {
                                     expect(occupant.notificationChannel.messages.cache).toHaveSize(0);
-                                    expect(spectateMessage.content).toBe('A bitter voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                                    expect(spectateMessage.content).toBe('A bitter voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                                 }
                             }
                         }
@@ -4523,7 +4523,7 @@ describe('messageHandler test', () => {
                             expect(receiverRoom.channel.messages.cache).toHaveSize(1);
                             const roomNarrationMessage = receiverRoom.channel.messages.cache.first();
                             expect(roomNarrationMessage).not.toBeWebhookMessage();
-                            expect(roomNarrationMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                            expect(roomNarrationMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                             for (const occupant of receiverRoom.occupants) {
                                 if (occupant.isNPC) continue;
                                 expect(occupant.spectateChannel.messages.cache).toHaveSize(1);
@@ -4531,17 +4531,17 @@ describe('messageHandler test', () => {
                                 expect(spectateMessage).not.toBeWebhookMessage();
                                 if (occupant.name === "Luna") {
                                     expect(occupant.notificationChannel.messages.cache).toHaveSize(1);
-                                    expect(occupant.notificationChannel.messages.cache.first().content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
-                                    expect(spectateMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                                    expect(occupant.notificationChannel.messages.cache.first().content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
+                                    expect(spectateMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                                 }
                                 else if (occupant.knows("Nero")) {
                                     expect(occupant.notificationChannel.messages.cache).toHaveSize(1);
-                                    expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
-                                    expect(spectateMessage.content).toBe('Nero says "`Hello.`" through ???\'s WALKIE TALKIE.');
+                                    expect(occupant.notificationChannel.messages.cache.first().content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
+                                    expect(spectateMessage.content).toBe('Nero says "`Hello.`" through QM\'s WALKIE TALKIE.');
                                 }
                                 else {
                                     expect(occupant.notificationChannel.messages.cache).toHaveSize(0);
-                                    expect(spectateMessage.content).toBe('A confident voice coming from ???\'s WALKIE TALKIE says "`Hello.`"');
+                                    expect(spectateMessage.content).toBe('A confident voice coming from QM\'s WALKIE TALKIE says "`Hello.`"');
                                 }
                             }
                         }

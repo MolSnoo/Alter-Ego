@@ -4,7 +4,7 @@ import BotContext from "../Classes/BotContext.ts";
 import GameCommunicationHandler from "../Classes/GameCommunicationHandler.ts";
 import GameConstants from "../Classes/GameConstants.ts";
 import GameEntityFinder from "../Classes/GameEntityFinder.js";
-import GameEntityLoader from "../Classes/GameEntityLoader.js";
+import GameEntityLoader from "../Classes/GameEntityLoader.ts";
 import GameEntitySaver from "../Classes/GameEntitySaver.ts";
 import GameLogHandler from "../Classes/GameLogHandler.ts";
 import GameNarrationHandler from "../Classes/GameNarrationHandler.ts";

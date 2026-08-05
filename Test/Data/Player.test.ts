@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import Player from "../../Data/Player.ts";
+
 describe('Player test', () => {
 	beforeAll(async () => {
 		if (!game.inProgress) await game.entityLoader.loadAll();
@@ -116,7 +118,7 @@ describe('Player test', () => {
 
     describe('Procedural selection preservation', () => {
         test('Procedural selections are preserved during crafting and uncrafting', () => {
-            const player = game.entityFinder.getPlayer('???');
+            const player = game.entityFinder.getPlayer('QM');
             let rightHand = game.entityFinder.getPlayerHandHoldingItem(player, 'FIRED CLAY POT 91');
             let leftHand = game.entityFinder.getPlayerHandHoldingItem(player, 'GLAZE');
             expect(rightHand).not.toBeUndefined();
@@ -202,4 +204,114 @@ describe('Player test', () => {
             }
         });
     });
+
+	describe('generateValidName', () => {
+		test('preserves basic Latin names unchanged', () => {
+			expect(Player.generateValidName('Astrid')).toBe('Astrid');
+			expect(Player.generateValidName('John')).toBe('John');
+			expect(Player.generateValidName('DEE')).toBe('DEE');
+		});
+
+		test('preserves names with diacritics and combining marks', () => {
+			// French
+			expect(Player.generateValidName('Renée')).toBe('Renée');
+			expect(Player.generateValidName('François')).toBe('François');
+			// German
+			expect(Player.generateValidName('Jürgen')).toBe('Jürgen');
+			// Spanish
+			expect(Player.generateValidName('Peña')).toBe('Peña');
+			// Nordic
+			expect(Player.generateValidName('Søren')).toBe('Søren');
+			expect(Player.generateValidName('Åström')).toBe('Åström');
+			// Portuguese
+			expect(Player.generateValidName('João')).toBe('João');
+			// Czech/Slovak
+			expect(Player.generateValidName('Tomáš')).toBe('Tomáš');
+			expect(Player.generateValidName('Ľubica')).toBe('Ľubica');
+			// Polish
+			expect(Player.generateValidName('Łukasz')).toBe('Łukasz');
+			// Turkish
+			expect(Player.generateValidName('Güneş')).toBe('Güneş');
+			// Vietnamese (multiple diacritics per letter)
+			expect(Player.generateValidName('Nguyễn')).toBe('Nguyễn');
+		});
+
+		test('preserves names from non-Latin scripts', () => {
+			// Cyrillic
+			expect(Player.generateValidName('Дмитрий')).toBe('Дмитрий');
+			expect(Player.generateValidName('Анна')).toBe('Анна');
+			// CJK
+			expect(Player.generateValidName('田中')).toBe('田中');
+			expect(Player.generateValidName('王小明')).toBe('王小明');
+			expect(Player.generateValidName('한국')).toBe('한국');
+			// Arabic (with combining marks / harakat)
+			expect(Player.generateValidName('فاطمة')).toBe('فاطمة');
+			// Hebrew
+			expect(Player.generateValidName('אברהם')).toBe('אברהם');
+			// Greek
+			expect(Player.generateValidName('Δημήτρης')).toBe('Δημήτρης');
+			// Armenian
+			expect(Player.generateValidName('Արամ')).toBe('Արամ');
+			// Georgian
+			expect(Player.generateValidName('თამარ')).toBe('თამარ');
+			// Devanagari (Hindi/Sanskrit) — vowel signs are combining marks
+			expect(Player.generateValidName('अनिल')).toBe('अनिल');
+			// Thai — vowel signs and tone marks are combining marks
+			expect(Player.generateValidName('สมชาย')).toBe('สมชาย');
+		});
+
+		test('preserves ASCII digits, hyphens, apostrophes, underscores, and spaces', () => {
+			expect(Player.generateValidName('Jean-Luc')).toBe('Jean-Luc');
+			expect(Player.generateValidName("O'Brien")).toBe("O'Brien");
+			expect(Player.generateValidName('Player_One')).toBe('Player_One');
+			expect(Player.generateValidName('User 42')).toBe('User_42');
+			expect(Player.generateValidName('User 42', true)).toBe('User 42');
+			expect(Player.generateValidName('Test123')).toBe('Test123');
+		});
+
+		test('strips non-ASCII digits (e.g. Arabic-Indic numerals)', () => {
+			// U+0660 ARABIC-INDIC DIGIT ZERO
+			expect(Player.generateValidName('DEE٠')).toBe('DEE');
+			// U+06F0 EXTENDED ARABIC-INDIC DIGIT ZERO
+			expect(Player.generateValidName('Num۰')).toBe('Num');
+		});
+
+		test('strips special characters from the problematic name', () => {
+			// U+0660 Arabic-Indic digit, U+08EA Arabic tone mark, U+2B51 black small star
+			// The Arabic-Indic digit (٠) and the star symbol (⭑) are stripped.
+			// The Arabic tone mark (࣪) is a valid combining mark and is preserved.
+			expect(Player.generateValidName('DEE٠࣪⭑')).toBe('DEE࣪');
+		});
+
+		test('strips miscellaneous symbols and punctuation', () => {
+			// Stars, hearts, music notes
+			expect(Player.generateValidName('Star⭑⭒★☆')).toBe('Star');
+			expect(Player.generateValidName('Love♥❤')).toBe('Love');
+			// Arrows and math symbols
+			expect(Player.generateValidName('Go→↑↓←')).toBe('Go');
+			// Currency symbols
+			expect(Player.generateValidName('Rich$€£¥')).toBe('Rich');
+			// Hashtags, at signs, exclamation marks
+			expect(Player.generateValidName('Cool@#!')).toBe('Cool');
+			// Emoji
+			expect(Player.generateValidName('Smile😀🎉')).toBe('Smile');
+		});
+
+		test('strips combining marks and zero-width characters', () => {
+			// Zero-width joiner and non-joiner
+			expect(Player.generateValidName('AB‍CD')).toBe('ABCD');
+			expect(Player.generateValidName('AB‌CD')).toBe('ABCD');
+		});
+
+		test('handles empty or all-special-character input', () => {
+			expect(Player.generateValidName('')).toBe('');
+			expect(Player.generateValidName('⭑⭒★☆♥❤→↑↓←')).toBe('');
+			expect(Player.generateValidName('   ')).toBe('');
+		});
+
+		test('trims leading and trailing whitespace', () => {
+			expect(Player.generateValidName('  Astrid  ')).toBe('Astrid');
+			expect(Player.generateValidName('\t\n Luna \t')).toBe('Luna');
+		});
+	});
 });

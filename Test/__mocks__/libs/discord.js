@@ -86,17 +86,17 @@ export function createMockChannel(id, name, type, parentId, parent, client) {
 		parent: parent,
 		messages: messageManager,
 		bulkDelete: vi.fn((messages, filterOld) => messageManager.cache.clear()),
-		send: vi.fn(async (content) => {
-			const messagePayload = typeof content === 'string' ? { content: content, channel: channel } : { content: content.content, channel: channel, components: content.components };
+		send: vi.fn(async function(content) {
+			const messagePayload = typeof content === 'string' ? { content: content, channel: this } : { content: content.content, channel: this, components: content.components };
 			const message = createMockMessage(messagePayload);
-			channel.messages.cache.set(message.id, message);
+			this.messages.cache.set(message.id, message);
 		}),
-		edit: vi.fn(({ name, lockPermissions }) => { channel.name = name; if (lockPermissions) for (const key of channel.permissionOverwrites.cache.keys()) channel.permissionOverwrites.delete(key) }),
+        edit: vi.fn(function({ name, lockPermissions })  { this.name = name; if (lockPermissions) for (const key of this.permissionOverwrites.cache.keys()) this.permissionOverwrites.delete(key) }),
 		fetchWebhooks: vi.fn(async () => webhooks.filter(webhook => webhook.channel.id === channel.id)),
-		createWebhook: vi.fn(async ({ name }) => createMockWebhook(name, channel, channel.client)),
+        createWebhook: vi.fn(async function({ name }) { return createMockWebhook(name, channel, channel.client) }),
 		permissionOverwrites: createPermissionOverwritesManager(),
 		lockPermissions: vi.fn(() => {}),
-		delete: vi.fn(async () => channel = undefined)
+        delete: vi.fn(async () => { channel = undefined })
 	};
 	return channel;
 }

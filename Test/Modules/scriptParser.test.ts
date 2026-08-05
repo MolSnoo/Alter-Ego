@@ -13,7 +13,7 @@ describe('test scriptParser', () => {
 
     beforeAll(async () => {
         if (!game.inProgress) await game.entityLoader.loadAll();
-        qm = game.entityFinder.getLivingPlayer("???");
+        qm = game.entityFinder.getLivingPlayer("QM");
         container = game.entityFinder.getFixture('FLOOR');
     });
 
@@ -57,7 +57,7 @@ describe('test scriptParser', () => {
 
                 test('findRoom().occupantsString', () => {
                     const script = "findRoom('general-managers-office').occupantsString";
-                    const expected = "???, Amadeus, and Vivian";
+                    const expected = "Amadeus, QM, and Vivian";
                     const result = evaluate(script, container, qm);
                     expect(result).toBe(expected);
                 });
