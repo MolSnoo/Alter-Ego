@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type { CommandConfig } from "../../../Classes/Command/Command.ts";
-import { Multislot, Pattern, Slot } from "../../../Classes/Command/Pattern.ts";
+import { Multislot, Pattern } from "../../../Classes/Command/Pattern.ts";
 import PlayerContext from "../../../Classes/Command/PlayerContext.ts";
 import { ItemContainerToken, PrepositionToken } from "../../../Classes/Command/Token.ts";
 import Trie from "../../../Classes/Command/Trie.ts";
