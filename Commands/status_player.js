@@ -10,7 +10,8 @@ export const config = {
         + `Note that some status effects may not be visible to you. You will also be unable to see their durations.`,
     usableBy: "Player",
     aliases: ["status"],
-    requiresGame: true
+    requiresGame: true,
+    usableInEditMode: true
 };
 
 /**

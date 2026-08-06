@@ -10,7 +10,8 @@ export const config = {
         + "that the bot is currently operating in. This may differ from your local time.",
     usableBy: "Player",
     aliases: ["time"],
-    requiresGame: true
+    requiresGame: true,
+    usableInEditMode: true
 };
 
 /**
