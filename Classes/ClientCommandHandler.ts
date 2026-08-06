@@ -164,7 +164,7 @@ export default class ClientCommandHandler {
                 else game.communicationHandler.reply(message, `You cannot do that because you are **${status[0].id}**.`, messageDeletable);
                 return true;
             }
-            if (game.editMode && commandName !== "say") {
+            if (game.editMode && !command.config.usableInEditMode) {
                 game.communicationHandler.reply(message, "You cannot do that because edit mode is currently enabled.", messageDeletable);
                 return true;
             }
