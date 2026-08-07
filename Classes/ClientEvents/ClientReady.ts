@@ -51,7 +51,7 @@ export default new ClientEvent({
         }
 
         // Fetch all application emojis now, so that the application emoji cache is populated for application emoji mirroring.
-        client.application.emojis.fetch()
+        await client.application.emojis.fetch()
 
         // Set the bot as finished initializing.
         clientContext.initialize();

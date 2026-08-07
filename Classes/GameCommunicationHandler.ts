@@ -20,6 +20,7 @@ import { asyncReplace, capitalizeFirstLetter } from "../Modules/helpers.ts";
 import { ChannelType, Collection } from "discord.js";
 import type { ApplicationEmoji, Attachment, Embed, EmbedBuilder, Message, Snowflake, TextChannel } from "discord.js";
 import crypto from 'crypto';
+import sharp from "sharp";
 
 /**
  * A dialog message that has been mirrored in a spectate channel.
@@ -57,6 +58,9 @@ export default class GameCommunicationHandler {
      */
     readonly #dialogSpectateMirrorCacheSizeLimit = 50;
 
+    /**
+     * The regex used when matching emojis.
+     */
     private static readonly emojiRegex = /<(a?):([a-zA-Z0-9_]+):([0-9]+)>/g;
 
     /**
@@ -126,10 +130,9 @@ export default class GameCommunicationHandler {
      */
     async cacheEmojis(message: UserMessage) {
         const application = this.#game.clientContext.client.application
-        const emojiRegex = /<(a?):([a-zA-Z0-9_]+):([0-9]+)>/g;
         const emojiData: {animated: boolean, name: string, snowflake: string, hash: string}[] = [];
 
-        for (const match of message.content.matchAll(emojiRegex)) {
+        for (const match of message.content.matchAll(GameCommunicationHandler.emojiRegex)) {
             const animated = match[1] === "a";
             const name = match[2];
             const snowflake = match[3];
@@ -137,19 +140,22 @@ export default class GameCommunicationHandler {
             emojiData.push({ animated: animated, name: name, snowflake: snowflake, hash: hash });
         }
 
-        if (emojiData.length === 0) return;
+        if (emojiData.length === 0)
+            return;
 
-        const appEmojis = (await application.emojis.fetch()).map(emoji => emoji.name);
+        const appEmojis = new Set(application.emojis.cache.map(emoji => emoji.name));
 
         for (const data of emojiData) {
-            let shouldContinue = false;
-            for (const emoji of appEmojis) if (emoji === data.hash) { shouldContinue = true; break };
-            if (shouldContinue) continue;
+            if (appEmojis.has(data.hash))
+                continue;
 
-            const url = `https://cdn.discordapp.com/emojis/${data.snowflake}${data.animated ? ".gif?animated=true" : ".png"}`
+            const url = `https://cdn.discordapp.com/emojis/${data.snowflake}${data.animated ? `.webp?size=64&animated=true&name=${data.name}&lossless=true` : `.webp?size=64&name=${data.name}&lossless=true`}`;
             const emoji = await fetch(url);
-            const emojiBase64 = Buffer.from(await emoji.arrayBuffer()).toString("base64");
-            await application.emojis.create({attachment: `data:image/${data.animated ? "gif" : "png"};base64,${emojiBase64}`, name: data.hash});
+            const emojiData = data.animated ?
+                await sharp(await emoji.bytes(), { animated: true }).gif().toBuffer() :
+                await sharp(await emoji.bytes()).png().toBuffer();
+            const emojiBase64 = emojiData.toString("base64");
+            await application.emojis.create({attachment: `data:image/webp;base64,${emojiBase64}`, name: data.hash});
         }
     }
 
