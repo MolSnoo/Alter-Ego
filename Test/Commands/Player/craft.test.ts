@@ -66,9 +66,10 @@ describe("craft_player command", () => {
         player.inflict(testGame.entityFinder.getStatusEffect("paralyzed"));
 
         const result = await runCommand("craft COFFEE and GLASSES");
-        expect(result).toBe(false);
+        expect(result).toBe(true);
         expect(replySpy).toBeInvokedWith(expect.anything(),
-            "You cannot do that because you are **paralyzed**.");
+            "You cannot do that because you are **paralyzed**.",
+            true);
         player.cure(testGame.entityFinder.getStatusEffect("paralyzed"));
     });
 
@@ -76,7 +77,7 @@ describe("craft_player command", () => {
         const replySpy = vi.spyOn(testGame.communicationHandler, "reply");
         // GLASSES and RED TIE are equipped, not held.
         const result = await runCommand("craft GLASSES and RED TIE");
-        expect(result).toBe(false);
+        expect(result).toBe(true);
         expect(replySpy).toBeInvokedWith(expect.anything(),
             `Couldn't find items "GLASSES" and "RED TIE" in either of your hands.`);
     });
@@ -85,7 +86,7 @@ describe("craft_player command", () => {
         const replySpy = vi.spyOn(testGame.communicationHandler, "reply");
         // GLASSES is equipped, COFFEE is in RIGHT HAND.
         const result = await runCommand("craft GLASSES with COFFEE");
-        expect(result).toBe(false);
+        expect(result).toBe(true);
         expect(replySpy).toBeInvokedWith(expect.anything(),
             `Couldn't find item "GLASSES" in either of your hands.`);
     });
@@ -94,7 +95,7 @@ describe("craft_player command", () => {
         const replySpy = vi.spyOn(testGame.communicationHandler, "reply");
         // COFFEE is in RIGHT HAND, RED TIE is equipped.
         const result = await runCommand("craft COFFEE with RED TIE");
-        expect(result).toBe(false);
+        expect(result).toBe(true);
         expect(replySpy).toBeInvokedWith(expect.anything(),
             `Couldn't find item "RED TIE" in either of your hands.`);
     });
@@ -104,7 +105,7 @@ describe("craft_player command", () => {
         setHandItems(player, "PEN", "FORK");
         const replySpy = vi.spyOn(testGame.communicationHandler, "reply");
         const result = await runCommand("craft PEN with FORK");
-        expect(result).toBe(false);
+        expect(result).toBe(true);
         // Items are sorted alphabetically by prefab ID in the error message.
         expect(replySpy).toBeInvokedWith(expect.anything(),
             `Couldn't find recipe requiring FORK and PEN. Contact a moderator if you think there should be one.`);
@@ -115,7 +116,7 @@ describe("craft_player command", () => {
         setHandItems(player, "ORANGE JUICE", "FORK");
         const replySpy = vi.spyOn(testGame.communicationHandler, "reply");
         const result = await runCommand("craft ORANGE JUICE and FORK");
-        expect(result).toBe(false);
+        expect(result).toBe(true);
         // No recipe exists, so we get the recipe error
         expect(replySpy).toBeInvokedWith(expect.anything(),
             expect.stringContaining("Couldn't find recipe requiring"));
