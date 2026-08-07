@@ -159,10 +159,10 @@ describe("GameEntityFinder test", () => {
             expect(foundItem1).toBeInstanceOf(RoomItem);
             expect(foundItem1.prefab.id).toBe("PEN");
             expect(foundItem1.identifier).toBe("");
-            expect(foundItem1.name).toBe("PEN");
-            expect(foundItem1.pluralName).toBe("PENS");
-            expect(foundItem1.singleContainingPhrase).toBe("a PEN");
-            expect(foundItem1.pluralContainingPhrase).toBe("PENS");
+            expect(foundItem1.name).toBe("RED PEN");
+            expect(foundItem1.pluralName).toBe("RED PENS");
+            expect(foundItem1.singleContainingPhrase).toBe("a RED PEN");
+            expect(foundItem1.pluralContainingPhrase).toBe("RED PENS");
             expect(foundItem1.location.id).toBe("lobby");
             expect(foundItem1.containerName).toBe("RECEPTION DESK");
             let foundItem2 = testGame.entityFinder.getRoomItem("ANZUS BREECHES", "suite-12", "Fixture", "CLOSET");

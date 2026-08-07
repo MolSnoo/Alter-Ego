@@ -391,7 +391,7 @@ describe('GameEntityLoader test', () => {
                 if (testGame.statusEffects.size === 0) await testGame.entityLoader.loadStatusEffects(false);
                 const prefabCount = await testGame.entityLoader.loadPrefabs(true, errors);
                 expect(errors).toEqual([]);
-                expect(prefabCount).toBe(1512);
+                expect(prefabCount).toBe(1522);
                 for (const prefab of testGame.prefabs.values()) {
                     const descriptionText = prefab.description.toString();
                     expect(descriptionText).not.toContain("<item>");

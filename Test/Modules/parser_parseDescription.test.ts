@@ -540,7 +540,7 @@ describe('test parseDescription', () => {
         test('finite and infinite quantities', () => {
             const container = testGame.entityFinder.getFixture('DRAWERS', 'warehouse-office');
             expect(container.description.toString()).toBe(`<desc><s>You look through the drawers.</s> <s>They mostly contain a bunch of files in Russian<if cond="player.hasAttribute('knows russian')">, which are all meaningless documents about warehouse shipments, employees, soldiers, etc</if><if cond="!player.hasAttribute('knows russian')">, which you can't read</if>.</s> <s>However, the top drawer contains <il>a stack of PAPER</il>.</s></desc>`)
-            const expected = `You look through the drawers. They mostly contain a bunch of files in Russian, which you can't read. However, the top drawer contains a MEDIUM KEY, a DOCUMENT, 7 PENS, and a stack of PAPER.`;
+            const expected = `You look through the drawers. They mostly contain a bunch of files in Russian, which you can't read. However, the top drawer contains a MEDIUM KEY, a DOCUMENT, 7 RED PENS, and a stack of PAPER.`;
             const result = parseDescription(container.description, container, kyra);
             expect(result).toBe(expected);
         });
