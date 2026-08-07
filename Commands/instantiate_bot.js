@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import InstantiateInventoryItemAction from "../Data/Actions/InstantiateInventoryItemAction.ts";
 import InstantiateRoomItemAction from "../Data/Actions/InstantiateRoomItemAction.ts";
 import RoomItem from "../Data/RoomItem.ts";
@@ -202,6 +207,8 @@ export async function execute(game, command, args, player, callee) {
         else if (prefab === null && container !== null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find prefab with id "${parsedInput}".`);
         else if (prefab === null && container === null) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput}".`);
 
+        if (isNaN(quantity) || quantity < 1)
+            return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity)}`);
         if (containerItem !== null && container instanceof RoomItem) {
             if (prefab.size > containerItemSlot.capacity && container.inventory.size !== 1) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
             else if (prefab.size > containerItemSlot.capacity) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${prefab.id} will not fit in ${container.name} because it is too large.`);
@@ -338,6 +345,8 @@ export async function execute(game, command, args, player, callee) {
             }
             else if (prefab === null && containerItem === null && equipmentSlotName === "") return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find "${parsedInput2}".`);
 
+            if (isNaN(quantity) || quantity < 1)
+                return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity)}`);
             if (equipmentSlotName !== "" && quantity !== 1) return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Cannot instantiate more than 1 item to a player's equipment slot.`);
             if (containerItem !== null) {
                 equipmentSlotName = containerItem.equipmentSlot;

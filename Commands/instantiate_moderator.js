@@ -206,7 +206,7 @@ export async function execute(game, message, command, args, moderator) {
                 parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
             }
             catch (error) {
-                return game.communicationHandler.reply(message, error);
+                return game.communicationHandler.reply(message, error.message ?? error);
             }
         }
 
@@ -229,6 +229,8 @@ export async function execute(game, message, command, args, moderator) {
         else if (prefab === null && container !== null) return game.communicationHandler.reply(message, `Couldn't find prefab with id "${parsedInput}".`);
         else if (prefab === null && container === null) return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
 
+        if (isNaN(quantity) || quantity < 1)
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
         if (containerItem !== null && container instanceof RoomItem) {
             if (containerItemSlot.willBeOverFilledBy(prefab, quantity))
                 return game.communicationHandler.reply(message, game.errorMessageGenerator.generateItemWillNotFitInInventorySlotError(prefab, container, containerItemSlot, "Moderator"));
@@ -350,7 +352,7 @@ export async function execute(game, message, command, args, moderator) {
                 parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
             }
             catch (error) {
-                return game.communicationHandler.reply(message, error);
+                return game.communicationHandler.reply(message, error.message ?? error);
             }
         }
 
@@ -376,6 +378,8 @@ export async function execute(game, message, command, args, moderator) {
         }
         else if (prefab === null && containerItem === null && equipmentSlotId === "") return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
 
+        if (isNaN(quantity) || quantity < 1)
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
         if (equipmentSlotId !== "" && quantity !== 1) return game.communicationHandler.reply(message, `Cannot instantiate more than 1 item to a player's equipment slot.`);
         if (containerItem !== null) {
             equipmentSlotId = containerItem.equipmentSlot;

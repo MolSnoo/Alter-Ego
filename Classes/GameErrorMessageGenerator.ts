@@ -598,4 +598,13 @@ export default class GameErrorMessageGenerator {
     generatePossibilityNotFoundError(prefab: Prefab, proceduralName: string, possibilityName: string) {
         return `${prefab.id}'s procedural "${proceduralName}" does not have possibility "${possibilityName}".`;
     }
+
+    /**
+     * Generates an error message indicating that the given prefab cannot be instantiated with the given quantity.
+     * @param prefab - The prefab which cannot be instantiated.
+     * @param quantity - The quantity with which the prefab cannot be instantiated.
+     */
+    generateCannotInstantiateWithInvalidQuantityError(prefab: Prefab, quantity: number) {
+        return `Cannot instantiate ${prefab.id} with a quantity of ${quantity}. The quantity must be greater than or equal to 1.`;
+    }
 }
