@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -9,7 +10,7 @@ import ItemInstance from "../ItemInstance.ts";
 import Prefab from "../Prefab.ts";
 import Puzzle from "../Puzzle.ts";
 import RoomItem from "../RoomItem.ts";
-import { parseProceduralSelections } from "../../Modules/stringDataExtractor.ts";
+import { parseProceduralSelections, type ContainedItem } from "../../Modules/stringDataExtractor.ts";
 import { instantiateRoomItem } from "../../Modules/itemManager.ts";
 import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
 
@@ -28,9 +29,10 @@ export default class InstantiateRoomItemAction extends Action {
      * @param quantity - The quantity to instantiate.
      * @param proceduralSelections - The manually selected procedural possibilities.
      * @param uses - The number of uses to instantiate the room item with. Defaults to the prefab's uses.
+     * @param containedItems - The items to instantiate inside the room item in its first inventory slot. Defaults to an empty array.
      * @returns The instantiated {@link RoomItem| room items}.
      */
-    performInstantiateRoomItem(prefab: Prefab, container: RoomItemContainer, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses: number = prefab.uses): RoomItem[] {
+    performInstantiateRoomItem(prefab: Prefab, container: RoomItemContainer, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses: number = prefab.uses, containedItems: ContainedItem[] = []): RoomItem[] {
         if (this.performed) return;
         super.perform();
         const createdItems: RoomItem[] = [];
@@ -40,9 +42,22 @@ export default class InstantiateRoomItemAction extends Action {
                 createdItems.push(this.#instantiateRoomItem(prefab, container, inventorySlotId, 1, proceduralSelections, uses));
         }
         else createdItems.push(this.#instantiateRoomItem(prefab, container, inventorySlotId, quantity, proceduralSelections, uses));
+        // Instantiate the contained items in the first inventory slot of each created item.
+        if (containedItems.length > 0 && prefab.inventory.size !== 0) {
+            for (const createdItem of createdItems) {
+                for (const containedItem of containedItems) {
+                    this.#instantiateRoomItem(containedItem.prefab, createdItem, createdItem.inventory.firstKey(), containedItem.quantity, containedItem.proceduralSelections, containedItem.uses);
+                }
+            }
+        }
 
         const entityType = `room item${createdItems.length !== 1 ? `s` : ``}`;
-        const itemsString = generateListString(createdItems.map(item => makeCopyable(item.getIdentifier())));
+        const itemsString = generateListString(createdItems.map(item => {
+            let containedItemsString = ``;
+            if (item.inventory.size > 0 && item.inventory.first().items.length > 0)
+                containedItemsString = ` containing ${generateListString(item.inventory.first().items.map(containedItem => `${containedItem.quantity} ${makeCopyable(containedItem.getIdentifier())}`))}`;
+            return `${makeCopyable(item.getIdentifier())}${containedItemsString}`;
+        }));
         const slotPhrase = inventorySlotId ? `${inventorySlotId} of ` : ``;
         const containerString = `${container.getPreposition()} ${slotPhrase}${container.getContainerIdentifier()}`;
 		this.successMessage = `Successfully instantiated ${entityType} ${itemsString} ${containerString} at ${container.location.getEntityID()}.`;
@@ -68,8 +83,8 @@ export default class InstantiateRoomItemAction extends Action {
 
     /**
      * Finds the required entities to call performInstantiateRoomItem.
-     * 
-     * @param args - The base args as strings. 
+     *
+     * @param args - The base args as strings.
      * @param prefabId - The ID of the prefab to instantiate.
      * @param quantityString - The quantity to instantiate the prefab with.
      * @param usesString - The number of uses to instantiate the prefab with.
@@ -102,7 +117,7 @@ export default class InstantiateRoomItemAction extends Action {
 
     /**
      * Validates the parsed args. The results can be passed directly into performInstantiateRoomItem.
-     * 
+     *
      * @param args - The args after being parsed.
      */
     validateInteractionArgs(args: [Prefab, RoomItemContainer, InventorySlot<RoomItem>, number, string, number]): [Prefab, RoomItemContainer, string, number, Map<string, string>, number] {

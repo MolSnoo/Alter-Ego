@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -8,7 +9,7 @@ import InventoryItem from "../InventoryItem.ts";
 import type InventorySlot from "../InventorySlot.ts";
 import ItemInstance from "../ItemInstance.ts";
 import Prefab from "../Prefab.ts";
-import { parseProceduralSelections } from "../../Modules/stringDataExtractor.ts";
+import { parseProceduralSelections, type ContainedItem } from "../../Modules/stringDataExtractor.ts";
 import { instantiateInventoryItem } from "../../Modules/itemManager.ts";
 import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
 
@@ -18,22 +19,23 @@ import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/action.html#instantiate-inventory-item-action
  */
 export default class InstantiateInventoryItemAction extends Action {
-	/**
-	 * Performs an instantiate action for an inventory item.
+    /**
+     * Performs an instantiate action for an inventory item.
      *
-	 * @param prefab - The prefab to instantiate as an inventory item.
-	 * @param equipmentSlotId - The ID of the equipment slot this inventory item will belong to.
-	 * @param container - The container to instantiate the item in.
-	 * @param inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
-	 * @param quantity - The quantity to instantiate.
-	 * @param proceduralSelections - The manually selected procedural possibilities.
-	 * @param uses - The number of uses to instantiate the inventory item with. Defaults to the prefab's uses.
-	 * @param notify - Whether or not to notify the player that the item was added to their inventory. Defaults to true.
+     * @param prefab - The prefab to instantiate as an inventory item.
+     * @param equipmentSlotId - The ID of the equipment slot this inventory item will belong to.
+     * @param container - The container to instantiate the item in.
+     * @param inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
+     * @param quantity - The quantity to instantiate.
+     * @param proceduralSelections - The manually selected procedural possibilities.
+     * @param uses - The number of uses to instantiate the inventory item with. Defaults to the prefab's uses.
+     * @param containedItems - The items to instantiate inside the inventory item in its first inventory slot. Defaults to an empty array.
+     * @param notify - Whether or not to notify the player that the item was added to their inventory. Defaults to true.
      * @returns The instantiated {@link InventoryItem| inventory items}.
-	 */
-	performInstantiateInventoryItem(prefab: Prefab, equipmentSlotId: string, container: InventoryItem, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, notify: boolean = true): InventoryItem[] {
-		if (this.performed) return;
-		super.perform();
+     */
+    performInstantiateInventoryItem(prefab: Prefab, equipmentSlotId: string, container: InventoryItem, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, containedItems: ContainedItem[] = [], notify: boolean = true): InventoryItem[] {
+        if (this.performed) return;
+        super.perform();
         const createdItems: InventoryItem[] = [];
         // If the prefab has inventory slots, run the instantiate function quantity times so that it generates items with different identifiers.
         if (prefab.inventory.size > 0) {
@@ -41,44 +43,57 @@ export default class InstantiateInventoryItemAction extends Action {
                 createdItems.push(this.#instantiateInventoryItem(prefab, equipmentSlotId, container, inventorySlotId, 1, proceduralSelections, uses, notify));
         }
         else createdItems.push(this.#instantiateInventoryItem(prefab, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections, uses, notify));
-        
+        // Instantiate the contained items in the first inventory slot of each created item.
+        if (containedItems.length > 0 && prefab.inventory.size !== 0) {
+            for (const createdItem of createdItems) {
+                for (const containedItem of containedItems) {
+                    this.#instantiateInventoryItem(containedItem.prefab, equipmentSlotId, createdItem, createdItem.inventory.firstKey(), containedItem.quantity, containedItem.proceduralSelections, containedItem.uses, false);
+                }
+            }
+        }
+
         const entityType = `inventory item${createdItems.length !== 1 ? `s` : ``}`;
-        const itemsString = generateListString(createdItems.map(item => makeCopyable(item.getIdentifier())));
+        const itemsString = generateListString(createdItems.map(item => {
+            let containedItemsString = ``;
+            if (item.inventory.size > 0 && item.inventory.first().items.length > 0)
+                containedItemsString = ` containing ${generateListString(item.inventory.first().items.map(containedItem => `${containedItem.quantity} ${makeCopyable(containedItem.getIdentifier())}`))}`;
+            return `${makeCopyable(item.getIdentifier())}${containedItemsString}`;
+        }));
         const containerString = container ? `${container.getPreposition()} ${this.player.name}'s ${inventorySlotId} of ${container.getIdentifier()}` : `to ${this.player.name}'s ${equipmentSlotId}`;
-		this.successMessage = `Successfully instantiated ${entityType} ${itemsString} ${containerString}.`;
+        this.successMessage = `Successfully instantiated ${entityType} ${itemsString} ${containerString}.`;
         return createdItems;
-	}
+    }
 
     /**
-	 * Performs an instantiate action for an inventory item.
+     * Performs an instantiate action for an inventory item.
      *
-	 * @param prefab - The prefab to instantiate as an inventory item.
-	 * @param equipmentSlotId - The ID of the equipment slot this inventory item will belong to.
-	 * @param container - The container to instantiate the item in.
-	 * @param inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
-	 * @param quantity - The quantity to instantiate.
-	 * @param proceduralSelections - The manually selected procedural possibilities.
-	 * @param uses - The number of uses to instantiate the inventory item with. Defaults to the prefab's uses.
-	 * @param notify - Whether or not to notify the player that the item was added to their inventory. Defaults to true.
+     * @param prefab - The prefab to instantiate as an inventory item.
+     * @param equipmentSlotId - The ID of the equipment slot this inventory item will belong to.
+     * @param container - The container to instantiate the item in.
+     * @param inventorySlotId - The ID of the {@link InventorySlot|inventory slot} to instantiate the item in.
+     * @param quantity - The quantity to instantiate.
+     * @param proceduralSelections - The manually selected procedural possibilities.
+     * @param uses - The number of uses to instantiate the inventory item with. Defaults to the prefab's uses.
+     * @param notify - Whether or not to notify the player that the item was added to their inventory. Defaults to true.
      * @returns The instantiated {@link InventoryItem| inventory item}.
-	 */
+     */
     #instantiateInventoryItem(prefab: Prefab, equipmentSlotId: string, container: InventoryItem, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, notify: boolean = true): InventoryItem {
         const createdItem = instantiateInventoryItem(prefab, this.player, equipmentSlotId, container, inventorySlotId, quantity, uses, proceduralSelections);
-		const equipmentSlot = this.player.inventory.get(equipmentSlotId);
-		const inventorySlot = createdItem.container instanceof ItemInstance ? createdItem.container.inventory.get(inventorySlotId) : undefined;
-		if (!container) {
-			if (notify) this.getGame().narrationHandler.narrateInstantiateEquippedInventoryItem(this, createdItem, this.player);
-			this.getGame().logHandler.logInstantiateEquippedInventoryItem(createdItem, this.player, equipmentSlot);
-		}
-		else
-			this.getGame().logHandler.logInstantiateStashedInventoryItem(createdItem, quantity, this.player, container, inventorySlot);
+        const equipmentSlot = this.player.inventory.get(equipmentSlotId);
+        const inventorySlot = createdItem.container instanceof ItemInstance ? createdItem.container.inventory.get(inventorySlotId) : undefined;
+        if (!container) {
+            if (notify) this.getGame().narrationHandler.narrateInstantiateEquippedInventoryItem(this, createdItem, this.player);
+            this.getGame().logHandler.logInstantiateEquippedInventoryItem(createdItem, this.player, equipmentSlot);
+        }
+        else
+            this.getGame().logHandler.logInstantiateStashedInventoryItem(createdItem, quantity, this.player, container, inventorySlot);
         return createdItem;
     }
 
     /**
      * Finds the required entities to call performInstantiateInventoryItem
-     * 
-     * @param args - The base args as strings. 
+     *
+     * @param args - The base args as strings.
      * @param prefabId - The ID of the prefab to instantiate.
      * @param quantityString - The quantity to instantiate the prefab with.
      * @param usesString - The number of uses to instantiate the prefab with.
@@ -99,7 +114,7 @@ export default class InstantiateInventoryItemAction extends Action {
 
     /**
      * Validates the parsed args. The results can be passed directly into performInstantiateInventoryItem.
-     * 
+     *
      * @param args - The args after being parsed.
      */
     validateInteractionArgs(args: [Prefab, EquipmentSlot, InventoryItem, InventorySlot<InventoryItem>, number, string, number]): [Prefab, string, InventoryItem, string, number, Map<string, string>, number] {

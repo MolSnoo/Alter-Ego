@@ -1,11 +1,20 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import InstantiateInventoryItemAction from '../Data/Actions/InstantiateInventoryItemAction.ts';
 import InstantiateRoomItemAction from '../Data/Actions/InstantiateRoomItemAction.ts';
 import RoomItem from '../Data/RoomItem.ts';
-import { parseProceduralSelections } from '../Modules/stringDataExtractor.ts';
+import { parseProceduralSelections, parseInstantiateContainingString } from '../Modules/stringDataExtractor.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
 /** @import Game from '../Data/Game.ts' */
+/** @import InventoryItem from '../Data/InventoryItem.ts' */
+/** @import InventorySlot from '../Data/InventorySlot.ts' */
+/** @import Prefab from '../Data/Prefab.ts' */
+/** @import { ContainedItem } from '../Modules/stringDataExtractor.ts' */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -17,6 +26,10 @@ export const config = {
         + `If the prefab has procedural options, they can be manually selected in parentheses. To do this, write the `
         + `name of the procedural tag and the poss tag to select within it, separated by an equal sign (\`=\`). `
         + `Multiple procedural selections can be made, separated by a plus sign (\`+\`).\n\n`
+        + `You can instantiate items inside of the created item. It must have only one inventory slot for this to work. `
+        + `To do so, enter "containing" after the prefab ID and procedural selections, followed by a list of prefabs `
+        + `separated by a plus sign (\`+\`). You can specify quantities and procedural selections for the `
+        + `contained items, just like the main item. However, they must all fit in its sole inventory slot.\n\n`
         + `To instantiate a room item, the display name or ID of the room must be given at the end, following \"at\". `
         + `The container to put it in must also be specified after the prefab's ID, preceded by the container's `
         + `preposition or "in". If the container is a fixture with a child puzzle, the puzzle will be its container. `
@@ -41,14 +54,16 @@ export function usage(settings) {
     return `${settings.commandPrefix}instantiate RAW FISH on FLOOR at Beach\n`
         + `${settings.commandPrefix}create PICKAXE in LOCKER 1 at mining-hub\n`
         + `${settings.commandPrefix}generate 3 EMPTY DRAIN CLEANER in CUPBOARDS at Kitchen\n`
-        + `${settings.commandPrefix}instantiate GREEN BOOK in MAIN POCKET of LARGE BACKPACK 1 at dorm-library\n`
-        + `${settings.commandPrefix}is 4 SCREWDRIVER in TOOL BOX at Beach House\n`
-        + `${settings.commandPrefix}gn WET CLAY POT (quality = excellent) on POTTERY WHEEL at Art Studio\n`
-        + `${settings.commandPrefix}instantiate KATANA in Nero's RIGHT HAND\n`
-        + `${settings.commandPrefix}create GORILLA MASK on Evad's FACE\n`
-        + `${settings.commandPrefix}generate VIVIANS LAPTOP in Vivian's VIVIANS SATCHEL\n`
-        + `${settings.commandPrefix}is 2 SHOTPUT BALL in Cassie's MAIN POCKET of LARGE BACKPACK\n`
-        + `${settings.commandPrefix}gn 3 GACHA CAPSULE (color=metal + character=upa) in Asuka's LEFT POCKET of GAMER HOODIE`;
+        + `${settings.commandPrefix}is GREEN BOOK in MAIN POCKET of LARGE BACKPACK 1 at dorm-library\n`
+        + `${settings.commandPrefix}gn 4 SCREWDRIVER in TOOL BOX at Beach House\n`
+        + `${settings.commandPrefix}instantiate WET CLAY POT (quality = excellent) on POTTERY WHEEL at Art Studio\n`
+        + `${settings.commandPrefix}create PACK OF PENS containing 10 PEN (ink color = blue) on CHECKOUT COUNTER at School Store\n`
+        + `${settings.commandPrefix}generate KATANA in Nero's RIGHT HAND\n`
+        + `${settings.commandPrefix}is GORILLA MASK on Evad's FACE\n`
+        + `${settings.commandPrefix}gn VIVIANS LAPTOP in Vivian's VIVIANS SATCHEL\n`
+        + `${settings.commandPrefix}instantiate 2 SHOTPUT BALL in Cassie's MAIN POCKET of LARGE BACKPACK\n`
+        + `${settings.commandPrefix}create 3 GACHA CAPSULE (color=metal + character=upa) in Asuka's LEFT POCKET of GAMER HOODIE\n`
+        + `${settings.commandPrefix}is 4 BINDER (binder color=yellow) containing FOLDER (folder color=lime green) + 2 PENCIL (pencil grade=2B+pencil color=blue) in Elise's LEFT HAND`;
 }
 
 /**
@@ -76,7 +91,9 @@ export async function execute(game, message, command, args, moderator) {
     const undashedInput = parsedInput.replace(/-/g, " ");
 
     // Some prefabs might have similar names. Make a list of all the ones that are found at the beginning of parsedInput.
+    /** @type {Prefab} */
     let prefab = null;
+    /** @type {Prefab[]} */
     const matches = [];
     for (let i = 1; i <= args.length; i++) {
         const match = game.entityFinder.getPrefab(args.slice(0, i).join(" "));
@@ -125,7 +142,9 @@ export async function execute(game, message, command, args, moderator) {
             }
         }
 
+        /** @type {RoomItem} */
         let containerItem = null;
+        /** @type {InventorySlot<RoomItem>} */
         let containerItemSlot = null;
         if (fixture === null) {
             // Check if a container item was specified.
@@ -178,6 +197,19 @@ export async function execute(game, message, command, args, moderator) {
             slotName = containerItemSlot.id;
         }
 
+        /** @type {ContainedItem[]} */
+        let containedItems = [];
+        if (parsedInput.includes(" CONTAINING ")) {
+            const containedItemString = parsedInput.substring(parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length);
+            try {
+                containedItems = parseInstantiateContainingString(game, containedItemString);
+                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
+            }
+            catch (error) {
+                return game.communicationHandler.reply(message, error);
+            }
+        }
+
         // Finally, find the prefab.
         if (matches.length === 1) prefab = matches[0];
         else {
@@ -198,22 +230,36 @@ export async function execute(game, message, command, args, moderator) {
         else if (prefab === null && container === null) return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
 
         if (containerItem !== null && container instanceof RoomItem) {
-            if (prefab.size > containerItemSlot.capacity && container.inventory.size !== 1) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because it is too large.`);
-            else if (prefab.size > containerItemSlot.capacity) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${container.name} because it is too large.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && container.inventory.size !== 1) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${container.name} because there isn't enough space left.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${container.name} because there isn't enough space left.`);
+            if (containerItemSlot.willBeOverFilledBy(prefab, quantity))
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generateItemWillNotFitInInventorySlotError(prefab, container, containerItemSlot, "Moderator"));
         }
         // Check for procedural selections errors.
         for (const [proceduralName, proceduralValue] of proceduralSelections.entries()) {
             if (!prefab.proceduralOptions.has(proceduralName))
-                return game.communicationHandler.reply(message, `${prefab.id} does not have procedural "${proceduralName}".`);
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generateProceduralNotFoundError(prefab, proceduralName));
             if (!prefab.proceduralOptions.get(proceduralName).has(proceduralValue))
-                return game.communicationHandler.reply(message, `${prefab.id}'s procedural "${proceduralName}" does not have possibility "${proceduralValue}".`);
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePossibilityNotFoundError(prefab, proceduralName, proceduralValue));
+        }
+        // Check for contained items errors.
+        if (containedItems.length > 0) {
+            if (prefab.inventory.size === 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotPutItemsInContainerError(prefab, "Moderator"));
+            if (prefab.inventory.size > 1) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateContainerHasMultipleInventorySlotsError(prefab, "Moderator"));
+            const totalSize = containedItems.reduce((size, item) => size + (item.quantity * item.prefab.size), 0);
+            if (totalSize > prefab.inventory.first().capacity)
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generateItemsWillNotFitInInventorySlotError(containedItems.map(item => item.prefab), prefab, prefab.inventory.first(), "Moderator"));
+            for (const containedItem of containedItems) {
+                for (const [proceduralName, proceduralValue] of containedItem.proceduralSelections.entries()) {
+                    if (!containedItem.prefab.proceduralOptions.has(proceduralName))
+                        return game.communicationHandler.reply(message, game.errorMessageGenerator.generateProceduralNotFoundError(containedItem.prefab, proceduralName));
+                    if (!containedItem.prefab.proceduralOptions.get(proceduralName).has(proceduralValue))
+                        return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePossibilityNotFoundError(containedItem.prefab, proceduralName, proceduralValue));
+                }
+            }
         }
 
         // Now instantiate the item.
         const instantiateAction = new InstantiateRoomItemAction(game, message, undefined, room, true);
-        instantiateAction.performInstantiateRoomItem(prefab, container, slotName, quantity, proceduralSelections);
+        instantiateAction.performInstantiateRoomItem(prefab, container, slotName, quantity, proceduralSelections, prefab.uses, containedItems);
         instantiateAction.sendSuccessMessageToCommandChannel();
     }
     else {
@@ -239,7 +285,9 @@ export async function execute(game, message, command, args, moderator) {
         parsedInput = newArgs.join(" ").toUpperCase().replace(/\'/g, "");
 
         // Check if an inventory item was specified.
+        /** @type {InventoryItem} */
         let containerItem = null;
+        /** @type {InventorySlot<InventoryItem>} */
         let containerItemSlot = null;
         const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
         for (let i = 0; i < items.length; i++) {
@@ -278,18 +326,31 @@ export async function execute(game, message, command, args, moderator) {
         const slotName = containerItem !== null ? containerItemSlot.id : "";
 
         // Check if an equipment slot was specified.
-        let equipmentSlotName = "";
+        let equipmentSlotId = "";
         if (containerItem === null) {
             for (const [id, slot] of player.inventory) {
                 if (parsedInput.endsWith(id)) {
-                    equipmentSlotName = id;
+                    equipmentSlotId = id;
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                     const newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
                     parsedInput = newArgs.join(' ');
-                    if (slot.equippedItem !== null) return game.communicationHandler.reply(message, `Cannot equip items to ${equipmentSlotName} because ${slot.equippedItem.name} is already equipped to it.`);
+                    if (slot.equippedItem !== null) return game.communicationHandler.reply(message, `Cannot equip items to ${equipmentSlotId} because ${slot.equippedItem.name} is already equipped to it.`);
                     break;
                 }
+            }
+        }
+
+        /** @type {ContainedItem[]} */
+        let containedItems = [];
+        if (parsedInput.includes(" CONTAINING ")) {
+            const containedItemString = parsedInput.substring(parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length);
+            try {
+                containedItems = parseInstantiateContainingString(game, containedItemString);
+                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
+            }
+            catch (error) {
+                return game.communicationHandler.reply(message, error);
             }
         }
 
@@ -304,36 +365,50 @@ export async function execute(game, message, command, args, moderator) {
             }
         }
 
-        if (prefab !== null && containerItem === null && equipmentSlotName === "") {
+        if (prefab !== null && containerItem === null && equipmentSlotId === "") {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
             return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
         }
-        else if (prefab === null && (containerItem !== null || equipmentSlotName !== "")) {
+        else if (prefab === null && (containerItem !== null || equipmentSlotId !== "")) {
             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(' '));
             return game.communicationHandler.reply(message, `Couldn't find prefab with id "${parsedInput}".`);
         }
-        else if (prefab === null && containerItem === null && equipmentSlotName === "") return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
+        else if (prefab === null && containerItem === null && equipmentSlotId === "") return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
 
-        if (equipmentSlotName !== "" && quantity !== 1) return game.communicationHandler.reply(message, `Cannot instantiate more than 1 item to a player's equipment slot.`);
+        if (equipmentSlotId !== "" && quantity !== 1) return game.communicationHandler.reply(message, `Cannot instantiate more than 1 item to a player's equipment slot.`);
         if (containerItem !== null) {
-            equipmentSlotName = containerItem.equipmentSlot;
-            if (prefab.size > containerItemSlot.capacity && containerItem.inventory.size !== 1) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because it is too large.`);
-            else if (prefab.size > containerItemSlot.capacity) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because it is too large.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity && containerItem.inventory.size !== 1) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${containerItemSlot.id} of ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
-            else if (containerItemSlot.takenSpace + quantity * prefab.size > containerItemSlot.capacity) return game.communicationHandler.reply(message, `${prefab.id} will not fit in ${player.name}'s ${containerItem.name} because there isn't enough space left.`);
+            equipmentSlotId = containerItem.equipmentSlot;
+            if (containerItemSlot.willBeOverFilledBy(prefab, quantity))
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generateItemWillNotFitInInventorySlotError(prefab, containerItem, containerItemSlot, "Moderator"));
         }
         // Check for procedural selections errors.
         for (const [proceduralName, proceduralValue] of proceduralSelections.entries()) {
             if (!prefab.proceduralOptions.has(proceduralName))
-                return game.communicationHandler.reply(message, `${prefab.id} does not have procedural "${proceduralName}".`);
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generateProceduralNotFoundError(prefab, proceduralName));
             if (!prefab.proceduralOptions.get(proceduralName).has(proceduralValue))
-                return game.communicationHandler.reply(message, `${prefab.id}'s procedural "${proceduralName}" does not have possibility "${proceduralValue}".`);
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePossibilityNotFoundError(prefab, proceduralName, proceduralValue));
+        }
+        // Check for contained items errors.
+        if (containedItems.length > 0) {
+            if (prefab.inventory.size === 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotPutItemsInContainerError(prefab, "Moderator"));
+            if (prefab.inventory.size > 1) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateContainerHasMultipleInventorySlotsError(prefab, "Moderator"));
+            const totalSize = containedItems.reduce((size, item) => size + (item.quantity * item.prefab.size), 0);
+            if (totalSize > prefab.inventory.first().capacity)
+                return game.communicationHandler.reply(message, game.errorMessageGenerator.generateItemsWillNotFitInInventorySlotError(containedItems.map(item => item.prefab), prefab, prefab.inventory.first(), "Moderator"));
+            for (const containedItem of containedItems) {
+                for (const [proceduralName, proceduralValue] of containedItem.proceduralSelections.entries()) {
+                    if (!containedItem.prefab.proceduralOptions.has(proceduralName))
+                        return game.communicationHandler.reply(message, game.errorMessageGenerator.generateProceduralNotFoundError(containedItem.prefab, proceduralName));
+                    if (!containedItem.prefab.proceduralOptions.get(proceduralName).has(proceduralValue))
+                        return game.communicationHandler.reply(message, game.errorMessageGenerator.generatePossibilityNotFoundError(containedItem.prefab, proceduralName, proceduralValue));
+                }
+            }
         }
 
         // Now instantiate the item.
         const instantiateAction = new InstantiateInventoryItemAction(game, message, player, player.location, true);
-        instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotName, containerItem, slotName, quantity, proceduralSelections);
+        instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotId, containerItem, slotName, quantity, proceduralSelections, prefab.uses, containedItems);
         instantiateAction.sendSuccessMessageToCommandChannel();
     }
 }

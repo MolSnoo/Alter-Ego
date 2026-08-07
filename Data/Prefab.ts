@@ -1,4 +1,9 @@
-﻿import { Collection } from "discord.js";
+﻿// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+import { Collection } from "discord.js";
 import Description from "./Description.ts";
 import type Game from "./Game.ts";
 import GameEntity from "./GameEntity.ts";
@@ -191,6 +196,13 @@ export default class Prefab extends GameEntity implements PersistentGameEntity {
     }
 
     /**
+     * Gets the prefab's ID.
+     */
+    getIdentifier(): string {
+        return this.id;
+    }
+
+    /**
      * The first possible name of the prefab.
      */
     get name(): string {
@@ -236,7 +248,7 @@ export default class Prefab extends GameEntity implements PersistentGameEntity {
      * Generates a string representation of the prefab's possible names or containing phrases as they would appear in the sheet.
      * @param possibleNames - The key of the possible names property to generate the string for.
      */
-    private getPossibleNameString(possibleNames: "possibleNames"|"possibleContainingPhrases"): string {
+    private getPossibleNameString(possibleNames: "possibleNames" | "possibleContainingPhrases"): string {
         const possibleNamesStrings: string[] = [];
         this[possibleNames].forEach((namePair, proceduralSelection) => {
             const proceduralKey = proceduralSelection.keys().next().value as string;
@@ -297,7 +309,7 @@ export default class Prefab extends GameEntity implements PersistentGameEntity {
      * @param possibleNames - The key of the possible names property to get the name for.
      * @param proceduralSelections - A map of procedural selections to determine the prefab's name.
      */
-    private getPossibleNamesFor(possibleNames: "possibleNames"|"possibleContainingPhrases", proceduralSelections: Map<string, string>): [string, string] {
+    private getPossibleNamesFor(possibleNames: "possibleNames" | "possibleContainingPhrases", proceduralSelections: Map<string, string>): [string, string] {
         for (const [[...proceduralOption], names] of this[possibleNames].entries()) {
             const proceduralName = proceduralOption[0][0];
             const possibilityName = proceduralOption[0][1];
@@ -323,17 +335,17 @@ export default class Prefab extends GameEntity implements PersistentGameEntity {
     }
 
     /**
-	 * Outputs a string to insert into an item list in a description.
-	 * If the given quantity is 1, returns the prefab's single containing phrase.
-	 * If the quantity is not 1, returns the prefab's quantity followed by its plural containing phrase.
-	 * If the quantity is infinite, returns only the prefab's plural containing phrase.
+     * Outputs a string to insert into an item list in a description.
+     * If the given quantity is 1, returns the prefab's single containing phrase.
+     * If the quantity is not 1, returns the prefab's quantity followed by its plural containing phrase.
+     * If the quantity is infinite, returns only the prefab's plural containing phrase.
      * @param proceduralSelections - A map of procedural selections to determine the prefab's containing phrase.
-	 */
-	toSingleOrPluralContainingPhrase(quantity: number, proceduralSelections: Map<string, string> = new Map()): string {
-		if (isNaN(quantity)) return this.getPluralContainingPhraseFor(proceduralSelections);
-		else if (quantity !== 1) return `${quantity} ${this.getPluralContainingPhraseFor(proceduralSelections)}`;
-		else return this.getSingleContainingPhraseFor(proceduralSelections);
-	}
+     */
+    toSingleOrPluralContainingPhrase(quantity: number, proceduralSelections: Map<string, string> = new Map()): string {
+        if (isNaN(quantity)) return this.getPluralContainingPhraseFor(proceduralSelections);
+        else if (quantity !== 1) return `${quantity} ${this.getPluralContainingPhraseFor(proceduralSelections)}`;
+        else return this.getSingleContainingPhraseFor(proceduralSelections);
+    }
 
     /**
      * Returns true if the owner of this item instance is the given player. For prefabs, always returns false.

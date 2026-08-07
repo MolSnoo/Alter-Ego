@@ -6,10 +6,11 @@ import { capitalizeFirstLetter, generateListString, makeCopyable } from "../Modu
 import type Fixture from "../Data/Fixture.ts";
 import type Game from "../Data/Game.ts";
 import type GameSettings from "./GameSettings.ts";
-import type InventoryItem from "../Data/InventoryItem.ts";
+import InventoryItem from "../Data/InventoryItem.ts";
 import type InventorySlot from "../Data/InventorySlot.ts";
 import type ItemInstance from "../Data/ItemInstance.ts";
 import type Player from "../Data/Player.ts";
+import Prefab from "../Data/Prefab.ts";
 import type Status from "../Data/Status.ts";
 
 type UserContext = "Player"|"Moderator"|"Bot"|"Eligible";
@@ -498,12 +499,26 @@ export default class GameErrorMessageGenerator {
      * @param container - The item container which cannot contain an item.
      * @param context - The context in which the command is being issued.
      */
-    generateCannotPutItemsInContainerError(container: RoomItemContainer | InventoryItem, context: UserContext) {
+    generateCannotPutItemsInContainerError(container: RoomItemContainer | InventoryItem | Prefab, context: UserContext) {
         switch (context) {
             case "Player":
-                return `${capitalizeFirstLetter(container.getContainingPhrase())} cannot hold items. Contact a moderator if you believe this is a mistake.`;
+                return `${capitalizeFirstLetter(container instanceof Prefab ? container.toSingleOrPluralContainingPhrase(1) : container.getContainingPhrase())} cannot hold items. Contact a moderator if you believe this is a mistake.`;
             default:
                 return `${capitalizeFirstLetter(container.getEntityID())} cannot hold items.`;
+        }
+    }
+
+    /**
+     * Generates an error message indicating that an item container has more than one inventory slot.
+     * @param container - The item container which has multiple inventory slots.
+     * @param context - The context in which the command is being issued.
+     */
+    generateContainerHasMultipleInventorySlotsError(container: RoomItemContainer | InventoryItem | Prefab, context: UserContext) {
+        switch (context) {
+            case "Player":
+                return `${capitalizeFirstLetter(container instanceof Prefab ? container.toSingleOrPluralContainingPhrase(1) : container.getContainingPhrase())} has more than one inventory slot.`;
+            default:
+                return `${capitalizeFirstLetter(container.getEntityID())} has more than one inventory slot.`;
         }
     }
 
@@ -532,7 +547,7 @@ export default class GameErrorMessageGenerator {
      * @param slot - The inventory slot the item will not fit in.
      * @param context - The context in which the command is being issued.
      */
-    generateItemWillNotFitInInventorySlotError(item: ItemInstance, container: ItemInstance, slot: InventorySlot<any>, context: UserContext) {
+    generateItemWillNotFitInInventorySlotError(item: ItemInstance | Prefab, container: ItemInstance, slot: InventorySlot<any>, context: UserContext) {
         const slotPhrase = container.inventory.size > 1 ? `${slot.id} of ` : ``;
         const tooLarge = slot.capacityIsSmallerThan(item);
         const reason = tooLarge ? `it is too large` : `there isn't enough space left`;
@@ -540,7 +555,47 @@ export default class GameErrorMessageGenerator {
             case "Player":
                 return `${item.name} will not fit ${container.getPreposition()} ${slotPhrase}${container.name} because ${reason}.`;
             default:
-                return `${item.getIdentifier()} will not fit ${container.getPreposition()} ${slotPhrase}${container.getIdentifier()} because ${reason}.`;
+                const possessive = container instanceof InventoryItem ? `${container.player.name}'s ` : ``;
+                return `${item.getIdentifier()} will not fit ${container.getPreposition()} ${slotPhrase}${possessive}${container.getIdentifier()} because ${reason}.`;
         }
+    }
+
+    /**
+     * Generates an error message indicating that the given items cannot be placed in an inventory slot because they will not fit.
+     * @param items - The items which will not fit.
+     * @param container - The container the inventory slot belongs to.
+     * @param slot - The inventory slot the items will not fit in.
+     * @param context - The context in which the command is being issued.
+     */
+    generateItemsWillNotFitInInventorySlotError(items: ItemInstance[] | Prefab[], container: ItemInstance | Prefab, slot: InventorySlot<any>, context: UserContext) {
+        const itemList = generateListString(items.map((item: ItemInstance | Prefab) => context === "Moderator" ? item.getIdentifier() : item.name));
+        const containerPrefab = container instanceof Prefab ? container : container.prefab;
+        const slotPhrase = containerPrefab.inventory.size > 1 ? `${slot.id} of ` : ``;
+        switch (context) {
+            case "Player":
+                return `${itemList} will not fit ${containerPrefab.preposition} ${slotPhrase}${container.name}.`;
+            default:
+                const possessive = container instanceof InventoryItem ? `${container.player.name}'s ` : ``;
+                return `${itemList} will not fit ${containerPrefab.preposition} ${slotPhrase}${possessive}${container.getIdentifier()}.`;
+        }
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab does not have a procedural with the given name.
+     * @param prefab - The prefab which does not have the procedural.
+     * @param proceduralName - The name of the procedural which does not exist on the prefab.
+     */
+    generateProceduralNotFoundError(prefab: Prefab, proceduralName: string) {
+        return `${prefab.id} does not have procedural "${proceduralName}".`;
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab's procedural does not have a possibility with the given name.
+     * @param prefab - The prefab with the procedural.
+     * @param proceduralName - The name of the procedural which does not have the given possibility.
+     * @param possibilityName - The name of the possibility which does not exist on the prefab's procedural.
+     */
+    generatePossibilityNotFoundError(prefab: Prefab, proceduralName: string, possibilityName: string) {
+        return `${prefab.id}'s procedural "${proceduralName}" does not have possibility "${possibilityName}".`;
     }
 }
