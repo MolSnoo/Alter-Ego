@@ -20,11 +20,12 @@ import GameMovementHandler from "../Classes/GameMovementHandler.ts";
 import type GameSettings from "../Classes/GameSettings.ts";
 import type GuildContext from "../Classes/GuildContext.ts";
 import PriorityQueue from "../Classes/PriorityQueue.ts";
+import DialogQueue from "../Classes/DialogQueue.ts";
 import TriggerAction from "./Actions/TriggerAction.ts";
 import Event from "./Event.ts";
+import Die from "./Die.ts";
 import type Fixture from "./Fixture.ts";
 import type Flag from "./Flag.ts";
-import Die from "./Die.ts";
 import type Gesture from "./Gesture.ts";
 import type InventoryItem from "./InventoryItem.ts";
 import type Moderator from "./Moderator.ts";
@@ -37,6 +38,7 @@ import type Room from "./Room.ts";
 import type RoomItem from "./RoomItem.ts";
 import type Status from "./Status.ts";
 import type Whisper from "./Whisper.ts";
+import type StackQueue from "../Classes/StackQueue.ts";
 
 /**
  * Represents a game managed by the bot.
@@ -212,6 +214,10 @@ export default class Game {
      */
     editQueue: PriorityQueue<["standard"]>;
     /**
+     * A queue of incoming messages to be handled by the messageHandler.
+     */
+    dialogQueue: DialogQueue;
+    /**
      * A timeout which sends queued messages every quarter of a second.
      */
     #queuedMessageSendInterval: NodeJS.Timeout;
@@ -273,6 +279,7 @@ export default class Game {
         this.moderators = new Collection();
         this.messageQueue = new PriorityQueue("Message Handler encountered exception sending message:", ['mod', 'tell', 'mechanic', 'log', 'spectator']);
         this.editQueue = new PriorityQueue("Message Handler encountered exception editing message:", ['standard']);
+        this.dialogQueue = new DialogQueue(this);
 
         // Save data to the sheet periodically.
         this.#autoSaveInterval = setInterval(

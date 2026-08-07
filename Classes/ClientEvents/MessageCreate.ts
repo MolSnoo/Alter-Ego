@@ -4,7 +4,6 @@
 
 import { ChannelType, Events } from "discord.js";
 import ClientEvent from "../ClientEvent.ts";
-import { processIncomingMessage } from "../../Modules/messageHandler.ts";
 
 export default new ClientEvent({
     name: Events.MessageCreate,
@@ -27,7 +26,7 @@ export default new ClientEvent({
             isCommand = await game.clientContext.commandHandler.executeCommand(command, game, message);
         }
         if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress) {
-            processIncomingMessage(game, message);
+            game.dialogQueue.enqueue(message);
         }
     }
 });

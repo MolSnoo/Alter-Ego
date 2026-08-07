@@ -15,7 +15,7 @@ interface MessageQueueEntry {
 }
 
 /**
- * Five-priority queue system for use by the message handler.
+ * n-priority queue system for use by the message handler.
  */
 export default class PriorityQueue<T extends string[]> {
 	/** Order of queues given as an array of strings. */

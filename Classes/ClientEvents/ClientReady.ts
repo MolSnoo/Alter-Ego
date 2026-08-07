@@ -49,6 +49,9 @@ export default new ClientEvent({
                 await loadCommand.execute(game, undefined, "lar", []);
         }
 
+        // Fetch all application emojis now, so that the application emoji cache is populated for application emoji mirroring.
+        client.application.emojis.fetch()
+
         // Set the bot as finished initializing.
         clientContext.initialize();
     }
