@@ -1940,6 +1940,17 @@ export default class Player extends RecipeProcessor implements PersistentGameEnt
     }
 
     /**
+     * Generates a valid player name by removing any characters that are not letters, numbers, spaces, hyphens, apostrophes, or underscores.
+     * @param name - A string, possibly containing invalid characters, to be converted into a valid player name.
+     * @param keepSpaces - Whether or not to keep spaces in the name. If false, spaces will be converted to underscores. Defaults to false.
+     */
+    static generateValidName(name: string, keepSpaces: boolean = false): string {
+        name = name?.replace(/[^\p{L}\p{M}\p{Zs}0-9\-'_]/gu, '').trim() ?? '';
+        if (!keepSpaces) name = name?.replace(/\s+/g, '_') ?? '';
+        return name?.trim();
+    }
+
+    /**
      * Converts the name of a stat to its abbreviated form in all lowercase.
      */
     static abbreviateStatName(statName: string): string {

@@ -33,7 +33,7 @@ import {
     ComponentType
 } from 'discord.js';
 
-type Flags = BitFieldResolvable<"SuppressEmbeds" | "SuppressNotifications" | "IsComponentsV2", MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications | MessageFlags.IsComponentsV2>
+type Flags = BitFieldResolvable<"SuppressEmbeds" | "SuppressNotifications" | "IsComponentsV2" | "IsVoiceMessage", MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications | MessageFlags.IsComponentsV2 | MessageFlags.IsVoiceMessage>
 type TopLevelComponent = TextDisplayBuilder | ContainerBuilder | MediaGalleryBuilder | SeparatorBuilder | ActionRowBuilder<ButtonBuilder|StringSelectMenuBuilder>;
 
 /**
@@ -401,38 +401,28 @@ function generateActionRows(interactables: Interactable[], componentCount: numbe
  * @param color - The color as a hex code.
  */
 export function createCommandHelpComponents(title: string, description: string, aliasString: string, usage: string, details: string, thumbnailURL: string, color: string) {
-    return [
-        new ContainerBuilder()
-            .setAccentColor(Number(`0x${color}`))
-            .addSectionComponents(
-                new SectionBuilder()
-                    .setThumbnailAccessory(
-                        new ThumbnailBuilder().setURL(thumbnailURL)
-                    )
-                    .addTextDisplayComponents(
-                        new TextDisplayBuilder().setContent(title),
-                        new TextDisplayBuilder().setContent(description)
-                    )
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent("**Aliases**")
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(aliasString)
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent("**Examples**")
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(usage)
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent("**Details**")
-            )
-            .addTextDisplayComponents(
-                new TextDisplayBuilder().setContent(details)
-            )
+    const containerComponent = new ContainerBuilder().setAccentColor(Number(`0x${color}`));
+    /** @type {TextDisplayBuilder[]} */
+    const inlineComponents = [
+        new TextDisplayBuilder().setContent(title),
+        new TextDisplayBuilder().setContent(description)
     ];
+    if (thumbnailURL && thumbnailURL !== "null") {
+        const sectionBuilder = new SectionBuilder()
+            .setThumbnailAccessory(new ThumbnailBuilder().setURL(thumbnailURL))
+            .addTextDisplayComponents(inlineComponents);
+        containerComponent.addSectionComponents(sectionBuilder);
+    }
+    else
+        containerComponent.addTextDisplayComponents(inlineComponents);
+    containerComponent.addTextDisplayComponents(new TextDisplayBuilder().setContent("**Aliases**"))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(aliasString))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent("**Examples**"))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(usage))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent("**Details**"))
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(details))
+
+    return [containerComponent];
 }
 
 /**
@@ -482,9 +472,10 @@ type GetFieldFunction = (entryIndex: number) => string;
 export function createPaginatedEmbed(game: Game, page: number, pages: any[][], authorName: string, authorIcon: string, description: string, getFieldName: GetFieldFunction, getFieldValue: GetFieldFunction): EmbedBuilder {
     let embed = new EmbedBuilder()
         .setColor(Number(`0x${game.settings.embedAccentColor}`))
-        .setAuthor({ name: authorName, iconURL: authorIcon })
         .setDescription(description)
         .setFooter({ text: `Page ${page + 1}/${pages.length}` });
+    if (authorIcon && authorIcon !== "null")
+        embed.setAuthor({ name: authorName, iconURL: authorIcon });
     let fields = [];
     for (let entryIndex = 0; entryIndex < pages[page].length; entryIndex++)
         fields.push({ name: getFieldName(entryIndex), value: getFieldValue(entryIndex) });

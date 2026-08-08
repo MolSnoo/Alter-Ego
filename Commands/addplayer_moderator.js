@@ -1,5 +1,6 @@
 import Game from '../Data/Game.ts';
 import Player from '../Data/Player.ts';
+import Room from '../Data/Room.ts';
 import { appendRowsToSheet } from '../Modules/sheets.js';
 import { Collection } from 'discord.js';
 import {loadPlayerDefaults} from "../Modules/settingsLoader.ts";
@@ -53,12 +54,23 @@ export async function execute(game, message, command, args, moderator) {
             return game.communicationHandler.reply(message, "That user is already playing.");
     }
 
-    const [playerdefaults] = loadPlayerDefaults();
+    const playerName = Player.generateValidName(member.displayName);
+    if (!playerName || playerName === "")
+        return game.communicationHandler.reply(message, `<@${member.id}>'s username consists entirely of invalid characters. Please set their nickname first, preferably without any spaces or special characters.`);
+    /** @type {Messageable} */
+    let notificationChannel;
+    try {
+        notificationChannel = await game.guildContext.createDM(member);
+    } catch (error) { console.error(error); }
+    if (!notificationChannel)
+        return game.communicationHandler.reply(message, `Couldn't create a DM channel with <@${member.id}>. Please ask them to allow direct messages from server members in their privacy settings for this server.`);
+    const spectateChannel = await game.guildContext.getOrCreateSpectateChannel(Room.generateValidId(playerName));
 
+    const [playerdefaults] = loadPlayerDefaults();
     const player = new Player(
         member.id,
         member,
-        member.displayName,
+        playerName,
         "",
         "neutral",
         "an average voice",
@@ -69,14 +81,18 @@ export async function execute(game, message, command, args, moderator) {
         [],
         playerdefaults.defaultDescription,
         new Collection(),
-        null,
-        null,
+        notificationChannel,
+        spectateChannel,
         0,
         game
     );
 
-    game.players.set(Game.generateValidEntityName(player.name), player);
-    game.livingPlayers.set(Game.generateValidEntityName(player.name), player);
+    // Only add them to the player collections if an actual game isn't currently ongoing.
+    const addPlayer = !game.inProgress || game.canJoin;
+    if (addPlayer) {
+        game.players.set(Game.generateValidEntityName(player.name), player);
+        game.livingPlayers.set(Game.generateValidEntityName(player.name), player);
+    }
     member.roles.add(game.guildContext.playerRole);
 
     const playerCells = [];
@@ -104,7 +120,7 @@ export async function execute(game, message, command, args, moderator) {
         row = row.concat(playerdefaults.defaultInventory[i]);
         for (let j = 0; j < row.length; j++) {
             if (row[j].includes('#'))
-                row[j] = row[j].replace(/#/g, String(game.players.size));
+                row[j] = row[j].replace(/#/g, String(game.players.size + (addPlayer ? 0 : 1)));
         }
         inventoryCells.push(row);
     }

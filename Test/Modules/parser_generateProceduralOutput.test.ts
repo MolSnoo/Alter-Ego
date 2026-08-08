@@ -48,7 +48,7 @@ describe('test_parser_generateProceduralOutput', () => {
 
     beforeAll(async () => {
         await testGame.entityLoader.loadAll();
-        qm = testGame.entityFinder.getLivingPlayer("???");
+        qm = testGame.entityFinder.getLivingPlayer("QM");
     });
 
     afterEach(() => {

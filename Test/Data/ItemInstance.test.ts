@@ -93,7 +93,7 @@ describe('ItemInstance test', () => {
         });
 
         test('InventoryItem FIRED CLAY POT proceduralSelections', () => {
-            const entity = testGame.entityFinder.getInventoryItem('FIRED CLAY POT 91', '???', undefined, 'RIGHT HAND');
+            const entity = testGame.entityFinder.getInventoryItem('FIRED CLAY POT 91', 'QM', undefined, 'RIGHT HAND');
             const expected = new Map<string, string>([
                 ["base color", "red"],
                 ["quality", "excellent"]
@@ -106,7 +106,7 @@ describe('ItemInstance test', () => {
         });
 
         test('InventoryItem GLAZE proceduralSelections', () => {
-            const entity = testGame.entityFinder.getInventoryItem('GLAZE', '???', undefined, 'LEFT HAND');
+            const entity = testGame.entityFinder.getInventoryItem('GLAZE', 'QM', undefined, 'LEFT HAND');
             const expected = new Map<string, string>([
                 ["glaze color", "light blue"],
                 ["base color", "obscured"],

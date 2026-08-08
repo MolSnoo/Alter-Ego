@@ -18,7 +18,8 @@ export const config = {
     usableBy: "Player",
     aliases: ["say", "speak"],
     requiresGame: true,
-    whitespaceSensitive: true
+    whitespaceSensitive: true,
+    usableInEditMode: true
 };
 
 /**

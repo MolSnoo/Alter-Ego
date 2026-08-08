@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 // SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -433,7 +434,7 @@ export default class GameNarrationHandler {
             // Also ensure that the fixture isn't locked.
             if (target instanceof Fixture && target.hidingSpot && !player.isHidden() && player.hidingSpot !== target.name
             &&  (target.childPuzzle === null || !target.childPuzzle.type.endsWith("lock") || target.childPuzzle.solved)) {
-                for (const occupant of target.hidingSpot.occupants) {
+                for (const occupant of target.hidingSpot.occupants.values()) {
                     const notification = this.#game.notificationGenerator.generateHiddenPlayerFoundNotification(occupant.canSee() ? player.displayName : "someone");
                     this.sendNotification(occupant, action, notification, MessageDisplayType.WARNING);
                 }
@@ -513,7 +514,7 @@ export default class GameNarrationHandler {
     narrateHide(action: Action, hidingSpot: HidingSpot, player: Player, hidingPlayers: Set<Player>, hidingPlayerInteractables: Map<string, Interactable[]> = new Map()) {
         const messageType = MessageDisplayType.STANDARD;
         const hidingSpotPhrase = hidingSpot.getContainingPhrase();
-        const hidingSpotFull = hidingSpot.occupants.length + hidingPlayers.size > hidingSpot.capacity && !action.forced;
+        const hidingSpotFull = !hidingSpot.canFit(hidingPlayers) && !action.forced;
         const narration = hidingSpotFull
             ? this.#game.notificationGenerator.generateHidingSpotFullNotification(player, hidingPlayers, false, hidingSpotPhrase)
             : this.#game.notificationGenerator.generateHideNotification(player, hidingPlayers, false, hidingSpotPhrase);
@@ -523,14 +524,14 @@ export default class GameNarrationHandler {
             if (hidingSpotFull)
                 playerNotification = this.#game.notificationGenerator.generateHidingSpotFullNotification(hidingPlayer, hidingPlayers, true, hidingSpotPhrase, hiddenPlayersList);
             else {
-                if (hidingSpot.occupants.length > 0)
+                if (hidingSpot.occupants.size > 0)
                     playerNotification = this.#game.notificationGenerator.generateHidingSpotOccupiedNotification(hidingSpotPhrase, hiddenPlayersList, hidingPlayer, hidingPlayers);
                 else playerNotification = this.#game.notificationGenerator.generateHideNotification(hidingPlayer, hidingPlayers, true, hidingSpotPhrase);
             }
             const interactables = hidingPlayerInteractables.get(hidingPlayer.name) ?? [];
             this.sendNotification(hidingPlayer, action, playerNotification, messageType, undefined, undefined, interactables);
         }
-        for (const occupant of hidingSpot.occupants) {
+        for (const occupant of hidingSpot.occupants.values()) {
             const occupantNotification = hidingSpotFull
                 ? this.#game.notificationGenerator.generateFoundInFullHidingSpotNotification(occupant, player, hidingPlayers)
                 : this.#game.notificationGenerator.generateFoundInOccupiedHidingSpotNotification(occupant, player, hidingPlayers);
@@ -558,7 +559,7 @@ export default class GameNarrationHandler {
         }
         if (hidingSpot) {
             // Send a notification to players who can't see the whisper channel.
-            for (const occupant of hidingSpot.occupants) {
+            for (const occupant of hidingSpot.occupants.values()) {
                 if (emergingPlayers.has(occupant)) continue;
                 // If the only reason this player has the `no channel` behavior attribute is because they're hidden, skip over them.
                 if (occupant.getBehaviorAttributeStatusEffects("no channel").length === 1) continue;

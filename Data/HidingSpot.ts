@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -11,6 +12,7 @@ import GameEntity from "./GameEntity.ts";
 import type Player from "./Player.ts";
 import type Room from "./Room.ts";
 import Whisper from "./Whisper.ts";
+import { Collection } from "discord.js";
 
 /**
  * Represents a fixture that players can hide in. A fixture can have one or no hiding spots.
@@ -32,9 +34,10 @@ export default class HidingSpot extends GameEntity {
      */
     capacity: number;
     /**
-     * A list of players currently hidden in this hiding spot.
+     * A collection of players currently hidden in this hiding spot.
+     * The key for each entry is the player's name.
      */
-    occupants: Player[];
+    occupants: Collection<string, Player>;
     /**
      * The whisper currently associated with this hiding spot. If no one is hidden in this hiding spot, this is null.
      */
@@ -51,8 +54,28 @@ export default class HidingSpot extends GameEntity {
         this.#fixture = fixture;
         this.name = this.#fixture.name;
         this.capacity = capacity;
-        this.occupants = [];
+        this.occupants = new Collection();
         this.whisper = null;
+    }
+
+    /**
+     * Returns true if the given players can fit in this hiding spot in addition to the current occupants.
+     *
+     * @param players - The players to check.
+     */
+    canFit(players: Set<Player> | Player[] | Player): boolean {
+        if (!(players instanceof Set) && !(players instanceof Array)) players = new Set([players]);
+        if (!(players instanceof Set)) players = new Set(players);
+        return this.occupants.size + players.size <= this.capacity;
+    }
+
+    /**
+     * Returns true if the given player is currently hidden in this hiding spot.
+     *
+     * @param player - The player to check.
+     */
+    hasOccupant(player: Player): boolean {
+        return this.occupants.has(player.name);
     }
 
     /**
@@ -65,10 +88,10 @@ export default class HidingSpot extends GameEntity {
         if (!(players instanceof Set)) players = new Set(players);
         await this.deleteWhisper();
         for (const player of players) {
-            this.occupants.push(player);
+            this.occupants.set(player.name, player);
             player.hidingSpot = this.name;
         }
-        this.whisper = await this.getGame().entityLoader.createWhisper(this.occupants, this.name, WhisperType.HIDING_SPOT);
+        await this.createWhisper();
     }
 
     /**
@@ -81,19 +104,28 @@ export default class HidingSpot extends GameEntity {
         if (!(players instanceof Set) && !(players instanceof Array)) players = new Set([players]);
         if (!(players instanceof Set)) players = new Set(players);
         for (const player of players) {
-            this.occupants.splice(this.occupants.indexOf(player), 1);
+            this.occupants.delete(player.name);
             const whisperNarration = action ? this.getGame().notificationGenerator.generateEmergeNotification(player, players, false, this.getContainingPhrase()) : "";
             await player.removeFromWhispers(whisperNarration, action, false);
             player.hidingSpot = "";
         }
-        if (this.occupants.length === 0) await this.deleteWhisper();
+        if (this.occupants.size === 0) await this.deleteWhisper();
+    }
+
+    /**
+     * Creates a whisper for the hiding spot if one does not already exist.
+     * The created whisper is automatically assigned to the hiding spot.
+     */
+    async createWhisper(): Promise<void> {
+        if (this.whisper) return;
+        this.whisper = await this.getGame().entityLoader.createWhisper(this.occupants, this.name, WhisperType.HIDING_SPOT);
     }
 
     /**
      * Removes all occupants from the whisper and sets it to null.
      */
     async deleteWhisper(): Promise<void> {
-        for (const occupant of this.occupants)
+        for (const occupant of this.occupants.values())
             await occupant.removeFromWhispers("", undefined, false);
         this.whisper = null;
     }
@@ -134,12 +166,12 @@ export default class HidingSpot extends GameEntity {
      */
     generateOccupantsString(viewerHasNoSightBehaviorAttribute: boolean = false): string {
         if (viewerHasNoSightBehaviorAttribute)
-            return this.occupants.length > 1
-                ? `${String(this.occupants.length)} people`
-                : this.occupants.length === 1
+            return this.occupants.size > 1
+                ? `${String(this.occupants.size)} people`
+                : this.occupants.size === 1
                     ? `someone`
                     : ``;
-        return generatePlayerListString(this.occupants);
+        return generatePlayerListString(this.occupants.map(player => player));
     }
 
     override getEntityType(): string {

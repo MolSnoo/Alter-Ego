@@ -1,4 +1,5 @@
 ﻿// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -67,11 +68,11 @@ export default class Whisper extends GameConstruct {
      * @param players - The players in the whisper.
      * @param associatedEntityName - The name of the entity the whisper belongs to. This can be the name of a hiding spot or a party. Optional.
      */
-    constructor(game: Game, type: WhisperType, players: Player[], associatedEntityName?: string) {
+    constructor(game: Game, type: WhisperType, players: Collection<string, Player> | Player[], associatedEntityName?: string) {
         super(game);
         this.type = type;
         this.players = new Collection();
-        for (const player of players)
+        for (const player of players.values())
             this.players.set(player.name, player);
         if (this.players.size > 0) {
             this.locationId = this.players.first().location.id;

@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -7,11 +8,11 @@ import {
     ChannelType,
     type Guild,
     type GuildBasedChannel,
-    type GuildChannelTypes,
     type GuildMember,
     type PartialMessage,
     type Role,
-    type TextChannel
+    type TextChannel,
+    type User
 } from "discord.js";
 import type Player from "../Data/Player.ts";
 
@@ -19,129 +20,129 @@ import type Player from "../Data/Player.ts";
  * Represents the guild in which a Game is occurring and all of the parts of a Guild needed by the bot.
  */
 export default class GuildContext {
-	/**
-	 * The guild in which the game is taking place.
-	 */
-	readonly guild: Guild;
-	/**
-	 * The channel where the bot will accept commands from a moderator.
-	 */
-	readonly commandChannel: TextChannel;
-	/**
-	 * The channel where the bot logs all notable occurrences in the game.
-	 */
-	readonly logChannel: TextChannel;
-	/**
-	 * The channel where announcements from the player with the freeMovementRole will be mirrored in all players' spectate channels.
-	 */
-	readonly announcementChannel: TextChannel;
-	/**
-	 * The channel where startgame and endgame announcements are posted when debug mode is enabled.
-	 */
-	readonly testingChannel: TextChannel;
-	/**
-	 * The channel where startgame and endgame announcements are posted when debug mode is disabled.
-	 */
-	readonly generalChannel: TextChannel;
-	/**
-	 * An array of IDs for room channel parent categories.
-	 */
-	readonly roomCategories: string[];
-	/**
-	 * The ID of the category channel that houses whisper channels.
-	 */
-	readonly whisperCategoryId: string;
-	/**
-	 * The ID of the category channel that houses spectate channels.
-	 */
-	readonly spectateCategoryId: string;
-	/**
-	 * The tester role. Members with this role can use eligible commands when debug mode is enabled.
-	 */
-	readonly testerRole: Role;
-	/**
-	 * The eligible role. Members with this role can use eligible commands when debug mode is disabled.
-	 */
-	readonly eligibleRole: Role;
-	/**
-	 * The player role. Members with this role can use player commands.
-	 */
-	readonly playerRole: Role;
-	/**
-	 * A role that can be added to someone with the player role to allow them to move to any room, regardless of if it's adjacent to their current room.
+    /**
+     * The guild in which the game is taking place.
+     */
+    readonly guild: Guild;
+    /**
+     * The channel where the bot will accept commands from a moderator.
+     */
+    readonly commandChannel: TextChannel;
+    /**
+     * The channel where the bot logs all notable occurrences in the game.
+     */
+    readonly logChannel: TextChannel;
+    /**
+     * The channel where announcements from the player with the freeMovementRole will be mirrored in all players' spectate channels.
+     */
+    readonly announcementChannel: TextChannel;
+    /**
+     * The channel where startgame and endgame announcements are posted when debug mode is enabled.
+     */
+    readonly testingChannel: TextChannel;
+    /**
+     * The channel where startgame and endgame announcements are posted when debug mode is disabled.
+     */
+    readonly generalChannel: TextChannel;
+    /**
+     * An array of IDs for room channel parent categories.
+     */
+    readonly roomCategories: string[];
+    /**
+     * The ID of the category channel that houses whisper channels.
+     */
+    readonly whisperCategoryId: string;
+    /**
+     * The ID of the category channel that houses spectate channels.
+     */
+    readonly spectateCategoryId: string;
+    /**
+     * The tester role. Members with this role can use eligible commands when debug mode is enabled.
+     */
+    readonly testerRole: Role;
+    /**
+     * The eligible role. Members with this role can use eligible commands when debug mode is disabled.
+     */
+    readonly eligibleRole: Role;
+    /**
+     * The player role. Members with this role can use player commands.
+     */
+    readonly playerRole: Role;
+    /**
+     * A role that can be added to someone with the player role to allow them to move to any room, regardless of if it's adjacent to their current room.
      * @deprecated Use the {@link https://msvblank.github.io/Alter-Ego/reference/data_structures/status.html#can-move-freely | `can move freely` behavior attribute} instead.
-	 */
-	readonly freeMovementRole: Role;
-	/**
-	 * The moderator role. Members with this role can use moderator commands.
-	 */
-	readonly moderatorRole: Role;
-	/**
-	 * The dead role. This is given to dead players after a moderator uses the reveal command on them.
-	 */
-	readonly deadRole: Role;
-	/**
-	 * The spectator role. This is given to all players when the endgame command is used.
-	 */
-	readonly spectatorRole: Role;
+     */
+    readonly freeMovementRole: Role;
+    /**
+     * The moderator role. Members with this role can use moderator commands.
+     */
+    readonly moderatorRole: Role;
+    /**
+     * The dead role. This is given to dead players after a moderator uses the reveal command on them.
+     */
+    readonly deadRole: Role;
+    /**
+     * The spectator role. This is given to all players when the endgame command is used.
+     */
+    readonly spectatorRole: Role;
 
-	/**
-	 * @param guild - The guild in which the game is taking place.
-	 * @param commandChannel - The channel where the bot logs all notable occurrences in the game.
-	 * @param logChannel - The channel where announcements from the player with the freeMovementRole will be mirrored in all players' spectate channels.
-	 * @param announcementChannel - The channel where announcements from the player with the freeMovementRole will be mirrored in all players' spectate channels.
-	 * @param testingChannel - The channel where startgame and endgame announcements are posted when debug mode is enabled.
-	 * @param generalChannel - The channel where startgame and endgame announcements are posted when debug mode is disabled.
-	 * @param roomCategories - An array of IDs for room channel parent categories.
-	 * @param whisperCategoryId - The ID of the category channel that houses whisper channels.
-	 * @param spectateCategoryId - The ID of the category channel that houses spectate channels.
-	 * @param testerRole - The tester role. Members with this role can use eligible commands when debug mode is enabled.
-	 * @param eligibleRole - The eligible role. Members with this role can use eligible commands when debug mode is disabled.
-	 * @param playerRole - The player role. Members with this role can use player commands.
-	 * @param freeMovementRole - A role that can be added to someone with the player role to allow them to move to any room, regardless of if it's adjacent to their current room.
-	 * @param moderatorRole - The moderator role. Members with this role can use moderator commands.
-	 * @param deadRole - The dead role. This is given to dead players after a moderator uses the reveal command on them.
-	 * @param spectatorRole - The spectator role. This is given to all players when the endgame command is used.
-	 */
-	constructor(
-			guild: Guild,
-			commandChannel: TextChannel,
-			logChannel: TextChannel,
-			announcementChannel: TextChannel,
-			testingChannel: TextChannel,
-			generalChannel: TextChannel,
-			roomCategories: string[],
-			whisperCategoryId: string,
-			spectateCategoryId: string,
-			testerRole: Role,
-			eligibleRole: Role,
-			playerRole: Role,
-			freeMovementRole: Role,
-			moderatorRole: Role,
-			deadRole: Role,
-			spectatorRole: Role
-		) {
-		this.guild = guild;
-		this.commandChannel = commandChannel;
-		this.logChannel = logChannel;
-		this.announcementChannel = announcementChannel;
-		this.testingChannel = testingChannel;
-		this.generalChannel = generalChannel;
+    /**
+     * @param guild - The guild in which the game is taking place.
+     * @param commandChannel - The channel where the bot logs all notable occurrences in the game.
+     * @param logChannel - The channel where announcements from the player with the freeMovementRole will be mirrored in all players' spectate channels.
+     * @param announcementChannel - The channel where announcements from the player with the freeMovementRole will be mirrored in all players' spectate channels.
+     * @param testingChannel - The channel where startgame and endgame announcements are posted when debug mode is enabled.
+     * @param generalChannel - The channel where startgame and endgame announcements are posted when debug mode is disabled.
+     * @param roomCategories - An array of IDs for room channel parent categories.
+     * @param whisperCategoryId - The ID of the category channel that houses whisper channels.
+     * @param spectateCategoryId - The ID of the category channel that houses spectate channels.
+     * @param testerRole - The tester role. Members with this role can use eligible commands when debug mode is enabled.
+     * @param eligibleRole - The eligible role. Members with this role can use eligible commands when debug mode is disabled.
+     * @param playerRole - The player role. Members with this role can use player commands.
+     * @param freeMovementRole - A role that can be added to someone with the player role to allow them to move to any room, regardless of if it's adjacent to their current room.
+     * @param moderatorRole - The moderator role. Members with this role can use moderator commands.
+     * @param deadRole - The dead role. This is given to dead players after a moderator uses the reveal command on them.
+     * @param spectatorRole - The spectator role. This is given to all players when the endgame command is used.
+     */
+    constructor(
+        guild: Guild,
+        commandChannel: TextChannel,
+        logChannel: TextChannel,
+        announcementChannel: TextChannel,
+        testingChannel: TextChannel,
+        generalChannel: TextChannel,
+        roomCategories: string[],
+        whisperCategoryId: string,
+        spectateCategoryId: string,
+        testerRole: Role,
+        eligibleRole: Role,
+        playerRole: Role,
+        freeMovementRole: Role,
+        moderatorRole: Role,
+        deadRole: Role,
+        spectatorRole: Role
+    ) {
+        this.guild = guild;
+        this.commandChannel = commandChannel;
+        this.logChannel = logChannel;
+        this.announcementChannel = announcementChannel;
+        this.testingChannel = testingChannel;
+        this.generalChannel = generalChannel;
 
-		for (let i = 0; i < roomCategories.length; i++)
-			roomCategories[i] = roomCategories[i].trim();
-		this.roomCategories = roomCategories;
-		this.whisperCategoryId = whisperCategoryId;
-		this.spectateCategoryId = spectateCategoryId;
+        for (let i = 0; i < roomCategories.length; i++)
+            roomCategories[i] = roomCategories[i].trim();
+        this.roomCategories = roomCategories;
+        this.whisperCategoryId = whisperCategoryId;
+        this.spectateCategoryId = spectateCategoryId;
 
-		this.testerRole = testerRole;
-		this.eligibleRole = eligibleRole;
-  		this.playerRole = playerRole;
-		this.freeMovementRole = freeMovementRole;
-		this.moderatorRole = moderatorRole;
-		this.deadRole = deadRole;
-		this.spectatorRole = spectatorRole;
-	}
+        this.testerRole = testerRole;
+        this.eligibleRole = eligibleRole;
+        this.playerRole = playerRole;
+        this.freeMovementRole = freeMovementRole;
+        this.moderatorRole = moderatorRole;
+        this.deadRole = deadRole;
+        this.spectatorRole = spectatorRole;
+    }
 
     /**
      * Gets a member of the guild by their user ID. If no such member exists, returns undefined.
@@ -149,6 +150,14 @@ export default class GuildContext {
      */
     getMember(userId: string): GuildMember {
         return this.guild.members.resolve(userId);
+    }
+
+    /**
+     * Creates a direct message channel with the given user.
+     * @param user - The user to create a DM channel with. Can be a guild member or a Discord user.
+     */
+    async createDM(user: GuildMember | User): Promise<Messageable> {
+        return await user?.createDM();
     }
 
     /**
@@ -222,7 +231,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in a DM channel.
      * @param message
      */
-    sentInDMChannel(message: UserMessage | PartialMessage) {
+    sentInDMChannel(message: UserMessage | PartialMessage): boolean {
         return message.channel.type === ChannelType.DM;
     }
 
@@ -230,7 +239,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in the moderator command channel.
      * @param message
      */
-    sentInCommandChannel(message: UserMessage | PartialMessage) {
+    sentInCommandChannel(message: UserMessage | PartialMessage): boolean {
         return message.channel.id === this.commandChannel.id;
     }
 
@@ -238,7 +247,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in a room channel.
      * @param message
      */
-    sentInRoomChannel(message: UserMessage | PartialMessage) {
+    sentInRoomChannel(message: UserMessage | PartialMessage): boolean {
         return message.channel.type === ChannelType.GuildText && this.roomCategories.includes(message.channel.parentId);
     }
 
@@ -246,7 +255,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in a whisper channel.
      * @param message
      */
-    sentInWhisperChannel(message: UserMessage | PartialMessage) {
+    sentInWhisperChannel(message: UserMessage | PartialMessage): boolean {
         return message.channel.type === ChannelType.GuildText && message.channel.parentId === this.whisperCategoryId;
     }
 
@@ -262,7 +271,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in the testing channel.
      * @param message
      */
-    sentInTestingChannel(message: UserMessage | PartialMessage) {
+    sentInTestingChannel(message: UserMessage | PartialMessage): boolean {
         return message.channel.id === this.testingChannel.id;
     }
 
@@ -270,7 +279,7 @@ export default class GuildContext {
      * Returns true if the given message was sent in the general channel.
      * @param message
      */
-    sentInGeneralChannel(message: UserMessage | PartialMessage) {
+    sentInGeneralChannel(message: UserMessage | PartialMessage): boolean {
         return message.channel.id === this.generalChannel.id;
     }
 
@@ -287,7 +296,7 @@ export default class GuildContext {
      * @param name - The name of the channel to find.
      * @param parentId - The parent ID the channel must have. Optional.
      */
-    findChannel(name: string, parentId?: string) {
+    findChannel(name: string, parentId?: string): GuildBasedChannel {
         if (parentId)
             return this.guild.channels.cache.find(channel => channel.parent && channel.parentId === parentId && channel.name === name);
         else return this.guild.channels.cache.find(channel => channel.name === name);
@@ -297,7 +306,7 @@ export default class GuildContext {
      * Gets the guild channel with the given ID.
      * @param id - The ID of the channel to get.
      */
-    getChannelWithId(id: string) {
+    getChannelWithId(id: string): GuildBasedChannel {
         return this.guild.channels.resolve(id);
     }
 
@@ -310,16 +319,44 @@ export default class GuildContext {
     }
 
     /**
-     * Creates a channel in the guild.
+     * Creates a text channel in the guild.
      * @param name - The name to give to the new channel.
      * @param parent - The parent category to assign to the channel. Optional.
-     * @param type - The type of channel to create. Defaults to `GuildText`.
      */
-    async createChannel(name: string, parent?: CategoryChannelResolvable, type: GuildChannelTypes = ChannelType.GuildText): Promise<GuildBasedChannel> {
-        return await this.guild.channels.create({
+    async createChannel(name: string, parent?: CategoryChannelResolvable): Promise<TextChannel> {
+        const channel = await this.guild.channels.create({
             name: name,
             parent: parent,
-            type: type
+            type: ChannelType.GuildText
+        }).catch(error => {
+            let parentPhrase = "";
+            if (parent) {
+                const parentId = typeof parent === "string" ? parent : parent?.id ?? "";
+                const parentChannelName = this.getChannelWithId(parentId)?.name ?? parentId;
+                const category = parentId === this.whisperCategoryId
+                    ? "whisper category"
+                    : parentId === this.spectateCategoryId
+                        ? "spectate category"
+                        : this.roomCategories.includes(parentId)
+                            ? `room category "${parentChannelName}"`
+                            : `category "${parentChannelName}"`;
+                parentPhrase = ` in ${category}`;
+            }
+            console.error(`Couldn't create channel${parentPhrase} with name "${name}".`, error);
         });
+        if (channel) return channel;
+    }
+
+    /**
+     * Gets the spectate channel with the given name. If no such channel exists, creates it.
+     * If there are already 50 channels in the spectate category, returns null.
+     * @param name - The name of the spectate channel to get or create. This should be a valid channel name, as it will be used to create the channel if it doesn't exist.
+     */
+    async getOrCreateSpectateChannel(name: string): Promise<TextChannel | null> {
+        let spectateChannel = this.findChannel(name, this.spectateCategoryId) as TextChannel;
+        const spectateChannelCount = this.countChannelsInCategory(this.spectateCategoryId);
+        if (!spectateChannel && spectateChannelCount < 50)
+            spectateChannel = await this.createChannel(name, this.spectateCategoryId).catch();
+        return spectateChannel ?? null;
     }
 }

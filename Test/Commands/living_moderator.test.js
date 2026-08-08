@@ -27,6 +27,6 @@ describe("living_moderator command", () => {
         /** @type {import('vitest').Mock} */
         // @ts-ignore
         const sendMock = testGame.guildContext.commandChannel.send;
-        expect(sendMock).toHaveBeenCalledExactlyOnceWith("Living players:\nKyra Vivian Astrid Nero Asuka Luna Kiara Amadeus ???");
+        expect(sendMock).toHaveBeenCalledExactlyOnceWith("Living players:\nKyra Vivian Astrid Nero Asuka Luna Kiara Amadeus QM");
     });
 });

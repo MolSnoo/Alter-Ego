@@ -147,7 +147,7 @@ export default class Party extends GameConstruct {
             player.joinParty(this);
         }
         if (deleteWhisper) await this.deleteWhisper();
-        this.whisper = await this.getGame().entityLoader.createWhisper(Array.from(this.members.values()), this.idPrefix, WhisperType.PARTY);
+        this.whisper = await this.getGame().entityLoader.createWhisper(this.members, this.idPrefix, WhisperType.PARTY);
         this.getGame().entityLoader.updatePartyId(this, this.whisper.id);
     }
 

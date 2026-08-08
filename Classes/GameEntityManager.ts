@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import Room from "../Data/Room.ts";
 import Whisper from "../Data/Whisper.ts";
 import Moderator from "../Data/Moderator.ts";
-import { ChannelType } from "discord.js";
 import type Event from "../Data/Event.ts";
 import type Fixture from "../Data/Fixture.ts";
 import type Flag from "../Data/Flag.ts";
@@ -15,7 +15,7 @@ import type Player from "../Data/Player.ts";
 import type Prefab from "../Data/Prefab.ts";
 import type Puzzle from "../Data/Puzzle.ts";
 import type Status from "../Data/Status.ts";
-import type { GuildMember, TextChannel } from "discord.js";
+import type { Collection, GuildMember, TextChannel } from "discord.js";
 import { WhisperType } from "../Modules/enums.ts";
 
 /**
@@ -37,9 +37,9 @@ export default abstract class GameEntityManager {
     /**
      * Clears all game data from memory.
      */
-    protected clearGame(): void {
+    protected async clearGame(): Promise<void> {
         this.clearRooms();
-        this.clearFixtures();
+        await this.clearFixtures();
         this.clearPrefabs();
         this.clearRecipes();
         this.clearRoomItems();
@@ -62,17 +62,17 @@ export default abstract class GameEntityManager {
     /**
      * Clears all fixture data from memory.
      */
-    protected clearFixtures(): void {
-        this.game.fixtures.forEach(fixture => {
+    protected async clearFixtures(): Promise<void> {
+        for (const fixture of this.game.fixtures) {
             if (fixture.recipeInterval !== null)
                 fixture.recipeInterval.stop();
             if (fixture.process.timer !== null)
                 fixture.process.timer.stop();
             if (fixture.hidingSpot !== null) {
-                fixture.hidingSpot.occupants.length = 0;
-                fixture.hidingSpot.deleteWhisper();
+                await fixture.hidingSpot.deleteWhisper();
+                fixture.hidingSpot.occupants.clear();
             }
-        });
+        }
         this.game.fixtures.length = 0;
     }
 
@@ -197,7 +197,7 @@ export default abstract class GameEntityManager {
      * Updates references to a given fixture throughout the game.
      * @param fixture - The fixture to reference.
      */
-    protected updateFixtureReferences(fixture: Fixture): void {
+    protected async updateFixtureReferences(fixture: Fixture): Promise<void> {
         this.game.roomItems.forEach(roomItem => {
             if (roomItem.location?.id === fixture.location?.id && roomItem.containerType === "Fixture" && roomItem.containerName === fixture.name)
                 roomItem.setContainer(fixture);
@@ -206,6 +206,15 @@ export default abstract class GameEntityManager {
             if (puzzle.location?.id === fixture.location?.id && puzzle.parentFixtureName !== "" && puzzle.parentFixtureName === fixture.name)
                 puzzle.setParentFixture(fixture);
         });
+        if (fixture.hidingSpot) {
+            const hidingSpot = fixture.hidingSpot;
+            this.game.livingPlayers.forEach(player => {
+                if (player.location?.id === fixture.location?.id && player.hidingSpot === hidingSpot.name)
+                    hidingSpot.occupants.set(player.name, player);
+            });
+            if (hidingSpot.occupants.size > 0)
+                await hidingSpot.createWhisper();
+        }
     }
 
     /**
@@ -305,17 +314,13 @@ export default abstract class GameEntityManager {
                     room.occupants[i] = player;
             });
         });
-        this.game.fixtures.forEach(fixture => {
-            if (fixture.hidingSpot) {
-                fixture.hidingSpot.occupants.forEach((occupant, i) => {
-                    if (occupant?.name === player.name)
-                        fixture.hidingSpot.occupants[i] = player;
-                });
-            }
-        });
         this.game.whispers.forEach(whisper => {
             if (whisper.players.has(player.name))
                 whisper.players.set(player.name, player);
+        });
+        this.game.fixtures.forEach(fixture => {
+            if (fixture.hidingSpot && fixture.hidingSpot.occupants.has(player.name))
+                fixture.hidingSpot.occupants.set(player.name, player);
         });
         this.game.parties.forEach(party => {
             if (party.leader?.name === player.name)
@@ -347,7 +352,7 @@ export default abstract class GameEntityManager {
      * @param type - The type of the whisper, based on the entity it belongs to. Defaults to `STANDALONE`, which is for whispers that don't belong to any entity.
      * @returns The created whisper.
      */
-    async createWhisper(players: Player[], hidingSpotName?: string, type: WhisperType = WhisperType.STANDALONE): Promise<Whisper> {
+    async createWhisper(players: Collection<string, Player> | Player[], hidingSpotName?: string, type: WhisperType = WhisperType.STANDALONE): Promise<Whisper> {
         const whisper = new Whisper(this.game, type, players, hidingSpotName);
         whisper.channel = await this.#createWhisperChannel(whisper);
         this.game.whispers.set(whisper.id, whisper);
@@ -393,11 +398,12 @@ export default abstract class GameEntityManager {
      */
     async #createWhisperChannel(whisper: Whisper): Promise<TextChannel> {
         return new Promise(async resolve => {
-            const channel = await this.game.guildContext.guild.channels.create({
-                name: whisper.channelName,
-                type: ChannelType.GuildText,
-                parent: this.game.guildContext.whisperCategoryId
-            }).catch(error => console.error(`Couldn't create whisper channel with name "${whisper?.channelName}".`, error));
+            let channel: TextChannel;
+            // If the whisper is associated with an entity and it already has a channel, we don't need to create a new one.
+            // We look for a channel name that matches the whisper's full ID, because the channel name may have been truncated and we don't want to make assumptions.
+            if (whisper.type !== WhisperType.STANDALONE)
+                channel = this.game.guildContext.findChannel(whisper.id, this.game.guildContext.whisperCategoryId) as TextChannel;
+            if (!channel) channel = await this.game.guildContext.createChannel(whisper.channelName, this.game.guildContext.whisperCategoryId);
             if (channel) {
                 for (const player of whisper.players.values()) {
                     const noChannel = player.isNPC
@@ -425,7 +431,7 @@ export default abstract class GameEntityManager {
      */
     async createParty(leader: Player, followers: Player[], idPrefix: string = "party"): Promise<Party> {
         const party = new Party(this.game, leader, followers, idPrefix);
-        const whisper = await this.createWhisper(Array.from(party.members.values()), idPrefix, WhisperType.PARTY);
+        const whisper = await this.createWhisper(party.members, idPrefix, WhisperType.PARTY);
         party.whisper = whisper;
         party.id = whisper.id;
         this.game.parties.set(party.id, party);

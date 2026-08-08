@@ -30,7 +30,7 @@ export default class HideAction extends Action {
 
         this.getGame().narrationHandler.narrateHide(this, hidingSpot, this.player, players);
         let successful = false;
-        if (hidingSpot.occupants.length + players.size <= hidingSpot.capacity || this.forced) {
+        if (hidingSpot.canFit(players) || this.forced) {
             const hiddenStatus = this.getGame().entityFinder.getStatusEffect("hidden");
             for (const player of players) {
                 const hiddenStatusAction = new InflictAction(this.getGame(), undefined, player, player.location, false);
@@ -55,7 +55,7 @@ export default class HideAction extends Action {
 
     /**
      * Finds the required Fixture to call performHide.
-     * 
+     *
      * @param args - The args as strings.
      */
     parseInteractionArgs(args: string[]): [Fixture] {
@@ -64,7 +64,7 @@ export default class HideAction extends Action {
 
     /**
      * Validates the parsed args. The results can be passed directly into performHide.
-     * 
+     *
      * @param args - The args after being parsed.
      */
     validateInteractionArgs(args: [Fixture]): [HidingSpot] {

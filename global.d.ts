@@ -102,6 +102,8 @@ declare global {
 		requiresGame: boolean;
         /** Whether or not the command is sensitive to whitespace, and should not have argument whitespace altered. */
         whitespaceSensitive?: boolean;
+        /** Whether the command is usable in edit mode. */
+        usableInEditMode?: boolean;
 	}
 
 	/**
