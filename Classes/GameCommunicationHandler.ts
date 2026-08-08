@@ -125,6 +125,22 @@ export default class GameCommunicationHandler {
     }
 
     /**
+     * 
+     */
+    private async cacheEmoji(cached: Set<string>, data: { animated: boolean, name: string, snowflake: string, hash: string }): Promise<void> {
+        if (cached.has(data.hash))
+            return;
+
+        const url = `https://cdn.discordapp.com/emojis/${data.snowflake}${data.animated ? `.webp?size=64&animated=true&name=${data.name}&lossless=true` : `.webp?size=64&name=${data.name}&lossless=true`}`;
+        const emoji = await fetch(url);
+        const emojiData = data.animated ?
+            await sharp(await emoji.bytes(), { animated: true }).gif().toBuffer() :
+            await sharp(await emoji.bytes()).png().toBuffer();
+        const emojiBase64 = emojiData.toString("base64");
+        await this.#game.clientContext.client.application.emojis.create({ attachment: `data:image/${ data.animated ? "gif" : "png" };base64,${emojiBase64}`, name: data.hash });
+    }
+
+    /**
      * Adds the emojis in the given message to the emoji cache.
      * @param message - The message that initiated the cache.
      */
@@ -145,18 +161,10 @@ export default class GameCommunicationHandler {
 
         const appEmojis = new Set(application.emojis.cache.map(emoji => emoji.name));
 
-        for (const data of emojiData) {
-            if (appEmojis.has(data.hash))
-                continue;
-
-            const url = `https://cdn.discordapp.com/emojis/${data.snowflake}${data.animated ? `.webp?size=64&animated=true&name=${data.name}&lossless=true` : `.webp?size=64&name=${data.name}&lossless=true`}`;
-            const emoji = await fetch(url);
-            const emojiData = data.animated ?
-                await sharp(await emoji.bytes(), { animated: true }).gif().toBuffer() :
-                await sharp(await emoji.bytes()).png().toBuffer();
-            const emojiBase64 = emojiData.toString("base64");
-            await application.emojis.create({attachment: `data:image/webp;base64,${emojiBase64}`, name: data.hash});
-        }
+        const promises: Promise<void>[] = [];
+        for (const data of emojiData)
+            promises.push(this.cacheEmoji(appEmojis, data));
+        await Promise.all(promises);
     }
 
     /**
