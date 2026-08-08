@@ -17,7 +17,7 @@ import type Room from "../Data/Room.ts";
 import { MessageDisplayType } from "../Modules/enums.ts";
 import * as messageHandler from "../Modules/messageHandler.ts";
 import { asyncReplace, capitalizeFirstLetter } from "../Modules/helpers.ts";
-import { ChannelType, Collection } from "discord.js";
+import { ChannelType, Collection, SnowflakeUtil } from "discord.js";
 import type { ApplicationEmoji, Attachment, Embed, EmbedBuilder, Message, Snowflake, TextChannel } from "discord.js";
 import crypto from 'crypto';
 import sharp from "sharp";
@@ -125,7 +125,9 @@ export default class GameCommunicationHandler {
     }
 
     /**
-     * 
+     * Cache a single emoji.
+     * @param cached - Set of MD5 hashes that are already cached.
+     * @param data - Data object of the emoji to cache.
      */
     private async cacheEmoji(cached: Set<string>, data: { animated: boolean, name: string, snowflake: string, hash: string }): Promise<void> {
         if (cached.has(data.hash))
@@ -159,11 +161,36 @@ export default class GameCommunicationHandler {
         if (emojiData.length === 0)
             return;
 
+        if (application.emojis.cache.size >= 1975)
+            await this.deleteNumberOfOldestEmoji(emojiData.length);
+
         const appEmojis = new Set(application.emojis.cache.map(emoji => emoji.name));
 
         const promises: Promise<void>[] = [];
         for (const data of emojiData)
             promises.push(this.cacheEmoji(appEmojis, data));
+        await Promise.all(promises);
+    }
+
+    /**
+     * Delete a given number of the oldest emoji.
+     * @param x - The number of emoji to delete.
+     */
+    private async deleteNumberOfOldestEmoji(x: number): Promise<void> {
+        const emojis = this.#game.clientContext.client.application.emojis.cache.map(emoji => emoji);
+
+        emojis.sort((a, b) => {
+            const aSnow = SnowflakeUtil.deconstruct(a.id);
+            const bSnow = SnowflakeUtil.deconstruct(b.id);
+
+            if (aSnow.epoch < bSnow.epoch) return 1;
+            if (aSnow.epoch > bSnow.epoch) return -1;
+            return 0;
+        });
+
+        const promises: Promise<void>[] = [];
+        for (let i = 0; i < x; i++)
+            promises.push(this.#game.clientContext.client.application.emojis.delete(emojis.pop()));
         await Promise.all(promises);
     }
 
