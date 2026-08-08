@@ -78,7 +78,7 @@ export default class DialogQueue extends StackQueue<UserMessage> {
                     continue;
                 }
                 const location = isInAnnouncementChannel || isInWhisperChannel ? player.location : room;
-                const dialog = new Dialog(this.game, message, player, location, message.content, isInAnnouncementChannel, whisper, message.cleanContent);
+                const dialog = new Dialog(this.game, message, player, location, await this.game.communicationHandler.replaceEmoji(message.content), isInAnnouncementChannel, whisper, await this.game.communicationHandler.replaceEmoji(message.cleanContent));
                 if (dialog.isAnnouncement) {
                     const announceAction = new AnnounceAction(this.game, message, dialog.speaker, dialog.location, false, dialog.whisper);
                     announceAction.performAnnounce(dialog);
@@ -92,7 +92,7 @@ export default class DialogQueue extends StackQueue<UserMessage> {
                 const moderator = this.game.entityLoader.getOrCreateModerator(message.member);
                 if (moderator.sentMessageInLatchChannel(message) && !message.content.startsWith("(")) {
                     const npc = moderator.getLatch();
-                    const dialog = new Dialog(this.game, message, npc, npc.location, message.content, false, whisper, message.cleanContent);
+                    const dialog = new Dialog(this.game, message, npc, npc.location, await this.game.communicationHandler.replaceEmoji(message.content), false, whisper, await this.game.communicationHandler.replaceEmoji(message.cleanContent));
                     const channel = whisper ? whisper.channel : npc.location.channel;
                     this.game.communicationHandler.sendDialogAsWebhook(channel, dialog, dialog.getDisplayNameForWebhook(!!whisper), dialog.getDisplayIconForWebhook(!!whisper)).then(dialogMessage => {
                         dialog.setMessage(dialogMessage);
@@ -104,7 +104,7 @@ export default class DialogQueue extends StackQueue<UserMessage> {
                 else {
                     const location = whisper ? whisper.location : room;
                     const narrateAction = new NarrateAction(this.game, message, undefined, location, false, whisper);
-                    this.game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAIN_TEXT, narrateAction, message.content, moderator);
+                    this.game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAIN_TEXT, narrateAction, await this.game.communicationHandler.replaceEmoji(message.content), moderator);
                 }
             }
         }
