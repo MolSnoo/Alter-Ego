@@ -54,7 +54,6 @@ export default class DialogQueue extends StackQueue<UserMessage> {
             const isInRoomChannel = this.game.guildContext.roomCategories.includes(message.channel.parentId);
             if (!isInWhisperChannel && !isInAnnouncementChannel && !isInRoomChannel) continue;
         
-            await this.game.communicationHandler.cacheEmojis(message);
             this.game.communicationHandler.cacheDialog(message);
         
             const isModerator = message.member && message.member.roles.cache.has(this.game.guildContext.moderatorRole.id);

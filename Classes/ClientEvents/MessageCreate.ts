@@ -23,10 +23,12 @@ export default new ClientEvent({
         const messageStartsWithCommandAlias = message.content.startsWith(game.settings.commandPrefix);
         let isCommand = messageStartsWithCommandAlias || message.channel.type === ChannelType.DM || message.channel.id === game.guildContext.commandChannel.id;
         if (isCommand) {
+            await game.communicationHandler.cacheEmojis(message);
             const command = messageStartsWithCommandAlias ? message.content.substring(game.settings.commandPrefix.length) : message.content;
             isCommand = await game.clientContext.commandHandler.executeCommand(command, game, message);
         }
         if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress) {
+            await game.communicationHandler.cacheEmojis(message);
             game.dialogQueue.enqueue(message);
         }
     }
