@@ -28,7 +28,6 @@ export default new ClientEvent({
             isCommand = await game.clientContext.commandHandler.executeCommand(command, game, message);
         }
         if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress) {
-            await game.communicationHandler.cacheEmojis(message);
             game.dialogQueue.enqueue(message);
         }
     }
