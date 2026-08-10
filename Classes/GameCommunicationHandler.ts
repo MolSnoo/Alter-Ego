@@ -156,7 +156,7 @@ export default class GameCommunicationHandler {
      * @param message - The message that initiated the cache.
      */
     async cacheEmojis(message: UserMessage) {
-        const application = this.#game.clientContext.client.application
+        const application = this.#game.clientContext.client.application;
         const emojiData: { animated: boolean, name: string, snowflake: string, hash: string }[] = [];
         const guildEmojis = this.#game.guildContext.guild.emojis.cache;
 
@@ -211,7 +211,7 @@ export default class GameCommunicationHandler {
      * @param emoji - The message that initiated the cache.
      */
     fetchCachedEmoji(emoji: {animated: boolean, name: string, snowflake: string}): ApplicationEmoji | undefined {
-        const application = this.#game.clientContext.client.application
+        const application = this.#game.clientContext.client.application;
         const guildEmojis = this.#game.guildContext.guild.emojis.cache;
         if (guildEmojis.has(emoji.snowflake))
             return undefined;

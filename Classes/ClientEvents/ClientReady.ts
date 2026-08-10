@@ -51,10 +51,10 @@ export default new ClientEvent({
         }
 
         // Fetch all application emojis now, so that the application emoji cache is populated for application emoji mirroring.
-        await client.application.emojis.fetch()
+        await client.application.emojis.fetch();
 
         // Fetch all guild emojis now, so that the guild emoji cache is populated for exempting guild emojis from application emoji mirroring.
-        await guildContext.guild.emojis.fetch()
+        await guildContext.guild.emojis.fetch();
 
         // Set the bot as finished initializing.
         clientContext.initialize();
