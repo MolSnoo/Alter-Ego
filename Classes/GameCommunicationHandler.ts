@@ -157,7 +157,8 @@ export default class GameCommunicationHandler {
      */
     async cacheEmojis(message: UserMessage) {
         const application = this.#game.clientContext.client.application
-        const emojiData: {animated: boolean, name: string, snowflake: string, hash: string}[] = [];
+        const emojiData: { animated: boolean, name: string, snowflake: string, hash: string }[] = [];
+        const guildEmojis = this.#game.guildContext.guild.emojis.cache;
 
         for (const match of message.content.matchAll(GameCommunicationHandler.emojiRegex)) {
             const animated = match[1] === "a";
@@ -166,6 +167,8 @@ export default class GameCommunicationHandler {
             const hash = this.hashEmoji(name, snowflake, animated);
             emojiData.push({ animated: animated, name: name, snowflake: snowflake, hash: hash });
         }
+
+        emojiData.filter(emoji => !guildEmojis.has(emoji.snowflake));
 
         if (emojiData.length === 0)
             return;
@@ -209,6 +212,10 @@ export default class GameCommunicationHandler {
      */
     fetchCachedEmoji(emoji: {animated: boolean, name: string, snowflake: string}): ApplicationEmoji | undefined {
         const application = this.#game.clientContext.client.application
+        const guildEmojis = this.#game.guildContext.guild.emojis.cache;
+        if (guildEmojis.has(emoji.snowflake))
+            return undefined;
+
         const hash = this.hashEmoji(emoji.name, emoji.snowflake, emoji.animated);
         const name = this.generateEmojiName(emoji.name, hash);
 
