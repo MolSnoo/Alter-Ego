@@ -124,13 +124,22 @@ export default class GameCommunicationHandler {
         this.#dialogSpectateMirrorCache.set(message.id, []);
     }
 
+    private hashEmoji(name: string, snowflake: string, animated: boolean): string {
+        return crypto.createHash('md5').update(`${name}:${snowflake}:${animated}`).digest('hex');
+    }
+
+    private generateEmojiName(name: string, hash: string): string {
+        return name.slice(0, 23) + "_" + hash.slice(0, 8);
+    }
+
     /**
      * Cache a single emoji.
      * @param cached - Set of MD5 hashes that are already cached.
      * @param data - Data object of the emoji to cache.
      */
     private async cacheEmoji(cached: Set<string>, data: { animated: boolean, name: string, snowflake: string, hash: string }): Promise<void> {
-        if (cached.has(data.hash))
+        const selfName = this.generateEmojiName(data.name, data.hash);
+        if (cached.has(selfName))
             return;
 
         const url = `https://cdn.discordapp.com/emojis/${data.snowflake}${data.animated ? `.webp?size=64&animated=true&name=${data.name}&lossless=true` : `.webp?size=64&name=${data.name}&lossless=true`}`;
@@ -139,7 +148,7 @@ export default class GameCommunicationHandler {
             await sharp(await emoji.bytes(), { animated: true }).gif().toBuffer() :
             await sharp(await emoji.bytes()).png().toBuffer();
         const emojiBase64 = emojiData.toString("base64");
-        await this.#game.clientContext.client.application.emojis.create({ attachment: `data:image/${ data.animated ? "gif" : "png" };base64,${emojiBase64}`, name: data.hash });
+        await this.#game.clientContext.client.application.emojis.create({ attachment: `data:image/${ data.animated ? "gif" : "png" };base64,${emojiBase64}`, name: selfName });
     }
 
     /**
@@ -154,7 +163,7 @@ export default class GameCommunicationHandler {
             const animated = match[1] === "a";
             const name = match[2];
             const snowflake = match[3];
-            const hash = crypto.createHash('md5').update(`${name}:${snowflake}:${animated}`).digest('hex');
+            const hash = this.hashEmoji(name, snowflake, animated);
             emojiData.push({ animated: animated, name: name, snowflake: snowflake, hash: hash });
         }
 
@@ -198,11 +207,12 @@ export default class GameCommunicationHandler {
      * Fetches the application emoji version of the given emoji
      * @param emoji - The message that initiated the cache.
      */
-    async fetchCachedEmoji(emoji: {animated: boolean, name: string, snowflake: string}): Promise<ApplicationEmoji> {
+    fetchCachedEmoji(emoji: {animated: boolean, name: string, snowflake: string}): ApplicationEmoji | undefined {
         const application = this.#game.clientContext.client.application
-        const hash = crypto.createHash('md5').update(`${emoji.name}:${emoji.snowflake}:${emoji.animated}`).digest('hex');
+        const hash = this.hashEmoji(emoji.name, emoji.snowflake, emoji.animated);
+        const name = this.generateEmojiName(emoji.name, hash);
 
-        return application.emojis.cache.find(emoji => emoji.name === hash);
+        return application.emojis.cache.find(emoji => emoji.name === name);
     }
 
     /**
@@ -217,7 +227,7 @@ export default class GameCommunicationHandler {
         const animated = captures[0] === "a";
         const name = captures[1];
         const snowflake = captures[2];
-        const emoji = await this.fetchCachedEmoji({ animated: animated, name: name, snowflake: snowflake });
+        const emoji = this.fetchCachedEmoji({ animated: animated, name: name, snowflake: snowflake });
         if (emoji)
             return `<${emoji.animated ? "a" : ""}:${emoji.name}:${emoji.id}>`;
         else
