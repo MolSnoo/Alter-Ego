@@ -124,10 +124,25 @@ export default class GameCommunicationHandler {
         this.#dialogSpectateMirrorCache.set(message.id, []);
     }
 
+    /**
+     * Hash an emoji given the name, snowflake, and whether or not it is animated.
+     * Mostly for keeping code DRY.
+     * @param name - The name of the emoji.
+     * @param snowflake - The snowflake of the emoji.
+     * @param animated - Whether the emoji is animated.
+     * @returns The hash of the emoji.
+     */
     private hashEmoji(name: string, snowflake: string, animated: boolean): string {
         return crypto.createHash('md5').update(`${name}:${snowflake}:${animated}`).digest('hex');
     }
 
+    /**
+     * Generate an emoji name given the name and hash of the original emoji.
+     * Mostly for keeping code DRY.
+     * @param name - The name of the emoji.
+     * @param hash - The hash of the original emoji, computed by `GameCommunicationHandler.hashEmoji`.
+     * @returns The name of the new emoji.
+     */
     private generateEmojiName(name: string, hash: string): string {
         return name.slice(0, 23) + "_" + hash.slice(0, 8);
     }
