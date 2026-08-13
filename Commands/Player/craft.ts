@@ -77,8 +77,8 @@ const command = new PlayerCommand({
         if (recipe === null)
             return new InvalidInvocation([`Couldn't find recipe requiring ${items[0].name} and ${items[1].name}. Contact a moderator if you think there should be one.`]);
 
-        args.set("item 1", [item1]);
-        args.set("item 2", [item2]);
+        args.set("item 1", [items[0]]);
+        args.set("item 2", [items[1]]);
         args.set("recipe", [recipe]);
 
         return new ValidatedInvocation({ args: args });
