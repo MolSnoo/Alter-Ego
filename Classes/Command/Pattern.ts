@@ -21,6 +21,9 @@ import DefaultMap, { concatToInnerArray, pushToInnerArray } from "../DefaultMap.
 import type Game from "../../Data/Game.ts";
 import type GameErrorMessageGenerator from "../GameErrorMessageGenerator.ts";
 
+/** Shorthand type representing the function that returns a string on pattern element match error. */
+export type ErrorFactory = (game: Game) => string;
+
 /**
  * Base interface representing a pattern element.
  */
@@ -28,7 +31,7 @@ interface PatternElement {
     /**
      * Data on the GameErrorMessageGenerator function to call when this pattern element encounters an error in matching.
      */
-    readonly error?: (game: Game) => string;
+    readonly error?: ErrorFactory;
 }
 
 /**
@@ -40,7 +43,7 @@ export class Constant implements PatternElement {
     /**
      * The GameErrorMessageGenerator call data when the Constant sentinel encounters an error in matching.
      */
-    readonly error?: (game: Game) => string;
+    readonly error?: ErrorFactory;
 
     /**
      * The data of the Constant sentinel.
@@ -51,7 +54,7 @@ export class Constant implements PatternElement {
      * @param value - The data of the Constant sentinel.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(value: string, error?: (game: Game) => string) {
+    constructor(value: string, error?: ErrorFactory) {
         this.error = error;
         this.value = value;
     }
@@ -74,7 +77,7 @@ export class Multiconstant implements PatternElement {
     /**
      * The GameErrorMessageGenerator call data when the Multiconstant sentinel encounters an error in matching.
      */
-    readonly error?: (game: Game) => string;
+    readonly error?: ErrorFactory;
 
     /**
      * The data of the Multiconstant sentinel.
@@ -85,7 +88,7 @@ export class Multiconstant implements PatternElement {
      * @param values - The data of the Multiconstant sentinel.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(values: string[], error?: (game: Game) => string) {
+    constructor(values: string[], error?: ErrorFactory) {
         this.error = error;
         this.values = new Set(values);
     }
@@ -106,7 +109,7 @@ export class Slot<T extends GameEntity = GameEntity> implements PatternElement {
     /**
      * The GameErrorMessageGenerator call data when the Slot element encounters an error in matching.
      */
-    readonly error?: (game: Game) => string;
+    readonly error?: ErrorFactory;
 
     /**
      * The type of the Slot. Tokens must match this type to fit into the Slot.
@@ -123,7 +126,7 @@ export class Slot<T extends GameEntity = GameEntity> implements PatternElement {
      * @param name - The name to refer to the Slot with. Inherited by any Tokens that fit the Slot.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(type: Constructor<T>, name: string, error?: (game: Game) => string) {
+    constructor(type: Constructor<T>, name: string, error?: ErrorFactory) {
         this.error = error;
         this.type = type.prototype.constructor as Constructor<T>;
         this.name = name;
@@ -145,7 +148,7 @@ export class Multislot implements PatternElement {
     /**
      * The GameErrorMessageGenerator call data when the Multislot element encounters an error in matching.
      */
-    readonly error?: (game: Game) => string;
+    readonly error?: ErrorFactory;
 
     /**
      * The slots that make up the Multislot.
@@ -167,7 +170,7 @@ export class Multislot implements PatternElement {
      * @param name - The name to refer to the Multislot with. Inherited by any Tokens that fit the Slot.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(slots: Constructor<GameEntity>[], name: string, error?: (game: Game) => string) {
+    constructor(slots: Constructor<GameEntity>[], name: string, error?: ErrorFactory) {
         this.error = error;
         this.slots = new Set(slots);
         this.name = name;
@@ -207,7 +210,7 @@ export class Preposition implements PatternElement {
     /**
      * The GameErrorMessageGenerator call data when the Preposition element encounters an error in matching.
      */
-    readonly error?: (game: Game) => string;
+    readonly error?: ErrorFactory;
 
     /**
      * The name of the Slot that the Preposition refers to.
@@ -218,7 +221,7 @@ export class Preposition implements PatternElement {
      * @param name - The name of the Slot that the Preposition refers to.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(name: string, error?: (game: Game) => string) {
+    constructor(name: string, error?: ErrorFactory) {
         this.error = error;
         this.name = name;
     }
@@ -231,7 +234,7 @@ export class Pocket implements PatternElement {
     /**
      * The GameErrorMessageGenerator call data when the Pocket element encounters an error in matching.
      */
-    readonly error?: (game: Game) => string;
+    readonly error?: ErrorFactory;
 
     /**
      * The ID of the Slot that the Pocket refers to.
@@ -248,7 +251,7 @@ export class Pocket implements PatternElement {
      * @param name - The name to refer to the Pocket with. Inherited by any Tokens that fit the Pocket.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(id: string, name: string, error?: (game: Game) => string) {
+    constructor(id: string, name: string, error?: ErrorFactory) {
         this.error = error;
         this.id = id;
         this.name = name;
@@ -269,7 +272,7 @@ export class Option extends Multiconstant {
      * @param values - The values possible in the Option element.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(name: string, values: string[], error?: (game: Game) => string) {
+    constructor(name: string, values: string[], error?: ErrorFactory) {
         super(values, error);
         this.name = name;
     }
