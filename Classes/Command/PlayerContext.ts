@@ -353,13 +353,17 @@ export default class PlayerContext extends Context {
             for (const player of this.game.players.values()) {
                 if (!config?.playerNameStyle || config?.playerNameStyle === 2) {
                     tokens.push(new EntityToken(player.displayName, player));
-                    if (config?.possessivePlayer)
+                    if (config?.possessivePlayer) {
                         tokens.push(new EntityToken(`${player.displayName}'s`, player));
+                        tokens.push(new EntityToken(`${player.displayName}s`, player));
+                    }
                 }
                 if (config?.playerNameStyle === 1 || config?.playerNameStyle === 2) {
                     tokens.push(new EntityToken(player.name, player));
-                    if (config?.possessivePlayer)
+                    if (config?.possessivePlayer) {
                         tokens.push(new EntityToken(`${player.name}'s`, player));
+                        tokens.push(new EntityToken(`${player.name}s`, player));
+                    }
                 }
             }
         }
