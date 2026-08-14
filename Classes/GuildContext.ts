@@ -300,8 +300,7 @@ export default class GuildContext {
     findChannel(name: string, parentId?: string): GuildBasedChannel | undefined {
         if (parentId)
             return this.guild.channels.cache.find(channel => channel.parent && channel.parentId === parentId && channel.name === name);
-        else
-            return this.guild.channels.cache.find(channel => channel.name === name);
+        else return this.guild.channels.cache.find(channel => channel.name === name);
     }
 
     /**
@@ -346,8 +345,7 @@ export default class GuildContext {
             }
             console.error(`Couldn't create channel${parentPhrase} with name "${name}".`, error);
         });
-        if (channel)
-            return channel;
+        if (channel) return channel;
     }
 
     /**

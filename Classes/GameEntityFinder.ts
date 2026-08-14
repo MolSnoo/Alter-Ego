@@ -52,8 +52,7 @@ export default class GameEntityFinder {
      * @returns The room with the specified ID. If no such room exists, returns undefined.
      */
     getRoom(id: string): Room | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.rooms.get(Room.generateValidId(id));
     }
 
@@ -74,8 +73,7 @@ export default class GameEntityFinder {
      * @returns The fixture with the specified name and location, if applicable. If no such fixture exists, returns undefined.
      */
     getFixture(name: string, location?: string): Fixture | undefined {
-        if (!name)
-            return;
+        if (!name) return;
         let selectedFilters = new Collection<string, GameEntityMatcher<Fixture>>();
         selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
         if (location) selectedFilters.set(Room.generateValidId(location), matchers.entityLocationIdMatches);
@@ -88,8 +86,7 @@ export default class GameEntityFinder {
      * @returns The prefab with the specified ID. If no such prefab exists, returns undefined.
      */
     getPrefab(id: string): Prefab | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.prefabs.get(Game.generateValidEntityName(id));
     }
 
@@ -103,8 +100,7 @@ export default class GameEntityFinder {
      * @returns The room item with the specified identifier, procedural selections, and location and container name if applicable. If no such item exists, returns undefined.
      */
     getRoomItem(identifier: string, location?: string, containerType?: string, containerName?: string, proceduralSelections?: string): RoomItem | undefined {
-        if (!identifier)
-            return;
+        if (!identifier) return;
         let selectedFilters = new Collection<string, GameEntityMatcher<RoomItem>>();
         selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
         if (location)
@@ -137,8 +133,7 @@ export default class GameEntityFinder {
      * @returns The puzzle with the specified name and location, if applicable. If no such puzzle exists, returns undefined.
      */
     getPuzzle(name: string, location?: string, type?: string, accessible?: boolean): Puzzle | undefined {
-        if (!name)
-            return;
+        if (!name) return;
         let selectedFilters = new Collection<string | boolean, GameEntityMatcher<Puzzle>>();
         selectedFilters.set(Game.generateValidEntityName(name), matchers.entityNameMatches);
         if (location)
@@ -156,8 +151,7 @@ export default class GameEntityFinder {
      * @returns The event with the specified ID. If no such event exists, returns undefined.
      */
     getEvent(id: string): Event | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.events.get(Game.generateValidEntityName(id));
     }
 
@@ -167,8 +161,7 @@ export default class GameEntityFinder {
      * @returns The status effect with the specified ID. If no such status effect exists, returns undefined.
      */
     getStatusEffect(id: string): Status | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.statusEffects.get(Status.generateValidId(id));
     }
 
@@ -178,8 +171,7 @@ export default class GameEntityFinder {
      * @returns The player with the specified name. If no such player exists, returns undefined.
      */
     getPlayer(name: string): Player | undefined {
-        if (!name)
-            return;
+        if (!name) return;
         return this.game.players.get(Game.generateValidEntityName(name));
     }
 
@@ -189,8 +181,7 @@ export default class GameEntityFinder {
      * @returns The player with the specified user ID. If no such player exists, returns undefined.
      */
     getPlayerById(id: string): Player | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         for (const player of this.game.players.values()) {
             if (!player.isNPC && player.id === id) return player;
         }
@@ -202,8 +193,7 @@ export default class GameEntityFinder {
      * @returns The living player with the specified name. If no such player exists, returns undefined.
      */
     getLivingPlayer(name: string): Player | undefined {
-        if (!name)
-            return;
+        if (!name) return;
         return this.game.livingPlayers.get(Game.generateValidEntityName(name));
     }
 
@@ -213,8 +203,7 @@ export default class GameEntityFinder {
      * @returns The living player with the specified user ID. If no such player exists, returns undefined.
      */
     getLivingPlayerById(id: string): Player | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         for (const livingPlayer of this.game.livingPlayers.values()) {
             if (!livingPlayer.isNPC && livingPlayer.id === id) return livingPlayer;
         }
@@ -226,8 +215,7 @@ export default class GameEntityFinder {
      * @returns The dead player with the specified name. If no such player exists, returns undefined.
      */
     getDeadPlayer(name: string): Player | undefined {
-        if (!name)
-            return;
+        if (!name) return;
         return this.game.deadPlayers.get(Game.generateValidEntityName(name));
     }
 
@@ -237,8 +225,7 @@ export default class GameEntityFinder {
      * @returns Hands belonging to the player.
      */
     getPlayerHands(player: Player): EquipmentSlot[] {
-        if (!player)
-            return [];
+        if (!player) return [];
         let hands: EquipmentSlot[] = [];
         if (player.inventory.has("RIGHT HAND"))
             hands.push(player.inventory.get("RIGHT HAND")!);
@@ -254,8 +241,7 @@ export default class GameEntityFinder {
      * @returns A free hand of the player. Returns undefined if all hands are occupied.
      */
     getPlayerFreeHand(player: Player): EquipmentSlot | undefined {
-        if (!player)
-            return;
+        if (!player) return;
         for (const hand of this.getPlayerHands(player))
             if (hand.equippedItem === null) return hand;
     }
@@ -269,8 +255,7 @@ export default class GameEntityFinder {
      * @returns The hand equipment slot holding the specified item. Returns undefined if no such equipment slot exists.
      */
     getPlayerHandHoldingItem(player: Player, identifier?: string, proceduralSelections?: string, excludedItemRow?: number, resultContext: string = 'moderator'): EquipmentSlot | undefined {
-        if (!player || !identifier)
-            return;
+        if (!player || !identifier) return;
         let selectedFilters = new Collection<string|number, GameEntityMatcher<InventoryItem>>();
         if (resultContext === 'player')
             selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
@@ -293,8 +278,7 @@ export default class GameEntityFinder {
      * @returns The equipment slot that has the specified item equipped. Returns undefined if no such equipment slot exists.
      */
     getPlayerEquipmentSlotWithEquippedItem(player: Player, identifier: string, equipmentSlotId: string = "", resultContext: string = 'moderator'): EquipmentSlot | undefined {
-        if (!player || !identifier)
-            return;
+        if (!player || !identifier) return;
         let selectedFilters = new Collection<string, GameEntityMatcher<InventoryItem>>();
         if (resultContext === 'player')
             selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemNameMatches);
@@ -323,8 +307,7 @@ export default class GameEntityFinder {
      * @returns The inventory item with the specified identifier, procedural selections, and player, container name, and equipment slot if applicable. If no such item exists, returns undefined.
      */
     getInventoryItem(identifier: string, player?: string, containerName?: string, equipmentSlotId?: string, proceduralSelections?: string): InventoryItem | undefined {
-        if (!identifier)
-            return;
+        if (!identifier) return;
         let selectedFilters = new Collection<string, GameEntityMatcher<InventoryItem>>();
         selectedFilters.set(Game.generateValidEntityName(identifier), matchers.itemIdentifierMatches);
         if (identifier && player)
@@ -344,8 +327,7 @@ export default class GameEntityFinder {
      * @returns The gesture with the specified ID. If no such gesture exists, returns undefined.
      */
     getGesture(id: string): Gesture | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.gestures.get(Gesture.generateValidId(id));
     }
 
@@ -355,8 +337,7 @@ export default class GameEntityFinder {
      * @returns The flag with the specified ID. If no such flag exists, returns undefined.
      */
     getFlag(id: string): Flag | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.flags.get(Game.generateValidEntityName(id));
     }
 
@@ -383,8 +364,7 @@ export default class GameEntityFinder {
      * @returns The whisper with the specified players and associated entity. If no such whisper exists, returns undefined.
      */
     getWhisper(players: Player[], associatedEntityName?: string): Whisper | undefined {
-        if (!players || players.length === 0)
-            return;
+        if (!players || players.length === 0) return;
         return this.game.whispers.get(Whisper.generateValidId(players, players.at(0)!.location, associatedEntityName));
     }
 
@@ -394,8 +374,7 @@ export default class GameEntityFinder {
      * @returns The whisper with the specified channel ID. If no such whisper exists, returns undefined.
      */
     getWhisperByChannelId(channelId: string): Whisper | undefined {
-        if (!channelId)
-            return;
+        if (!channelId) return;
         return this.game.whispers.find(whisper => whisper.channel.id === channelId);
     }
 
@@ -405,8 +384,7 @@ export default class GameEntityFinder {
      * @returns The party with the specified ID. If no such party exists, returns undefined.
      */
     getParty(id: string): Party | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.parties.get(Room.generateValidId(id));
     }
 
@@ -416,8 +394,7 @@ export default class GameEntityFinder {
      * @returns The moderator with the specified user ID. If no such moderator exists, returns undefined.
      */
     getModeratorById(id: string): Moderator | undefined {
-        if (!id)
-            return;
+        if (!id) return;
         return this.game.moderators.get(id);
     }
 
@@ -936,15 +913,11 @@ export default class GameEntityFinder {
                 if (!entity)
                     entity = this.getRoomItems(entityName, player.location.id, container instanceof Puzzle ? undefined : true, containerType, containerName, undefined, undefined, false, 'combined')[0];
                 puzzle = this.getPuzzle(entityName, player.location.id);
-                if (!puzzle && entity instanceof Fixture && entity.childPuzzle)
-                    puzzle = entity.childPuzzle;
+                if (!puzzle && entity instanceof Fixture && entity.childPuzzle) puzzle = entity.childPuzzle;
             }
-            if (entity)
-                inspectableEntities.push(entity);
-            if (entity && entity instanceof RoomItem)
-                takeableEntities.push(entity);
-            if (puzzle)
-                attemptableEntities.push(puzzle);
+            if (entity) inspectableEntities.push(entity);
+            if (entity && entity instanceof RoomItem) takeableEntities.push(entity);
+            if (puzzle) attemptableEntities.push(puzzle);
         }
         return [inspectableEntities, takeableEntities, attemptableEntities];
     }
