@@ -25,7 +25,7 @@ import Gesture from '../Data/Gesture.ts';
 import { default as Flag, type FlagCommandSet } from '../Data/Flag.ts';
 import InflictAction from '../Data/Actions/InflictAction.ts';
 import { getSheetValues } from '../Modules/sheets.js';
-import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration, convertToError, getErrorMessage } from '../Modules/helpers.ts';
+import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration, convertToError, getErrorMessage, objectHasKey } from '../Modules/helpers.ts';
 import { parsePrefabPossibleNames } from '../Modules/stringDataExtractor.ts';
 import { ChannelType, Collection, type TextChannel, type GuildMember } from 'discord.js';
 import { Duration } from 'luxon';
@@ -2467,8 +2467,8 @@ export default class GameEntityLoader extends GameEntityManager {
             if (player.member) {
                 player.member.send('')
                 .then(() => resolve(true))
-                .catch(error => {
-                    if (error.hasOwnProperty("code") && (error.code === 50007 || error.code === 50278))
+                .catch((error: unknown) => {
+                    if (typeof error === "object" && objectHasKey(error, "code") && (error.code === 50007 || error.code === 50278))
                         resolve(false);
                     else resolve(true);
                 });

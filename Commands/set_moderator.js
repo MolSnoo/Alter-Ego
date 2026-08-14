@@ -8,6 +8,7 @@ import { getChildItems } from '../Modules/itemManager.ts';
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
 /** @import Game from '../Data/Game.ts' */
+/** @import RoomItem from '../Data/RoomItem.ts' */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -128,7 +129,7 @@ export async function execute(game, message, command, args, moderator) {
             if (doItems) {
                 // Update all of the items contained in this fixture.
                 let items = game.entityFinder.getRoomItems(null, fixture.location.id, null, `Fixture`, fixture.name);
-                /** @type import('../Data/RoomItem.ts').default[] */
+                /** @type RoomItem[] */
                 const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -147,7 +148,7 @@ export async function execute(game, message, command, args, moderator) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
                 let items = game.entityFinder.getRoomItems(null, puzzle.location.id, null, `Puzzle`, puzzle.name);
-                /** @type import('../Data/RoomItem.ts').default[] */
+                /** @type RoomItem[] */
                 const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -168,7 +169,7 @@ export async function execute(game, message, command, args, moderator) {
             if (doItems) {
                 // Update all of the items contained in this fixture.
                 let items = game.entityFinder.getRoomItems(null, fixture.location.id, null, `Fixture`, fixture.name);
-                /** @type import('../Data/RoomItem.ts').default[] */
+                /** @type RoomItem[] */
                 const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);
@@ -187,7 +188,7 @@ export async function execute(game, message, command, args, moderator) {
             if (doItems) {
                 // Update all of the items contained in this puzzle.
                 let items = game.entityFinder.getRoomItems(null, puzzle.location.id, null, `Puzzle`, puzzle.name);
-                /** @type import('../Data/RoomItem.ts').default[] */
+                /** @type RoomItem[] */
                 const childItems = [];
                 for (let i = 0; i < items.length; i++)
                     getChildItems(childItems, items[i]);

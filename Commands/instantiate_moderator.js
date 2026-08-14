@@ -7,6 +7,7 @@ import { getErrorMessage } from '../Modules/helpers.ts';
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
 /** @import Game from '../Data/Game.ts' */
+/** @import Player from '../Data/Player.ts' */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -105,7 +106,7 @@ export async function execute(game, message, command, args, moderator) {
     }
     args = parsedInput.split(' ');
 
-    /** @type import('../Data/Player.ts').default | null */
+    /** @type Player | null */
     let player = null;
     // Room was found. Look for the container in it.
     if (room !== null) {

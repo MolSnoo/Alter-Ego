@@ -223,7 +223,7 @@ export async function execute(game, command, args, player, callee) {
     }
     else {
         args = input.split(' ');
-        /** @type import('../Data/Player.ts').default[] */
+        /** @type Player[] */
         let players = [];
         for (let i = 0; i < args.length; i++) {
             if (args[i].toLowerCase().replace(/'s/g, "") === "player" && player !== null) {

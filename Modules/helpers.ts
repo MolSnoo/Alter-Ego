@@ -297,3 +297,12 @@ export function convertToError(error: unknown): Error {
     if (error instanceof Error) return error;
     else return new Error(String(error));
 }
+
+/**
+ * Determine if an object has a given key.
+ * @param obj - The object to check.
+ * @param key - The key to check for.
+ */
+export function objectHasKey<T extends object, K extends PropertyKey>(obj: T, key: K): obj is T & Record<K, unknown> {
+    return Object.hasOwn(obj, key);
+}
