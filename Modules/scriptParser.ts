@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type { Node } from 'acorn';
+import type { AnyNode, Super } from 'acorn';
 import type GameEntity from '../Data/GameEntity.ts';
 import type Player from '../Data/Player.ts';
 import * as finder from './finder.js';
@@ -275,20 +275,22 @@ const UNARY_OPS = {
  * Safely evaluate a single JS-like expression string with restrictions.
  * @param scriptText - The script to evaluate.
  * @param container - The game entity this script is attached to.
- * @param [player] - The player currently in scope.
+ * @param player - The player currently in scope.
  */
-export default function evaluate(scriptText: string, container: GameEntity, player: Player) {
+export default function evaluate(scriptText: string, container: GameEntity, player?: Player) {
     /**
      * Group together the container and player into a context object.
      */
     const context: ScriptEvaluationContext = { container, player };
     // Add the allowedGlobals to the context object.
     Object.keys(SCRIPT_SCOPE_OPTIONS.allowedGlobals).forEach(k => {
-        if (!Object.hasOwn(context, k))
-            context[k as keyof ScriptEvaluationContext] = SCRIPT_SCOPE_OPTIONS.allowedGlobals[k as keyof typeof SCRIPT_SCOPE_OPTIONS.allowedGlobals];
+        if (!helpers.objectHasKey(context, k)) {
+            // @ts-expect-error
+            context[k] = SCRIPT_SCOPE_OPTIONS.allowedGlobals[k];
+        }
     });
 
-    let script;
+    let script: Expression;
     try {
         script = parseExpression(scriptText);
     }
@@ -347,24 +349,24 @@ function replaceThisExpressions(node: any) {
  * @param node
  */
 function replaceFinderCallArguments(node: any) {
-    if (!node || typeof node !== 'object') return;
+    if (!node || typeof node !== 'object')
+        return;
     if (node.type === 'CallExpression') {
         const args = node.arguments ? node.arguments : [];
         const finderRegex = /find(Room(Item)?s?|Fixtures?|Objects?|Prefabs?|Recipes|Items?|Puzzles?|Events?|StatusEffects?|Player|LivingPlayers?|DeadPlayers?|InventoryItems?|Gestures?|Flags?)/;
         if (finderRegex.test(node.callee.name)) {
             if (!args || args.length === 0 || !(args[0].type === 'Identifier' && args[0].name === 'container')) {
-                node.arguments.splice(0, 0, { type: 'Identifier', name: 'container' });
+                node.arguments.unshift({ type: 'Identifier', name: 'container' });
                 return;
             }
         }
     }
     for (const key of Object.keys(node)) {
         const child = node[key];
-        if (Array.isArray(child)) {
+        if (Array.isArray(child))
             for (const c of child) replaceFinderCallArguments(c);
-        } else if (child && typeof child === 'object') {
+        else if (child && typeof child === 'object')
             replaceFinderCallArguments(child);
-        }
     }
 }
 
@@ -373,7 +375,8 @@ function replaceFinderCallArguments(node: any) {
  * @param name - The name of the property.
  */
 function isBlockedProp(name: string) {
-    if (!name || typeof name !== 'string') return false;
+    if (!name || typeof name !== 'string')
+        return false;
     // Ensure that sensitive properties cannot be accessed.
     return SCRIPT_SCOPE_OPTIONS.blockedProperties.includes(name);
 }
@@ -383,10 +386,13 @@ const proxyCache = new WeakMap();
  * Create read-only proxies for objects so script evaluation cannot modify them.
  * @param val
  */
-function makeReadOnly(val: Node) {
-    if (val === null) return null;
-    if (typeof val !== 'object' && typeof val !== 'function') return val;
-    if (proxyCache.has(val)) return proxyCache.get(val);
+function makeReadOnly(val: unknown) {
+    if (val === null)
+        return null;
+    if (typeof val !== 'object' && typeof val !== 'function')
+        return val;
+    if (proxyCache.has(val))
+        return proxyCache.get(val);
 
     const handler: ScriptProxyHandler = {
         get(targetObject, propKey, thisReceiver) {
@@ -394,9 +400,10 @@ function makeReadOnly(val: Node) {
             if (typeof prop === 'function') {
                 // Block known mutating methods by name to keep the proxy read-only.
                 const methodName = typeof propKey === 'symbol' ? propKey.toString() : String(propKey);
-                if (SCRIPT_SCOPE_OPTIONS.blockedMutators.includes(methodName)) {
-                    return function () { throw new Error('Mutation prohibited'); };
-                }
+                if (SCRIPT_SCOPE_OPTIONS.blockedMutators.includes(methodName))
+                    return function() {
+                        throw new Error('Mutation prohibited');
+                    };
                 return function (...args: any[]) {
                     // Call original function with the original target as `this` so Maps and Collections work correctly.
                     return prop.apply(targetObject, args);
@@ -404,15 +411,31 @@ function makeReadOnly(val: Node) {
             }
             return makeReadOnly(prop);
         },
-        set() { throw new Error('Mutation prohibited'); },
-        deleteProperty() { throw new Error('Mutation prohibited'); },
-        defineProperty() { throw new Error('Mutation prohibited'); },
-        setPrototypeOf() { throw new Error('Mutation prohibited'); },
+        set() {
+            throw new Error('Mutation prohibited');
+        },
+        deleteProperty() {
+            throw new Error('Mutation prohibited');
+        },
+        defineProperty() {
+            throw new Error('Mutation prohibited');
+        },
+        setPrototypeOf() {
+            throw new Error('Mutation prohibited');
+        },
         // Expose basic Reflect traps.
-        has(targetObject, propKey) { return Reflect.has(targetObject, propKey); },
-        ownKeys(targetObject) { return Reflect.ownKeys(targetObject); },
-        getOwnPropertyDescriptor(targetObject, propKey) { return Reflect.getOwnPropertyDescriptor(targetObject, propKey); },
-        getPrototypeOf(targetObject) { return Reflect.getPrototypeOf(targetObject); }
+        has(targetObject, propKey) {
+            return Reflect.has(targetObject, propKey);
+        },
+        ownKeys(targetObject) {
+            return Reflect.ownKeys(targetObject);
+        },
+        getOwnPropertyDescriptor(targetObject, propKey) {
+            return Reflect.getOwnPropertyDescriptor(targetObject, propKey);
+        },
+        getPrototypeOf(targetObject) {
+            return Reflect.getPrototypeOf(targetObject);
+        }
     };
 
     const proxy = new Proxy(val, handler);
@@ -428,30 +451,22 @@ function makeReadOnly(val: Node) {
  * @param context - Variables in the script's context.
  * @param nodeCount - The total number of nodes that have been traversed since we began evaluating.
  * @returns
- * @privateRemarks
- * Why is node any?
- * - AC
  */
-function validateAndEval(node: any, context: ScriptEvaluationContext, nodeCount: number): any {
-    nodeCount++;
-    if (nodeCount > SCRIPT_SCOPE_OPTIONS.maxNodes) throw new Error('Expression too complex');
+function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCount: number): unknown {
+    if (++nodeCount > SCRIPT_SCOPE_OPTIONS.maxNodes)
+        throw new Error('Expression too complex');
 
     switch (node.type) {
         case 'Literal':
             return node.value;
         case 'Identifier':
-            /**
-             * @privateRemarks
-             * We make a lot of assumptions here...
-             * But, I do not know how to make an assumption such that this does not cry and return an error...
-             * - AC
-             */
-            // @ts-expect-error
-            if (Object.hasOwn(context, node.name)) return makeReadOnly(context[node.name]);
+            if (helpers.objectHasKey(context, node.name))
+                return makeReadOnly(context[node.name]);
             throw new Error(`Unknown identifier: ${node.name}`);
         case 'UnaryExpression': {
             if (!UNARY_OPS[node.operator as keyof typeof UNARY_OPS]) throw new Error(`Unsupported unary operator ${node.operator}`);
             const val = validateAndEval(node.argument, context, nodeCount);
+            // @ts-expect-error
             return UNARY_OPS[node.operator as keyof typeof UNARY_OPS](val);
         }
         case 'BinaryExpression': {
@@ -479,19 +494,23 @@ function validateAndEval(node: any, context: ScriptEvaluationContext, nodeCount:
             // Only allow access to member properties rooted in a top-level identifier present in context.
             // Don't allow access to blocked property names.
             // Resolve property chain step-by-step.
-            let objectNode = node;
-            const chain = [];
+            let objectNode: Super | Expression = node;
+            const chain: (string | number | bigint | boolean | RegExp)[] = [];
             // Unwind the chain to get base identifier and property list.
             while (objectNode.type === 'MemberExpression') {
                 if (objectNode.computed) {
                     // Evaluate the property expression but only allow literals/identifiers.
                     const prop = objectNode.property;
-                    if (prop.type === 'Literal') chain.unshift(prop.value);
-                    else if (prop.type === 'Identifier') chain.unshift(prop.name);
-                    else throw new Error('Computed properties must be simple');
+                    if (prop.type === 'Literal')
+                        chain.unshift(prop.value);
+                    else if (prop.type === 'Identifier')
+                        chain.unshift(prop.name);
+                    else
+                        throw new Error('Computed properties must be simple');
                 }
                 else {
-                    if (objectNode.property.type !== 'Identifier') throw new Error('Property must be identifier');
+                    if (objectNode.property.type !== 'Identifier')
+                        throw new Error('Property must be identifier');
                     chain.unshift(objectNode.property.name);
                 }
                 objectNode = objectNode.object;
@@ -499,16 +518,28 @@ function validateAndEval(node: any, context: ScriptEvaluationContext, nodeCount:
             let current;
             if (objectNode.type === 'Identifier') {
                 const rootName = objectNode.name;
-                if (!Object.hasOwn(context, rootName)) throw new Error(`Unknown root identifier: ${rootName}`);
+                if (!helpers.objectHasKey(context, rootName))
+                    throw new Error(`Unknown root identifier: ${rootName}`);
                 current = context[rootName as keyof ScriptEvaluationContext];
             }
-            else if (objectNode.type === 'CallExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name)) {
+            // @ts-expect-error
+            else if (objectNode.type === 'CallExpression'  && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name)) {
                 // Make an exception to allow the root to be an expression in allowedGlobals.
+                if (objectNode.callee.type === "MemberExpression") {
+                    console.log(objectNode.callee.type);
+                    console.log(objectNode.callee?.name);
+                    console.log(helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee?.name));
+                    console.log(SCRIPT_SCOPE_OPTIONS.allowedGlobals[objectNode.callee?.name]);
+                    console.log(SCRIPT_SCOPE_OPTIONS.allowedGlobals);
+                }
                 current = validateAndEval(objectNode, context, nodeCount);
             }
             for (const prop of chain) {
-                if (isBlockedProp(prop)) throw new Error('Access prohibited');
-                if (current === null || current === undefined) return undefined;
+                if (isBlockedProp(String(prop)))
+                    throw new Error('Access prohibited');
+                if (current === null || current === undefined)
+                    return undefined;
+                // @ts-expect-error
                 current = current[prop];
             }
             return makeReadOnly(current);
@@ -518,44 +549,51 @@ function validateAndEval(node: any, context: ScriptEvaluationContext, nodeCount:
             let callee = node.callee;
             let constructor;
             if (callee.type === 'Identifier') {
-                if (!Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedConstructors, callee.name)) throw new Error(`Unknown constructor ${callee.name}`);
+                if (!helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedConstructors, callee.name))
+                    throw new Error(`Unknown constructor ${callee.name}`);
                 constructor = context[callee.name as keyof ScriptEvaluationContext];
             }
-            else {
+            else
                 throw new Error('Unsupported constructor type');
-            }
-            if (typeof constructor !== 'function') throw new Error('Constructor is not a function');
+            if (typeof constructor !== 'function')
+                throw new Error('Constructor is not a function');
             const args = node.arguments.map((arg: any) => validateAndEval(arg, context, nodeCount));
             // Use Reflect.construct to call constructor with args
             return Reflect.construct(constructor, args);
         }
         case 'CallExpression': {
-            if (!SCRIPT_SCOPE_OPTIONS.allowCall) throw new Error('Function calls are disabled');
+            if (!SCRIPT_SCOPE_OPTIONS.allowCall)
+                throw new Error('Function calls are disabled');
             // Only permit calls where the callee is a function available in allowedGlobals.
             // e.g., Math.floor(x) -> callee is MemberExpression with root Math in allowedGlobals.
             let callee = node.callee;
             let fn;
             let thisArg = null;
             if (callee.type === 'Identifier') {
-                if (!Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, callee.name)) throw new Error(`Unknown function ${callee.name}`);
-                fn = SCRIPT_SCOPE_OPTIONS.allowedGlobals[callee.name as keyof typeof SCRIPT_SCOPE_OPTIONS.allowedGlobals];
+                if (!helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, callee.name))
+                    throw new Error(`Unknown function ${callee.name}`);
+                fn = SCRIPT_SCOPE_OPTIONS.allowedGlobals[callee.name];
                 thisArg = null;
             }
             else if (callee.type === 'MemberExpression') {
                 // Resolve member expression but ensure root is in allowedGlobals.
-                let objectNode = callee;
+                let objectNode: Super | Expression = callee;
                 const chain = [];
                 // Unwind the chain to get base identifier and property list.
                 while (objectNode.type === 'MemberExpression') {
                     if (objectNode.computed) {
                         // Evaluate the property expression but only allow literals/identifiers.
                         const prop = objectNode.property;
-                        if (prop.type === 'Literal') chain.unshift(prop.value);
-                        else if (prop.type === 'Identifier') chain.unshift(prop.name);
-                        else throw new Error('Computed properties must be simple');
+                        if (prop.type === 'Literal')
+                            chain.unshift(prop.value);
+                        else if (prop.type === 'Identifier')
+                            chain.unshift(prop.name);
+                        else
+                            throw new Error('Computed properties must be simple');
                     }
                     else {
-                        if (objectNode.property.type !== 'Identifier') throw new Error('Property must be identifier');
+                        if (objectNode.property.type !== 'Identifier')
+                            throw new Error('Property must be identifier');
                         chain.unshift(objectNode.property.name);
                     }
                     objectNode = objectNode.object;
@@ -564,30 +602,35 @@ function validateAndEval(node: any, context: ScriptEvaluationContext, nodeCount:
                 let rootObj;
                 if (objectNode.type === 'Identifier') {
                     const rootName = objectNode.name;
-                    if (!Object.hasOwn(context, rootName)) throw new Error(`Unknown root identifier: ${rootName}`);
+                    if (!helpers.objectHasKey(context, rootName))
+                        throw new Error(`Unknown root identifier: ${rootName}`);
                     rootObj = context[rootName as keyof ScriptEvaluationContext];
                 }
                 // Allow function calls if the root object is in allowedGlobals or allowedConstructors.
-                else if (objectNode.type === 'CallExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name) ||
-                    objectNode.type === 'NewExpression' && Object.hasOwn(SCRIPT_SCOPE_OPTIONS.allowedConstructors, objectNode.callee.name)) {
+                // @ts-expect-error
+                else if (objectNode.type === 'CallExpression' && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee?.name) || objectNode.type === 'NewExpression' && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedConstructors, objectNode.callee?.name))
                     rootObj = validateAndEval(objectNode, context, nodeCount);
-                }
                 let owner = rootObj;
                 let current = rootObj;
                 for (let i = 0; i < chain.length; i++) {
                     const prop = chain[i];
-                    if (isBlockedProp(prop)) throw new Error(`Access prohibited`);
-                    if (current === null || current === undefined) { current = undefined; owner = current; break; }
+                    if (isBlockedProp(String(prop)))
+                        throw new Error(`Access prohibited`);
+                    if (current === null || current === undefined) {
+                        current = undefined;
+                        owner = current; break;
+                    }
                     owner = current;
+                    // @ts-expect-error
                     current = current[prop];
                 }
                 fn = current;
                 thisArg = owner;
             }
-            else {
+            else
                 throw new Error('Unsupported callee type');
-            }
-            if (typeof fn !== 'function') throw new Error('Callee is not a function');
+            if (typeof fn !== 'function')
+                throw new Error('Callee is not a function');
             // Evaluate args before calling the function.
             const args = node.arguments.map((arg: any) => validateAndEval(arg, context, nodeCount));
             const result = fn.apply(thisArg, args);
@@ -596,11 +639,23 @@ function validateAndEval(node: any, context: ScriptEvaluationContext, nodeCount:
         case 'ArrayExpression':
             return node.elements.map((el: any) => validateAndEval(el, context, nodeCount));
         case 'ObjectExpression': {
-            const obj = {};
+            const obj: any = {};
             for (const prop of node.properties) {
-                if (prop.key.type !== 'Identifier' && prop.key.type !== 'Literal') throw new Error('Object keys must be literal/identifier');
-                const key = prop.key.type === 'Identifier' ? prop.key.name : prop.key.value;
-                // @ts-expect-error
+                if (prop.type === "SpreadElement")
+                    throw new Error('Objects must not have a spread element')
+                if (prop.key.type !== 'Identifier' && prop.key.type !== 'Literal')
+                    throw new Error('Object keys must be literal/identifier');
+                let key: string | number;
+                if (prop.key.type === 'Identifier')
+                    key = prop.key.name;
+                else if (prop.key.value instanceof RegExp)
+                    key = String(prop.key.value);
+                else if (typeof prop.key.value === "bigint")
+                    key = Number(prop.key.value);
+                else if (typeof prop.key.value === "boolean")
+                    key = String(prop.key.value);
+                else
+                    key = prop.key.value;
                 obj[key] = validateAndEval(prop.value, context, nodeCount);
             }
             return obj;
