@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -26,7 +27,7 @@ export default abstract class PaginationInteractable extends Interactable {
     /**
      * The emoji to apply to the button.
      */
-    readonly emoji: string;
+    readonly emoji: string | undefined;
     /**
      * The button component created from this interactable.
      */
@@ -48,7 +49,8 @@ export default abstract class PaginationInteractable extends Interactable {
         this.style = style;
         this.emoji = emoji;
         this.component = new ButtonBuilder().setCustomId(this.customId).setLabel(this.label).setStyle(this.style);
-        if (this.emoji) this.component.setEmoji(this.emoji);
+        if (this.emoji)
+            this.component.setEmoji(this.emoji);
     }
 
     /**

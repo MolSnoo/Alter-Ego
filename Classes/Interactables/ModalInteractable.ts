@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import ActionDirectiveInteractable from "./ActionDirectiveInteractable.ts";
 import type ModalComponentInteractable from "./ModalComponentInteractable.ts";
 import type ActionDirective from "../ActionDirective.ts";
@@ -15,7 +20,7 @@ export default class ModalInteractable extends ActionDirectiveInteractable {
     /**
      * The description of the modal. Supports markdown. Maximum number of characters is 4000.
      */
-    readonly description: string;
+    readonly description?: string;
     /**
      * The modal component created from this interactable.
      */
@@ -45,7 +50,8 @@ export default class ModalInteractable extends ActionDirectiveInteractable {
         for (let i = 0; i < subComponents.length && i < maxSubComponentsSize; i++)
             this.subComponents.push(subComponents[i]);
         this.component = new ModalBuilder().setTitle(this.title).setCustomId(this.customId);
-        if (this.description) this.component.addTextDisplayComponents(new TextDisplayBuilder().setContent(this.description));
+        if (this.description)
+            this.component.addTextDisplayComponents(new TextDisplayBuilder().setContent(this.description));
         this.component.addLabelComponents(this.subComponents.map(subComponent => subComponent.component));
     }
 

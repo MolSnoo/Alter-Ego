@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -19,11 +20,11 @@ export default class TextInputInteractable extends ModalComponentInteractable {
     /**
      * The placeholder text of the text input.
      */
-    readonly placeholder: string;
+    readonly placeholder?: string;
     /**
      * The value of the text input.
      */
-    value: string;
+    value?: string;
     /**
      * The minimum number of characters required for submission.
      */
@@ -58,8 +59,16 @@ export default class TextInputInteractable extends ModalComponentInteractable {
         textInputComponent.setMinLength(this.minLength);
         textInputComponent.setMaxLength(this.maxLength);
         textInputComponent.setStyle(this.style);
-        if (this.value) textInputComponent.setValue(this.value);
-        if (this.placeholder) textInputComponent.setPlaceholder(this.value);
+        if (this.value)
+            textInputComponent.setValue(this.value);
+        /**
+         * @privateRemarks
+         * ‽
+         * Is the following line a typo?
+         * - AC
+         */
+        if (this.placeholder)
+            textInputComponent.setPlaceholder(this.value);
         this.component.setTextInputComponent(textInputComponent);
     }
 
