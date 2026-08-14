@@ -122,11 +122,7 @@ export default class ClientCommandHandler {
             }
             return true;
         }
-        else if (command instanceof ModeratorCommand && this.#client.commandIssuedInValidChannel(command, message)) {
-            // Unreachable code, but necessary for TypeScript to not throw errors in compilation,
-            // since commandIssuedInValidChannel() is an implicit narrowing against undefined.
-            if (message === undefined)
-                return false;
+        else if (command instanceof ModeratorCommand && message && this.#client.commandIssuedInValidChannel(command, message)) {
             const messageDeletable = message.channel.id !== game.guildContext.commandChannel.id;
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -149,10 +145,7 @@ export default class ClientCommandHandler {
             }
             return true;
         }
-        else if (command instanceof PlayerCommand && this.#client.commandIssuedInValidChannel(command, message)) {
-            // Compiler-mandated unreachable code.
-            if (message === undefined)
-                return false;
+        else if (command instanceof PlayerCommand && message && this.#client.commandIssuedInValidChannel(command, message)) {
             let messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -196,10 +189,7 @@ export default class ClientCommandHandler {
             }
             return true;
         }
-        else if (command instanceof EligibleCommand && this.#client.commandIssuedInValidChannel(command, message)) {
-            // Compiler-mandated unreachable code.
-            if (message === undefined)
-                return false;
+        else if (command instanceof EligibleCommand && message && this.#client.commandIssuedInValidChannel(command, message)) {
             const messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
