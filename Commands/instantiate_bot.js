@@ -1,7 +1,7 @@
 import InstantiateInventoryItemAction from "../Data/Actions/InstantiateInventoryItemAction.ts";
 import InstantiateRoomItemAction from "../Data/Actions/InstantiateRoomItemAction.ts";
 import RoomItem from "../Data/RoomItem.ts";
-import { getErrorMessage } from "../Modules/helpers.ts";
+import { getErrorMessage } from "../Modules/errorHandler.ts";
 import { parseProceduralSelections } from '../Modules/stringDataExtractor.ts';
 
 /** @import GameSettings from '../Classes/GameSettings.ts' */

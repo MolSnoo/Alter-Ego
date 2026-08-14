@@ -14,7 +14,7 @@ import BotCommand from '../Classes/BotCommand.ts';
 import ModeratorCommand from '../Classes/ModeratorCommand.ts';
 import PlayerCommand from '../Classes/PlayerCommand.ts';
 import EligibleCommand from '../Classes/EligibleCommand.ts';
-import { getErrorMessage } from '../Modules/helpers.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 export type CommandType = "Bot" | "Moderator" | "Player" | "Eligible";
 export type CommandOf<T extends CommandType> =

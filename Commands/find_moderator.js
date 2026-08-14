@@ -1,5 +1,5 @@
 import FindAction from '../Data/Actions/FindAction.ts';
-import { getErrorMessage } from '../Modules/helpers.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */

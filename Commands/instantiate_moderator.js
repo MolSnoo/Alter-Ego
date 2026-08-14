@@ -2,7 +2,7 @@ import InstantiateInventoryItemAction from '../Data/Actions/InstantiateInventory
 import InstantiateRoomItemAction from '../Data/Actions/InstantiateRoomItemAction.ts';
 import RoomItem from '../Data/RoomItem.ts';
 import { parseProceduralSelections } from '../Modules/stringDataExtractor.ts';
-import { getErrorMessage } from '../Modules/helpers.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */

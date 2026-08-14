@@ -37,6 +37,7 @@ import type Room from "./Room.ts";
 import type RoomItem from "./RoomItem.ts";
 import type Status from "./Status.ts";
 import type Whisper from "./Whisper.ts";
+import { errorHasCode } from "../Modules/errorHandler.ts";
 
 /**
  * Represents a game managed by the bot.
@@ -281,7 +282,7 @@ export default class Game {
                     if (this.inProgress && !this.editMode) this.entitySaver.saveGame();
                 }
                 catch (error) {
-                    if (error && typeof error === 'object' && 'code' in error && error.code !== 503 && error.code !== 500) {
+                    if (errorHasCode(error) && error.code !== 503 && error.code !== 500) {
                         console.log(error);
                     }
                 }

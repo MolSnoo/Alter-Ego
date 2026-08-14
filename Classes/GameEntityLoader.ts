@@ -25,7 +25,8 @@ import Gesture from '../Data/Gesture.ts';
 import { default as Flag, type FlagCommandSet } from '../Data/Flag.ts';
 import InflictAction from '../Data/Actions/InflictAction.ts';
 import { getSheetValues } from '../Modules/sheets.js';
-import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration, convertToError, getErrorMessage, objectHasKey } from '../Modules/helpers.ts';
+import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration } from '../Modules/helpers.ts';
+import { getErrorMessage, addToErrors, errorHasCode } from '../Modules/errorHandler.ts';
 import { parsePrefabPossibleNames } from '../Modules/stringDataExtractor.ts';
 import { ChannelType, Collection, type TextChannel, type GuildMember } from 'discord.js';
 import { Duration } from 'luxon';
@@ -185,10 +186,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.rooms.size);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -208,10 +206,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.fixtures.length);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -231,10 +226,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.prefabs.size);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -254,10 +246,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.recipes.length);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -277,10 +266,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.roomItems.length);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -300,10 +286,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.puzzles.length);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -323,10 +306,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.events.size);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -346,10 +326,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.statusEffects.size);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -369,10 +346,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.players.size);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -393,10 +367,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.inventoryItems.length);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -417,10 +388,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.gestures.size);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -441,10 +409,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.flags.size);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -1935,10 +1900,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 await this.#getInventoryItems(false);
             }
             catch (error) {
-                if (error instanceof Array)
-                    errors.push(...error);
-                else
-                    errors.push(convertToError(error));
+                addToErrors(errors, error);
             }
             if (doErrorChecking) {
                 for (const player of this.game.players.values()) {
@@ -2468,7 +2430,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 player.member.send('')
                 .then(() => resolve(true))
                 .catch((error: unknown) => {
-                    if (typeof error === "object" && objectHasKey(error, "code") && (error.code === 50007 || error.code === 50278))
+                    if (errorHasCode(error) && (error.code === 50007 || error.code === 50278))
                         resolve(false);
                     else resolve(true);
                 });

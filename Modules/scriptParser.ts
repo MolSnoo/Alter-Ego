@@ -8,6 +8,7 @@ import type GameEntity from '../Data/GameEntity.ts';
 import type Player from '../Data/Player.ts';
 import * as finder from './finder.js';
 import * as helpers from './helpers.ts';
+import { getErrorMessage, objectHasKey } from './errorHandler.ts';
 import { parse as parseScript } from 'acorn';
 import type { Expression, Options } from 'acorn';
 
@@ -284,7 +285,7 @@ export default function evaluate(scriptText: string, container: GameEntity, play
     const context: ScriptEvaluationContext = { container, player };
     // Add the allowedGlobals to the context object.
     Object.keys(SCRIPT_SCOPE_OPTIONS.allowedGlobals).forEach(k => {
-        if (!helpers.objectHasKey(context, k)) {
+        if (!objectHasKey(context, k)) {
             // @ts-expect-error
             context[k] = SCRIPT_SCOPE_OPTIONS.allowedGlobals[k];
         }
@@ -295,7 +296,7 @@ export default function evaluate(scriptText: string, container: GameEntity, play
         script = parseExpression(scriptText);
     }
     catch (err) {
-        throw new Error(`Parse error: ${helpers.getErrorMessage(err)}`);
+        throw new Error(`Parse error: ${getErrorMessage(err)}`);
     }
 
     const evaluatedValue = validateAndEval(script, context, 0);
@@ -462,7 +463,7 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
         case 'Literal':
             return node.value;
         case 'Identifier':
-            if (helpers.objectHasKey(context, node.name))
+            if (objectHasKey(context, node.name))
                 return makeReadOnly(context[node.name]);
             throw new Error(`Unknown identifier: ${node.name}`);
         case 'UnaryExpression': {
@@ -520,12 +521,12 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
             let current;
             if (objectNode.type === 'Identifier') {
                 const rootName = objectNode.name;
-                if (!helpers.objectHasKey(context, rootName))
+                if (!objectHasKey(context, rootName))
                     throw new Error(`Unknown root identifier: ${rootName}`);
                 current = context[rootName as keyof ScriptEvaluationContext];
             }
             // @ts-expect-error
-            else if (objectNode.type === 'CallExpression'  && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name))
+            else if (objectNode.type === 'CallExpression'  && objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name))
                 // Make an exception to allow the root to be an expression in allowedGlobals.
                 current = validateAndEval(objectNode, context, nodeCount);
             for (const prop of chain) {
@@ -543,7 +544,7 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
             let callee = node.callee;
             let constructor;
             if (callee.type === 'Identifier') {
-                if (!helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedConstructors, callee.name))
+                if (!objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedConstructors, callee.name))
                     throw new Error(`Unknown constructor ${callee.name}`);
                 constructor = context[callee.name as keyof ScriptEvaluationContext];
             }
@@ -564,7 +565,7 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
             let fn;
             let thisArg = null;
             if (callee.type === 'Identifier') {
-                if (!helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, callee.name))
+                if (!objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, callee.name))
                     throw new Error(`Unknown function ${callee.name}`);
                 fn = SCRIPT_SCOPE_OPTIONS.allowedGlobals[callee.name];
                 thisArg = null;
@@ -596,13 +597,13 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
                 let rootObj;
                 if (objectNode.type === 'Identifier') {
                     const rootName = objectNode.name;
-                    if (!helpers.objectHasKey(context, rootName))
+                    if (!objectHasKey(context, rootName))
                         throw new Error(`Unknown root identifier: ${rootName}`);
                     rootObj = context[rootName as keyof ScriptEvaluationContext];
                 }
                 // Allow function calls if the root object is in allowedGlobals or allowedConstructors.
                 // @ts-expect-error
-                else if (objectNode.type === 'CallExpression' && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee?.name) || objectNode.type === 'NewExpression' && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedConstructors, objectNode.callee?.name))
+                else if (objectNode.type === 'CallExpression' && objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee?.name) || objectNode.type === 'NewExpression' && objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedConstructors, objectNode.callee?.name))
                     rootObj = validateAndEval(objectNode, context, nodeCount);
                 let owner = rootObj;
                 let current = rootObj;

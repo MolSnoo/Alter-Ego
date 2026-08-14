@@ -42,7 +42,7 @@ import { ButtonInteraction, ModalSubmitInteraction, StringSelectMenuInteraction 
 import type { Interaction, InteractionCallbackResponse } from "discord.js";
 import HideAction from "../Data/Actions/HideAction.ts";
 import EmergeAction from "../Data/Actions/EmergeAction.ts";
-import { getErrorMessage } from '../Modules/helpers.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 /**
  * A set of functions for handling Interactions.

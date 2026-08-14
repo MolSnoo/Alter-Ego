@@ -12,7 +12,8 @@ import Puzzle from "../Puzzle.ts";
 import RoomItem from "../RoomItem.ts";
 import { parseProceduralSelections } from "../../Modules/stringDataExtractor.ts";
 import { instantiateRoomItem } from "../../Modules/itemManager.ts";
-import { generateListString, getErrorMessage, makeCopyable } from "../../Modules/helpers.ts";
+import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
+import { getErrorMessage } from "../../Modules/errorHandler.ts";
 
 /**
  * Represents an instantiate room item action.
@@ -69,8 +70,8 @@ export default class InstantiateRoomItemAction extends Action {
 
     /**
      * Finds the required entities to call performInstantiateRoomItem.
-     * 
-     * @param args - The base args as strings. 
+     *
+     * @param args - The base args as strings.
      * @param prefabId - The ID of the prefab to instantiate.
      * @param quantityString - The quantity to instantiate the prefab with.
      * @param usesString - The number of uses to instantiate the prefab with.
@@ -103,7 +104,7 @@ export default class InstantiateRoomItemAction extends Action {
 
     /**
      * Validates the parsed args. The results can be passed directly into performInstantiateRoomItem.
-     * 
+     *
      * @param args - The args after being parsed.
      */
     validateInteractionArgs(args: [Prefab, RoomItemContainer, InventorySlot<RoomItem>, number, string, number]): [Prefab, RoomItemContainer, string, number, Map<string, string>, number] {

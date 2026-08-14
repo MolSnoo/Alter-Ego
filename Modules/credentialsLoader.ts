@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { readFileSync } from "fs";
-import { getErrorMessage } from "./helpers.ts";
+import { getErrorMessage } from "./errorHandler.ts";
 
 const CREDENTIALS_FILE_PATH = "./Configs/credentials.json";
 
