@@ -647,6 +647,42 @@ describe('test scriptParser', () => {
             }
         });
 
+        describe('optional chaining', () => {
+            test('supports optional member access when the value exists', () => {
+                expect(evaluate("findPlayer('Amadeus')?.name", container, null)).toBe('Amadeus');
+            });
+
+            test('short-circuits to undefined inside a comparison when the value is missing', () => {
+                expect(evaluate('player?.name === undefined', container, null)).toBe(true);
+            });
+
+            test('supports optional calls', () => {
+                expect(evaluate("findRoom('general-managers-office')?.tags?.has('soundproof')", container, null)).toBe(true);
+            });
+
+            test('optional chaining on an unknown root still throws', () => {
+                expect(() => evaluate('missing?.name', container, null)).toThrow(/Unknown root identifier: missing/);
+            });
+        });
+
+        describe('nullish coalescing', () => {
+            test('falls back when the left side is nullish', () => {
+                expect(evaluate("player?.name ?? 'nobody'", container, null)).toBe('nobody');
+            });
+
+            test('keeps the left side when it is not nullish', () => {
+                expect(evaluate("'value' ?? 'fallback'", container, null)).toBe('value');
+            });
+
+            test('coalesces explicit null', () => {
+                expect(evaluate("null ?? 'fallback'", container, null)).toBe('fallback');
+            });
+
+            test('does not treat falsy values as nullish', () => {
+                expect(evaluate('0 ?? 5', container, null)).toBe(0);
+            });
+        });
+
         describe('malicious code protections', () => {
             test('Function identifier is not available', () => {
                 expect(() => evaluate("Function('return 1')()", null, null)).toThrow();

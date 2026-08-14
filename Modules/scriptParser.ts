@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 // SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -487,12 +488,19 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
                 const l = validateAndEval(node.left, context, nodeCount);
                 return l ? validateAndEval(node.right, context, nodeCount) : l;
             }
+            else if (node.operator === '??') {
+                const l = validateAndEval(node.left, context, nodeCount);
+                return (l === null || l === undefined) ? validateAndEval(node.right, context, nodeCount) : l;
+            }
             throw new Error(`Unsupported logical operator ${node.operator}`);
         }
         case 'ConditionalExpression': {
             const test = validateAndEval(node.test, context, nodeCount);
             return test ? validateAndEval(node.consequent, context, nodeCount) : validateAndEval(node.alternate, context, nodeCount);
         }
+        case 'ChainExpression':
+            // Optional chaining wraps its inner expression; unwrap and evaluate it.
+            return validateAndEval(node.expression, context, nodeCount);
         case 'MemberExpression': {
             // Only allow access to member properties rooted in a top-level identifier present in context.
             // Don't allow access to blocked property names.
@@ -569,27 +577,30 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
                     throw new Error(`Unknown function ${callee.name}`);
                 fn = SCRIPT_SCOPE_OPTIONS.allowedGlobals[callee.name];
                 thisArg = null;
+                // If the node is optional and the callee is nullish, short-circuit to undefined.
+                if (node.optional && (fn === null || fn === undefined))
+                    return undefined;
             }
             else if (callee.type === 'MemberExpression') {
                 // Resolve member expression but ensure root is in allowedGlobals.
                 let objectNode: Super | Expression = callee;
-                const chain = [];
+                const chain: { key: string | number | bigint | boolean | RegExp; optional: boolean }[] = [];
                 // Unwind the chain to get base identifier and property list.
                 while (objectNode.type === 'MemberExpression') {
                     if (objectNode.computed) {
                         // Evaluate the property expression but only allow literals/identifiers.
                         const prop = objectNode.property;
                         if (prop.type === 'Literal')
-                            chain.unshift(prop.value);
+                            chain.unshift({ key: prop.value, optional: objectNode.optional });
                         else if (prop.type === 'Identifier')
-                            chain.unshift(prop.name);
+                            chain.unshift({ key: prop.name, optional: objectNode.optional });
                         else
                             throw new Error('Computed properties must be simple');
                     }
                     else {
                         if (objectNode.property.type !== 'Identifier')
                             throw new Error('Property must be identifier');
-                        chain.unshift(objectNode.property.name);
+                        chain.unshift({ key: objectNode.property.name, optional: objectNode.optional });
                     }
                     objectNode = objectNode.object;
                 }
@@ -607,13 +618,18 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
                     rootObj = validateAndEval(objectNode, context, nodeCount);
                 let owner = rootObj;
                 let current = rootObj;
+                let optionalShortCircuit = false;
                 for (let i = 0; i < chain.length; i++) {
-                    const prop = chain[i];
+                    const { key: prop, optional } = chain[i];
                     if (isBlockedProp(String(prop)))
                         throw new Error(`Access prohibited`);
                     if (current === null || current === undefined) {
+                        // An optional access on a nullish receiver short-circuits the chain.
+                        if (optional)
+                            optionalShortCircuit = true;
                         current = undefined;
-                        owner = current; break;
+                        owner = undefined;
+                        break;
                     }
                     owner = current;
                     // @ts-expect-error
@@ -621,6 +637,10 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
                 }
                 fn = current;
                 thisArg = owner;
+                // If the node is optional and the callee (or optional segment of the callee) is nullish,
+                // short-circuit to undefined instead of throwing.
+                if ((optionalShortCircuit || node.optional) && (fn === null || fn === undefined))
+                    return undefined;
             }
             else
                 throw new Error('Unsupported callee type');
@@ -637,7 +657,7 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
             const obj: any = {};
             for (const prop of node.properties) {
                 if (prop.type === "SpreadElement")
-                    throw new Error('Objects must not have a spread element')
+                    throw new Error('Objects must not have a spread element');
                 if (prop.key.type !== 'Identifier' && prop.key.type !== 'Literal')
                     throw new Error('Object keys must be literal/identifier');
                 let key: string | number;
