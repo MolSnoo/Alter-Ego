@@ -15,7 +15,7 @@ export type RecipeField = "ingredientsString"|"uncraftable"|"fixtureTag"|"durati
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/recipe.html
  */
-export default class Recipe extends GameEntity implements PersistentGameEntity {
+export default class Recipe extends GameEntity implements PersistentGameEntity<RecipeField> {
     /**
      * The IDs of the ingredients required to carry out the recipe.
      */

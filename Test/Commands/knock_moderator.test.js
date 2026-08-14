@@ -35,7 +35,9 @@ describe('knock_moderator command', () => {
         const original = KnockAction.prototype.performKnock;
         const spy = vi.spyOn(KnockAction.prototype, "performKnock");
         spy.mockImplementation(function (...args) {
+            // @ts-expect-error
             context = this;
+            // @ts-expect-error
             return original.apply(this, args);
         });
         // @ts-ignore
@@ -49,7 +51,9 @@ describe('knock_moderator command', () => {
         const original = KnockAction.prototype.performKnock;
         const spy = vi.spyOn(KnockAction.prototype, "performKnock");
         spy.mockImplementation(function (...args) {
+            // @ts-expect-error
             context = this;
+            // @ts-expect-error
             return original.apply(this, args);
         });
         const message = createMockMessage();

@@ -22,7 +22,7 @@ export type RoomItemField = "prefab"|"identifier"|"names"|"containingPhrases"|"l
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/room_item.html
  */
-export default class RoomItem extends ItemInstance implements PersistentGameEntity {
+export default class RoomItem extends ItemInstance implements PersistentGameEntity<RoomItemField> {
     /**
      * The display name of the room the item can be found in.
      */

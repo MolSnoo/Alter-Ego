@@ -7,12 +7,14 @@ import InstantiateInventoryItemAction from '../Data/Actions/InstantiateInventory
 import InstantiateRoomItemAction from '../Data/Actions/InstantiateRoomItemAction.ts';
 import RoomItem from '../Data/RoomItem.ts';
 import { parseProceduralSelections, parseInstantiateContainingString } from '../Modules/stringDataExtractor.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
 /** @import Game from '../Data/Game.ts' */
 /** @import InventoryItem from '../Data/InventoryItem.ts' */
 /** @import InventorySlot from '../Data/InventorySlot.ts' */
+/** @import Player from '../Data/Player.ts' */
 /** @import Prefab from '../Data/Prefab.ts' */
 /** @import { ContainedItem } from '../Modules/stringDataExtractor.ts' */
 
@@ -114,13 +116,14 @@ export async function execute(game, message, command, args, moderator) {
             proceduralSelections = parseProceduralSelections(parsedInput);
         }
         catch (error) {
-            return game.communicationHandler.reply(message, error.message);
+            return game.communicationHandler.reply(message, getErrorMessage(error));
         }
         input = input.substring(0, input.indexOf('(')) + input.substring(input.indexOf(')') + 1).trimStart();
         parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')') + 1).trimStart();
     }
     args = parsedInput.split(' ');
 
+    /** @type Player | null */
     let player = null;
     // Room was found. Look for the container in it.
     if (room !== null) {
@@ -206,7 +209,7 @@ export async function execute(game, message, command, args, moderator) {
                 parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
             }
             catch (error) {
-                return game.communicationHandler.reply(message, error.message ?? error);
+                return game.communicationHandler.reply(message, getErrorMessage(error));
             }
         }
 
@@ -352,7 +355,7 @@ export async function execute(game, message, command, args, moderator) {
                 parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
             }
             catch (error) {
-                return game.communicationHandler.reply(message, error.message ?? error);
+                return game.communicationHandler.reply(message, getErrorMessage(error));
             }
         }
 

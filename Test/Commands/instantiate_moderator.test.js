@@ -36,7 +36,9 @@ describe('instantiate_moderator command', () => {
         const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
         const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
         spy.mockImplementation(function (...args) {
+            // @ts-expect-error
             context = this;
+            // @ts-expect-error
             return original.apply(this, args);
         });
         // @ts-ignore

@@ -6,6 +6,7 @@
 import InstantiateInventoryItemAction from "../Data/Actions/InstantiateInventoryItemAction.ts";
 import InstantiateRoomItemAction from "../Data/Actions/InstantiateRoomItemAction.ts";
 import RoomItem from "../Data/RoomItem.ts";
+import { getErrorMessage } from "../Modules/errorHandler.ts";
 import { parseProceduralSelections } from '../Modules/stringDataExtractor.ts';
 
 /** @import GameSettings from '../Classes/GameSettings.ts' */
@@ -108,7 +109,7 @@ export async function execute(game, command, args, player, callee) {
             proceduralSelections = parseProceduralSelections(parsedInput);
         }
         catch (error) {
-            return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${error.message}`);
+            return game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". ${getErrorMessage(error)}`);
         }
         input = input.substring(0, input.indexOf('(')) + input.substring(input.indexOf(')') + 1).trimStart();
         parsedInput = parsedInput.substring(0, parsedInput.indexOf('(')) + parsedInput.substring(parsedInput.indexOf(')') + 1).trimStart();
@@ -229,6 +230,7 @@ export async function execute(game, command, args, player, callee) {
     }
     else {
         args = input.split(' ');
+        /** @type Player[] */
         let players = [];
         for (let i = 0; i < args.length; i++) {
             if (args[i].toLowerCase().replace(/'s/g, "") === "player" && player !== null) {

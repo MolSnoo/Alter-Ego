@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { default as evaluate, SCRIPT_SCOPE_OPTIONS} from "../../Modules/scriptParser.js";
+import { default as evaluate, SCRIPT_SCOPE_OPTIONS} from "../../Modules/scriptParser.ts";
 import * as finder from "../../Modules/finder.js";
 import type Player from "../../Data/Player.ts";
 import type Fixture from "../../Data/Fixture.ts";
@@ -647,6 +647,42 @@ describe('test scriptParser', () => {
             }
         });
 
+        describe('optional chaining', () => {
+            test('supports optional member access when the value exists', () => {
+                expect(evaluate("findPlayer('Amadeus')?.name", container, null)).toBe('Amadeus');
+            });
+
+            test('short-circuits to undefined inside a comparison when the value is missing', () => {
+                expect(evaluate('player?.name === undefined', container, null)).toBe(true);
+            });
+
+            test('supports optional calls', () => {
+                expect(evaluate("findRoom('general-managers-office')?.tags?.has('soundproof')", container, null)).toBe(true);
+            });
+
+            test('optional chaining on an unknown root still throws', () => {
+                expect(() => evaluate('missing?.name', container, null)).toThrow(/Unknown root identifier: missing/);
+            });
+        });
+
+        describe('nullish coalescing', () => {
+            test('falls back when the left side is nullish', () => {
+                expect(evaluate("player?.name ?? 'nobody'", container, null)).toBe('nobody');
+            });
+
+            test('keeps the left side when it is not nullish', () => {
+                expect(evaluate("'value' ?? 'fallback'", container, null)).toBe('value');
+            });
+
+            test('coalesces explicit null', () => {
+                expect(evaluate("null ?? 'fallback'", container, null)).toBe('fallback');
+            });
+
+            test('does not treat falsy values as nullish', () => {
+                expect(evaluate('0 ?? 5', container, null)).toBe(0);
+            });
+        });
+
         describe('malicious code protections', () => {
             test('Function identifier is not available', () => {
                 expect(() => evaluate("Function('return 1')()", null, null)).toThrow();
@@ -700,7 +736,7 @@ describe('test scriptParser', () => {
 
         describe('no side-effects', () => {
             beforeEach(() => {
-                global.__SIDE_EFFECT__ = false;
+                (global as any).__SIDE_EFFECT__ = false;
             });
 
             const attackExprs = [
@@ -715,7 +751,7 @@ describe('test scriptParser', () => {
             for (const expr of attackExprs) {
                 test(`attempting '${expr}' does not produce side-effects`, () => {
                     try { expect(() => evaluate(expr, container, null)).toThrow(); } catch (e) { }
-                    expect(global.__SIDE_EFFECT__).toBe(false);
+                    expect((global as any).__SIDE_EFFECT__).toBe(false);
                 });
             }
 

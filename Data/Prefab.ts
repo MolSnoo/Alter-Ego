@@ -20,7 +20,7 @@ export type PrefabPossibleNames = Collection<Map<string, string>, [string, strin
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/prefab.html
  */
-export default class Prefab extends GameEntity implements PersistentGameEntity {
+export default class Prefab extends GameEntity implements PersistentGameEntity<PrefabField> {
     /**
      * The unique identifier of the prefab.
      */

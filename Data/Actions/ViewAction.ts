@@ -15,7 +15,7 @@ import Room, { type RoomField } from "../Room.ts";
 import RoomItem, { type RoomItemField } from "../RoomItem.ts";
 import Status, { type StatusField } from "../Status.ts";
 
-export type EntityField<T extends PersistentGameEntity> =
+export type EntityField<T extends PersistentGameEntity<string>> =
     T extends Event ? EventField :
     T extends Exit ? ExitField :
     T extends Fixture ? FixtureField :
@@ -48,7 +48,7 @@ export default class ViewAction extends Action {
      * @param row
      * @param field - The name of a field belonging to the given entity to view. Optional.
      */
-    performView<T extends PersistentGameEntity>(entity: T, field?: EntityField<T>): void {
+    performView<T extends PersistentGameEntity<any>>(entity: T, field?: EntityField<T>): void {
         if (this.performed) return;
         super.perform();
         let entityType: PersistentGameEntityName;
@@ -128,8 +128,8 @@ export default class ViewAction extends Action {
      *
      * @param args - The args as strings.
      */
-    parseInteractionArgs<T extends PersistentGameEntity>(args: string[]): [T, EntityField<T>] {
-        let entity: PersistentGameEntity;
+    parseInteractionArgs<T extends PersistentGameEntity<any>>(args: string[]): [T, EntityField<T>] {
+        let entity: PersistentGameEntity<any>;
         const row = args[1] && !isNaN(parseInt(args[1])) ? parseInt(args[1]) : -1;
         if (row > 0) {
             switch (args[0]) {
@@ -183,7 +183,7 @@ export default class ViewAction extends Action {
      *
      * @param args - The args after being parsed.
      */
-    validateInteractionArgs<T extends PersistentGameEntity>(args: [T, EntityField<T>]): [T, EntityField<T>] {
+    validateInteractionArgs<T extends PersistentGameEntity<any>>(args: [T, EntityField<T>]): [T, EntityField<T>] {
         if (args.length !== 2) throw new Error("Insufficient arguments.");
         if (!args[0]) throw new Error("Invalid entity.");
         if (!(args[0] instanceof Event) && !(args[0] instanceof Exit) && !(args[0] instanceof Fixture) && !(args[0] instanceof Flag) && !(args[0] instanceof Gesture)
@@ -223,7 +223,7 @@ export default class ViewAction extends Action {
     #getRoomInteractables(entity: Room): Interactable[] {
         let interactables: Interactable[];
         const fields: RoomField[] = ["description"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         entity.exits.forEach(exit => relatedEntities.push(exit));
         interactables = this.#interactableManager.getViewInteractables(entity, fields, relatedEntities, this.user);
         const containedEntityQueries = [
@@ -266,7 +266,7 @@ export default class ViewAction extends Action {
     #getExitInteractables(entity: Exit): Interactable[] {
         let interactables: Interactable[];
         const fields: ExitField[] = ["description"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         relatedEntities.push(entity.dest);
         interactables = this.#interactableManager.getViewInteractables(entity, fields, relatedEntities, this.user);
         return interactables;
@@ -304,7 +304,7 @@ export default class ViewAction extends Action {
     #getFixtureInteractables(entity: Fixture): Interactable[] {
         let interactables: Interactable[];
         const fields: FixtureField[] = ["description"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         relatedEntities.push(entity.location);
         if (entity.childPuzzle) relatedEntities.push(entity.childPuzzle);
         interactables = this.#interactableManager.getViewInteractables(entity, fields, relatedEntities, this.user);
@@ -355,7 +355,7 @@ export default class ViewAction extends Action {
         const fields: PrefabField[] = ["description", "commandsString", "proceduralOptions"];
         if (entity.possibleNames.size > 1) fields.push("possibleNames");
         if (entity.possibleContainingPhrases.size > 1) fields.push("possibleContainingPhrases");
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         entity.effects.forEach(status => relatedEntities.push(status));
         entity.cures.forEach(status => relatedEntities.push(status));
         if (entity.nextStage) relatedEntities.push(entity.nextStage);
@@ -390,7 +390,7 @@ export default class ViewAction extends Action {
     #getRecipeInteractables(entity: Recipe): Interactable[] {
         let interactables: Interactable[];
         const fields: RecipeField[] = ["initiatedDescription", "completedDescription", "uncraftedDescription"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         entity.ingredientsFlat.forEach(ingredient => relatedEntities.push(ingredient.prefab));
         entity.productsFlat.forEach(product => relatedEntities.push(product.prefab));
         interactables = this.#interactableManager.getViewInteractables(entity, fields, relatedEntities, this.user);
@@ -428,7 +428,7 @@ export default class ViewAction extends Action {
     #getRoomItemInteractables(entity: RoomItem): Interactable[] {
         let interactables: Interactable[];
         const fields: RoomItemField[] = ["description", "proceduralSelections"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         relatedEntities.push(entity.prefab);
         relatedEntities.push(entity.location);
         if (entity.container) relatedEntities.push(entity.container);
@@ -474,7 +474,7 @@ export default class ViewAction extends Action {
     #getPuzzleInteractables(entity: Puzzle): Interactable[] {
         let interactables: Interactable[];
         const fields: PuzzleField[] = ["correctDescription", "alreadySolvedDescription", "unsolvedDescription", "incorrectDescription", "noMoreAttemptsDescription", "requirementsNotMetDescription", "commandSetsString"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         relatedEntities.push(entity.location);
         if (entity.parentFixture) relatedEntities.push(entity.parentFixture);
         entity.requirements.forEach(requirement => relatedEntities.push(requirement));
@@ -515,7 +515,7 @@ export default class ViewAction extends Action {
     #getEventInteractables(entity: Event): Interactable[] {
         let interactables: Interactable[];
         const fields: EventField[] = ["triggeredNarration", "endedNarration", "commandsString"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         entity.effects.forEach(effect => relatedEntities.push(effect));
         entity.refreshes.forEach(effect => relatedEntities.push(effect));
         interactables = this.#interactableManager.getViewInteractables(entity, fields, relatedEntities, this.user);
@@ -555,7 +555,7 @@ export default class ViewAction extends Action {
     #getStatusInteractables(entity: Status): Interactable[] {
         let interactables: Interactable[];
         const fields: StatusField[] = ["inflictedDescription", "curedDescription"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         entity.overriders.forEach(effect => relatedEntities.push(effect));
         entity.cures.forEach(effect => relatedEntities.push(effect));
         if (entity.nextStage) relatedEntities.push(entity.nextStage);
@@ -601,7 +601,7 @@ export default class ViewAction extends Action {
     #getPlayerInteractables(entity: Player): Interactable[] {
         let interactables: Interactable[];
         const fields: PlayerField[] = ["description"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         if (entity.alive) {
             relatedEntities.push(entity.location);
             entity.status.forEach(status => relatedEntities.push(status));
@@ -641,7 +641,7 @@ export default class ViewAction extends Action {
     #getInventoryItemInteractables(entity: InventoryItem): Interactable[] {
         let interactables: Interactable[];
         const fields: InventoryItemField[] = ["description", "proceduralSelections"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         relatedEntities.push(entity.player);
         if (entity.prefab) relatedEntities.push(entity.prefab);
         if (entity.container) relatedEntities.push(entity.container);
@@ -683,7 +683,7 @@ export default class ViewAction extends Action {
     #getGestureInteractables(entity: Gesture): Interactable[] {
         let interactables: Interactable[];
         const fields: GestureField[] = ["narration"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         entity.disabledStatuses.forEach(status => relatedEntities.push(status));
         interactables = this.#interactableManager.getViewInteractables(entity, fields, relatedEntities, this.user);
         return interactables;
@@ -714,7 +714,7 @@ export default class ViewAction extends Action {
     #getFlagInteractables(entity: Flag): Interactable[] {
         let interactables: Interactable[];
         const fields: FlagField[] = ["commandSetsString"];
-        let relatedEntities: PersistentGameEntity[] = [];
+        let relatedEntities: PersistentGameEntity<any>[] = [];
         interactables = this.#interactableManager.getViewInteractables(entity, fields, relatedEntities, this.user);
         return interactables;
     }
