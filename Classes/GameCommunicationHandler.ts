@@ -17,7 +17,7 @@ import type Room from "../Data/Room.ts";
 import { MessageDisplayType } from "../Modules/enums.ts";
 import * as messageHandler from "../Modules/messageHandler.ts";
 import { capitalizeFirstLetter } from "../Modules/helpers.ts";
-import { ChannelType, Collection } from "discord.js";
+import { Collection } from "discord.js";
 import type { Attachment, Embed, EmbedBuilder, Message, Snowflake, TextChannel } from "discord.js";
 
 /**
@@ -140,34 +140,6 @@ export default class GameCommunicationHandler {
     }
 
     /**
-     * Returns true if the given message was sent in a room channel.
-     * @param message
-     */
-    wasSentInRoomChannel(message: UserMessage) {
-        if (message.channel.type !== ChannelType.GuildText || message.channel.parentId === null)
-            return false;
-        return this.#game.guildContext.roomCategories.includes(message.channel.parentId);
-    }
-
-    /**
-     * Returns true if the given message was sent in a room channel.
-     * @param message
-     */
-    wasSentInWhisperChannel(message: UserMessage) {
-        if (message.channel.type !== ChannelType.GuildText) return false;
-        return message.channel.parentId === this.#game.guildContext.whisperCategoryId;
-    }
-
-    /**
-     * Returns true if the given message was sent in a room channel.
-     * @param message
-     */
-    wasSentInAnnouncementChannel(message: UserMessage) {
-        if (message.channel.type !== ChannelType.GuildText) return false;
-        return message.channel.id === this.#game.guildContext.announcementChannel.id;
-    }
-
-    /**
      * Replies to a message. This is usually done when a user has sent a message with an error.
      * @param message - The message to reply to.
      * @param messageText - The text of the message to send in response.
@@ -175,7 +147,7 @@ export default class GameCommunicationHandler {
      */
     reply(message: UserMessage, messageText: string, deleteMessage: boolean = false) {
         let member = this.#game.guildContext.guild.members.resolve(message.author.id);
-        if (member && member.roles.cache.has(this.#game.guildContext.moderatorRole.id) && message.channel.id !== this.#game.guildContext.commandChannel.id && message.channel.type !== ChannelType.DM) {
+        if (member && this.#game.guildContext.hasModeratorRole(member) && !this.#game.guildContext.sentInCommandChannel(message) && !this.#game.guildContext.sentInDMChannel(message)) {
             messageHandler.sendGameMechanicMessage(this.#game, this.#game.guildContext.commandChannel, `<@${message.author.id}>, ${messageText}`);
             if (deleteMessage) this.deleteMessage(message);
         }
