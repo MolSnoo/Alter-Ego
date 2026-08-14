@@ -77,7 +77,7 @@ export default class GameCommunicationHandler {
      */
     #addActionToCache(action: Action) {
         if (this.#actionCache.size >= this.#actionCacheSizeLimit)
-            this.#actionCache.delete(this.#actionCache.firstKey());
+            this.#actionCache.delete(this.#actionCache.firstKey()!);
         this.#actionCache.set(action.id, action);
     }
 
@@ -86,9 +86,11 @@ export default class GameCommunicationHandler {
      * @param action - The action to cache a channel for.
      * @param channelId - The channel to cache.
      */
-    #cacheChannelFor(action: Action, channelId: string) {
+    #cacheChannelFor(action: Action, channelId: string | undefined) {
+        if (!channelId)
+            return;
         if (this.#actionCache.has(action.id))
-            this.#actionCache.get(action.id).addToMirrors(channelId);
+            this.#actionCache.get(action.id)!.addToMirrors(channelId);
         else {
             action.addToMirrors(channelId);
             this.#addActionToCache(action);
@@ -101,7 +103,7 @@ export default class GameCommunicationHandler {
      * @param channel - The channel to check for.
      * @param action - The action to check for.
      */
-    #actionHasBeenCommunicatedInChannel(channel: Messageable, action: Action) {
+    #actionHasBeenCommunicatedInChannel(channel: Messageable | null, action: Action) {
         if (!channel) return true;
         return action.hasBeenCommunicatedIn(channel.id);
     }
@@ -112,7 +114,7 @@ export default class GameCommunicationHandler {
      */
     cacheDialog(message: UserMessage) {
         if (this.#dialogSpectateMirrorCache.size >= this.#dialogSpectateMirrorCacheSizeLimit)
-            this.#dialogSpectateMirrorCache.delete(this.#dialogSpectateMirrorCache.firstKey());
+            this.#dialogSpectateMirrorCache.delete(this.#dialogSpectateMirrorCache.firstKey()!);
         this.#dialogSpectateMirrorCache.set(message.id, []);
     }
 
@@ -141,7 +143,8 @@ export default class GameCommunicationHandler {
      * @param message
      */
     wasSentInRoomChannel(message: UserMessage) {
-        if (message.channel.type !== ChannelType.GuildText) return false;
+        if (message.channel.type !== ChannelType.GuildText || message.channel.parentId === null)
+            return false;
         return this.#game.guildContext.roomCategories.includes(message.channel.parentId);
     }
 
@@ -247,7 +250,7 @@ export default class GameCommunicationHandler {
      */
     notifyPlayer(notification: Notification) {
         if (!this.#actionHasBeenCommunicatedInChannel(notification.player.notificationChannel, notification.action)) {
-            this.#cacheChannelFor(notification.action, notification.player.notificationChannel.id);
+            this.#cacheChannelFor(notification.action, notification.player.notificationChannel?.id);
             this.sendMessageToPlayer(notification.player, notification.content, false, notification.messageDisplayType, notification.attachments, notification.interactables);
             if (notification.mirrorInSpectateChannel)
                 this.mirrorNarrationInSpectateChannel(notification.player, notification.action, notification.messageDisplayType, notification.content, notification.attachments.map(attachment => attachment.url));
@@ -266,7 +269,7 @@ export default class GameCommunicationHandler {
      */
     mirrorDialogInSpectateChannel(player: Player, action: Action, dialog: Dialog, webhookUsername: string = capitalizeFirstLetter(dialog.speakerDisplayName), webhookAvatarURL: string = dialog.speakerDisplayIcon, messageText: string = dialog.content, notification?: string) {
         if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
-            this.#cacheChannelFor(action, player.spectateChannel.id);
+            this.#cacheChannelFor(action, player.spectateChannel?.id);
             if (!dialog.isOOCMessage) messageHandler.sendWebhookSpectateMessage(player, messageText, webhookUsername, webhookAvatarURL, dialog.embeds, dialog.attachments.map(attachment => attachment.url), dialog.message);
             if (notification) this.#game.narrationHandler.sendNotification(player, action, notification, MessageDisplayType.PLAIN_TEXT, false);
         }
@@ -286,7 +289,7 @@ export default class GameCommunicationHandler {
      */
     mirrorWebhookMessageInSpectateChannel(player: Player, action: Action, webhookUsername: string, webhookAvatarURL: string, messageText: string, messageDisplayType: MessageDisplayType, embeds?: Embed[], files?: string[], message?: UserMessage) {
         if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
-            this.#cacheChannelFor(action, player.spectateChannel.id);
+            this.#cacheChannelFor(action, player.spectateChannel?.id);
             messageHandler.sendWebhookSpectateMessage(player, messageText, webhookUsername, webhookAvatarURL, embeds, files, message, messageDisplayType);
         }
     }
@@ -301,7 +304,7 @@ export default class GameCommunicationHandler {
      */
     mirrorNarrationInSpectateChannel(player: Player, action: Action, messageDisplayType: MessageDisplayType, narrationText: string, files?: string[]) {
         if (!this.#actionHasBeenCommunicatedInChannel(player.spectateChannel, action)) {
-            this.#cacheChannelFor(action, player.spectateChannel.id);
+            this.#cacheChannelFor(action, player.spectateChannel?.id);
             messageHandler.sendNarrationSpectateMessage(player, narrationText, messageDisplayType, files);
         }
     }
