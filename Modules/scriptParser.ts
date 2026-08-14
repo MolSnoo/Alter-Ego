@@ -277,7 +277,7 @@ const UNARY_OPS = {
  * @param container - The game entity this script is attached to.
  * @param player - The player currently in scope.
  */
-export default function evaluate(scriptText: string, container: GameEntity, player?: Player) {
+export default function evaluate(scriptText: string, container: GameEntity, player?: Player): null | string | number | boolean {
     /**
      * Group together the container and player into a context object.
      */
@@ -299,9 +299,11 @@ export default function evaluate(scriptText: string, container: GameEntity, play
     }
 
     const evaluatedValue = validateAndEval(script, context, 0);
-    if (evaluatedValue !== null && typeof evaluatedValue !== "string" && typeof evaluatedValue !== "number" && typeof evaluatedValue !== "boolean")
-        throw new Error(`Value of evaluated script is not a string, number, boolean, or null`);
-    return evaluatedValue;
+    if (evaluatedValue === null || typeof evaluatedValue === "string" || typeof evaluatedValue === "number" || typeof evaluatedValue === "boolean")
+        // TODO: when strict null checks are enabled, this type assertion can be removed.
+        // without the type assertion here, the null check will explode the narrowed type of evaluatedValue back to unknown.
+        return evaluatedValue as null | string | number | boolean;
+    throw new Error(`Value of evaluated script is not a string, number, boolean, or null`);
 }
 
 /**
