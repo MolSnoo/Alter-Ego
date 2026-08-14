@@ -523,17 +523,9 @@ function validateAndEval(node: AnyNode, context: ScriptEvaluationContext, nodeCo
                 current = context[rootName as keyof ScriptEvaluationContext];
             }
             // @ts-expect-error
-            else if (objectNode.type === 'CallExpression'  && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name)) {
+            else if (objectNode.type === 'CallExpression'  && helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee.name))
                 // Make an exception to allow the root to be an expression in allowedGlobals.
-                if (objectNode.callee.type === "MemberExpression") {
-                    console.log(objectNode.callee.type);
-                    console.log(objectNode.callee?.name);
-                    console.log(helpers.objectHasKey(SCRIPT_SCOPE_OPTIONS.allowedGlobals, objectNode.callee?.name));
-                    console.log(SCRIPT_SCOPE_OPTIONS.allowedGlobals[objectNode.callee?.name]);
-                    console.log(SCRIPT_SCOPE_OPTIONS.allowedGlobals);
-                }
                 current = validateAndEval(objectNode, context, nodeCount);
-            }
             for (const prop of chain) {
                 if (isBlockedProp(String(prop)))
                     throw new Error('Access prohibited');
