@@ -61,14 +61,8 @@ export default class TextInputInteractable extends ModalComponentInteractable {
         textInputComponent.setStyle(this.style);
         if (this.value)
             textInputComponent.setValue(this.value);
-        /**
-         * @privateRemarks
-         * ‽
-         * Is the following line a typo?
-         * - AC
-         */
         if (this.placeholder)
-            textInputComponent.setPlaceholder(this.value);
+            textInputComponent.setPlaceholder(this.placeholder);
         this.component.setTextInputComponent(textInputComponent);
     }
 
