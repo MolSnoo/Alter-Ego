@@ -64,7 +64,7 @@ export default class ClientInteractionHandler {
      * Gets an interactable from the cache by the customId. If it doesn't exist, returns undefined.
      * @param customId
      */
-    getInteractable(customId: string): Interactable {
+    getInteractable(customId: string): Interactable | undefined {
         return this.#game.clientContext.interactableManager.getInteractableByCustomId(customId);
     }
 
