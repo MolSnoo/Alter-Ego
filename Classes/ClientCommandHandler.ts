@@ -62,17 +62,23 @@ export default class ClientCommandHandler {
      * @param game - The game in which the command is being executed.
      * @param message - The message in which the command was issued, if applicable.
      */
-    private getCommandType(game: Game, message: UserMessage): CommandType {
+    private getCommandType(game: Game, message?: UserMessage): CommandType | undefined {
         if (!message) return "Bot";
         else {
             // Don't attempt to find the member who sent this message if it was sent by a webhook.
-            if (message.webhookId !== null) return undefined;
+            if (message.webhookId !== null)
+                return undefined;
             const member = game.guildContext.getMember(message.author.id);
-            if (!member) return undefined;
-            if (game.guildContext.hasModeratorRole(member)) return "Moderator";
-            else if (game.guildContext.hasPlayerRole(member)) return "Player";
-            else if (game.settings.debug && game.guildContext.hasTesterRole(member)) return "Eligible";
-            else if (!game.settings.debug && game.guildContext.hasEligibleRole(member)) return "Eligible";
+            if (!member)
+                return undefined;
+            if (game.guildContext.hasModeratorRole(member))
+                return "Moderator";
+            else if (game.guildContext.hasPlayerRole(member))
+                return "Player";
+            else if (game.settings.debug && game.guildContext.hasTesterRole(member))
+                return "Eligible";
+            else if (!game.settings.debug && game.guildContext.hasEligibleRole(member))
+                return "Eligible";
             return undefined;
         }
     }
@@ -117,6 +123,10 @@ export default class ClientCommandHandler {
             return true;
         }
         else if (command instanceof ModeratorCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+            // Unreachable code, but necessary for TypeScript to not throw errors in compilation,
+            // since commandIssuedInValidChannel() is an implicit narrowing against undefined.
+            if (message === undefined)
+                return false;
             const messageDeletable = message.channel.id !== game.guildContext.commandChannel.id;
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -140,6 +150,9 @@ export default class ClientCommandHandler {
             return true;
         }
         else if (command instanceof PlayerCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+            // Compiler-mandated unreachable code.
+            if (message === undefined)
+                return false;
             let messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -184,6 +197,9 @@ export default class ClientCommandHandler {
             return true;
         }
         else if (command instanceof EligibleCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+            // Compiler-mandated unreachable code.
+            if (message === undefined)
+                return false;
             const messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -221,7 +237,7 @@ export default class ClientCommandHandler {
             else {
                 if (callee instanceof Puzzle && callee.type === "matrix") {
                     const regex = /{([^{},/]+?)}/g;
-                    let match: RegExpExecArray;
+                    let match: RegExpExecArray | null;
                     const originalCommand = command;
                     while (match = regex.exec(originalCommand)) {
                         for (const requirement of callee.requirements) {
@@ -232,7 +248,7 @@ export default class ClientCommandHandler {
                         }
                     }
                 }
-                await this.executeCommand(command, game, null, player, callee);
+                await this.executeCommand(command, game, undefined, player, callee);
             }
         }
     }
