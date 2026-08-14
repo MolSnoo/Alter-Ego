@@ -11,6 +11,9 @@ import Status from "../../Data/Status.ts";
 import {Duration} from "luxon";
 import {createDisableStatus} from "../__mocks__/utility.ts";
 
+/** 
+ * @type import("vitest").Mock<(player: import("../../Data/Player.ts").default, messageText: string, mirrorInSpectateChannel?: boolean, messageType?: import("../../Modules/enums.ts").MessageDisplayType, attachments?: import("discord.js").Collection<string, import("discord.js").Attachment>, interactables?: import("../../Classes/Interactables/Interactable.ts").default[]) => void> 
+ */
 let spy;
 
 describe("status_player command", () => {

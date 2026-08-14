@@ -9,7 +9,7 @@ export type GestureField = "id"|"requires"|"disabledStatusesString"|"description
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/gesture.html
  */
-export default class Gesture extends GameEntity implements PersistentGameEntity {
+export default class Gesture extends GameEntity implements PersistentGameEntity<GestureField> {
     /**
      * The unique ID of the gesture.
      */

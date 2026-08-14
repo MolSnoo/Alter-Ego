@@ -35,7 +35,9 @@ describe('stash_player command', () => {
             const original = StashAction.prototype.performStash;
             const spy = vi.spyOn(StashAction.prototype, "performStash");
             spy.mockImplementation(function (...args) {
+                // @ts-expect-error
                 context = this;
+                // @ts-expect-error
                 return original.apply(this, args);
             });
             // @ts-ignore
@@ -55,7 +57,9 @@ describe('stash_player command', () => {
             const original = StashAction.prototype.performStash;
             const spy = vi.spyOn(StashAction.prototype, "performStash");
             spy.mockImplementation(function (...args) {
+                // @ts-expect-error
                 context = this;
+                // @ts-expect-error
                 return original.apply(this, args);
             });
             // @ts-ignore

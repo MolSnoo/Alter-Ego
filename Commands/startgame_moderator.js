@@ -59,6 +59,7 @@ export async function execute(game, message, command, args, moderator) {
 
     let time;
     let halfTime;
+    /** @type string */
     let interval;
     if (args[0].endsWith('m')) {
         // Set the time in minutes.

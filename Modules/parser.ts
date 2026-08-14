@@ -9,7 +9,7 @@ import Description from '../Data/Description.ts';
 import ItemContainer from '../Data/ItemContainer.ts';
 import Player from '../Data/Player.ts';
 import { MessageDisplayType } from './enums.ts';
-import { default as evaluateScript } from './scriptParser.js';
+import { default as evaluateScript } from './scriptParser.ts';
 import { capitalizeFirstLetter, clamp, lowercaseFirstLetter } from './helpers.ts';
 import type GameEntity from '../Data/GameEntity.ts';
 

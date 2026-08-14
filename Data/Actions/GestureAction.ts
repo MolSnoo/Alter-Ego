@@ -50,13 +50,15 @@ export default class GestureAction extends Action {
         const fieldName = (entryIndex: number) => pages[page][entryIndex].id;
         const fieldValue = (entryIndex: number) => pages[page][entryIndex].description;
         let embed = createPaginatedEmbed(this.getGame(), page, pages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
-        const prevPageCallback = (interaction: ButtonInteraction) => {
+        const prevPageCallback = (interaction: BotInteraction) => {
+            if (!interaction.isButton()) return;
             if (page > 0)
                 page--;
             embed = createPaginatedEmbed(this.getGame(), page, pages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);
             interaction.update({ embeds: [embed] });
         };
-        const nextPageCallback = (interaction: ButtonInteraction) => {
+        const nextPageCallback = (interaction: BotInteraction) => {
+            if (!interaction.isButton()) return;
             if (page < pages.length - 1)
                 page++;
             embed = createPaginatedEmbed(this.getGame(), page, pages, embedAuthorName, embedAuthorIcon, embedDescription, fieldName, fieldValue);

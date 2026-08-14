@@ -36,7 +36,7 @@ interface FindRecipeResult {
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/fixture.html
  */
-export default class Fixture extends RecipeProcessor implements PersistentGameEntity {
+export default class Fixture extends RecipeProcessor implements PersistentGameEntity<FixtureField> {
     /**
      * The name of the fixture.
      */

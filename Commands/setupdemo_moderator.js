@@ -55,7 +55,7 @@ export async function execute(game, message, command, args, moderator) {
                 await registerRoomCategory(game, roomCategory);
             }
             catch (err) {
-                game.communicationHandler.sendToCommandChannel(err);
+                game.communicationHandler.sendToCommandChannel(String(err));
             }
         }
         else roomCategory = await game.guildContext.guild.channels.fetch(roomCategories[0].trim());

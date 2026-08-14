@@ -71,6 +71,7 @@ async function v2_0Update(settings, constants) {
         });
     }
     // Rename Objects sheet to Fixtures.
+    /** @type any */
     let objectsSheetId;
     try {
         const objectsResponse = await getSheetWithProperties("Objects!A2:K", settings.spreadsheetID);
@@ -88,6 +89,7 @@ async function v2_0Update(settings, constants) {
         });
     }
     // Rename Items sheet to Room Items.
+    /** @type any */
     let itemsSheetId;
     try {
         const itemsResponse = await getSheetWithProperties("Items!A2:H", settings.spreadsheetID);

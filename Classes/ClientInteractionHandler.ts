@@ -42,6 +42,7 @@ import { ButtonInteraction, ModalSubmitInteraction, StringSelectMenuInteraction 
 import type { Interaction, InteractionCallbackResponse } from "discord.js";
 import HideAction from "../Data/Actions/HideAction.ts";
 import EmergeAction from "../Data/Actions/EmergeAction.ts";
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 /**
  * A set of functions for handling Interactions.
@@ -63,7 +64,7 @@ export default class ClientInteractionHandler {
      * Gets an interactable from the cache by the customId. If it doesn't exist, returns undefined.
      * @param customId
      */
-    getInteractable(customId: string): Interactable {
+    getInteractable(customId: string): Interactable | undefined {
         return this.#game.clientContext.interactableManager.getInteractableByCustomId(customId);
     }
 
@@ -138,7 +139,7 @@ export default class ClientInteractionHandler {
             }
             catch (error) {
                 successfullyProcessedInteractable = false;
-                errorMessage = error.message;
+                errorMessage = getErrorMessage(error);
             }
         }
         if (!successfullyProcessedInteractable) this.#replyToInteraction(errorMessage, interaction);
@@ -175,7 +176,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof FollowAction) {
             const args = interactable.actionDirective.getArgs();
@@ -189,7 +190,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof LeadAction) {
             const args = interactable.actionDirective.getArgs();
@@ -203,7 +204,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DismissAction) {
             const args = interactable.actionDirective.getArgs();
@@ -217,7 +218,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DisbandPartyAction) {
             const args = interactable.actionDirective.getArgs();
@@ -231,7 +232,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof ViewPartyAction) {
             if (player.canUseCommand("party") || action.forced) {
@@ -261,7 +262,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof HideAction) {
             const args = interactable.actionDirective.getArgs();
@@ -275,7 +276,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof EmergeAction) {
             const args = interactable.actionDirective.getArgs();
@@ -289,7 +290,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof TakeAction) {
             const args = interactable.actionDirective.getArgs();
@@ -303,7 +304,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DropAction) {
             const args = interactable.actionDirective.getArgs();
@@ -317,7 +318,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof StashAction) {
             const args = interactable.actionDirective.getArgs();
@@ -416,7 +417,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DeactivateAction) {
             const args = interactable.actionDirective.getArgs();
@@ -430,7 +431,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof AttemptAction) {
             const args = interactable.actionDirective.getArgs();
@@ -462,7 +463,7 @@ export default class ClientInteractionHandler {
                     return true;
                 }
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof InstantiateInventoryItemAction) {
             if (interaction instanceof ModalSubmitInteraction) {
@@ -481,7 +482,7 @@ export default class ClientInteractionHandler {
                     this.#logInteraction("InstantiateInventoryItemAction", author, timestamp, validatedArgs);
                     return true;
                 }
-                catch (error) { throw new Error(error.message); }
+                catch (error) { throw new Error(getErrorMessage(error)); }
             }
             else {
                 const args = interactable.actionDirective.getArgs();
@@ -509,7 +510,7 @@ export default class ClientInteractionHandler {
                     this.#logInteraction("InstantiateRoomItemAction", author, timestamp, validatedArgs);
                     return true;
                 }
-                catch (error) { throw new Error(error.message); }
+                catch (error) { throw new Error(getErrorMessage(error)); }
             }
             else {
                 const args = interactable.actionDirective.getArgs();
@@ -530,7 +531,7 @@ export default class ClientInteractionHandler {
                 this.#logInteraction("DestroyInventoryItemAction", author, timestamp, validatedArgs);
                 return true;
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof DestroyRoomItemAction) {
             const args = interactable.actionDirective.getArgs();
@@ -553,7 +554,7 @@ export default class ClientInteractionHandler {
                 }
                 return true;
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (action instanceof FindAction) {
             const args = interactable.actionDirective.getArgs();
@@ -561,10 +562,13 @@ export default class ClientInteractionHandler {
             try {
                 const validatedArgs = action.validateInteractionArgs(parsedArgs);
                 action.performFind(validatedArgs);
-                if (reply) reply.resource.message.delete().catch();
+                if (reply && reply.resource && reply.resource.message)
+                    reply.resource.message.delete().catch();
                 return true;
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) {
+                throw new Error(getErrorMessage(error));
+            }
         }
         if (action instanceof ViewAction) {
             const args = interactable.actionDirective.getArgs();
@@ -572,10 +576,11 @@ export default class ClientInteractionHandler {
             try {
                 const validatedArgs = action.validateInteractionArgs(parsedArgs);
                 action.performView(validatedArgs[0], validatedArgs[1]);
-                if (reply) reply.resource.message.delete().catch();
+                if (reply && reply.resource && reply.resource.message)
+                    reply.resource.message.delete().catch();
                 return true;
             }
-            catch (error) { throw new Error(error.message); }
+            catch (error) { throw new Error(getErrorMessage(error)); }
         }
         return false;
     }
@@ -592,7 +597,8 @@ export default class ClientInteractionHandler {
         if (!interaction.message) return false;
         if (interactable instanceof PaginationInteractable) {
             interactable.callback(interaction);
-            if (reply) reply.resource.message.delete().catch();
+            if (reply && reply.resource && reply.resource.message)
+                reply.resource.message.delete().catch();
         }
         return true;
     }
@@ -605,7 +611,8 @@ export default class ClientInteractionHandler {
      */
     #replyOrDeleteActionResponse(action: Action, interaction: BotInteraction, reply?: InteractionCallbackResponse<boolean>) {
         if (action.forced && action.successMessage) this.#replyToInteraction(action.successMessage, interaction);
-        else if (reply) reply.resource.message.delete().catch();
+        else if (reply && reply.resource && reply.resource.message)
+            reply.resource.message.delete().catch();
     }
 
     /**

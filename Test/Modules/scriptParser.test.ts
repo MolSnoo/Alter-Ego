@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { default as evaluate, SCRIPT_SCOPE_OPTIONS} from "../../Modules/scriptParser.js";
+import { default as evaluate, SCRIPT_SCOPE_OPTIONS} from "../../Modules/scriptParser.ts";
 import * as finder from "../../Modules/finder.js";
 import type Player from "../../Data/Player.ts";
 import type Fixture from "../../Data/Fixture.ts";
@@ -700,7 +700,7 @@ describe('test scriptParser', () => {
 
         describe('no side-effects', () => {
             beforeEach(() => {
-                global.__SIDE_EFFECT__ = false;
+                (global as any).__SIDE_EFFECT__ = false;
             });
 
             const attackExprs = [
@@ -715,7 +715,7 @@ describe('test scriptParser', () => {
             for (const expr of attackExprs) {
                 test(`attempting '${expr}' does not produce side-effects`, () => {
                     try { expect(() => evaluate(expr, container, null)).toThrow(); } catch (e) { }
-                    expect(global.__SIDE_EFFECT__).toBe(false);
+                    expect((global as any).__SIDE_EFFECT__).toBe(false);
                 });
             }
 

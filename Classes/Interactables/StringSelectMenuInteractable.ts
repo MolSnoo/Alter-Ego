@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -20,7 +21,7 @@ export default class StringSelectMenuInteractable extends ActionDirectiveInterac
     /**
      * The placeholder to apply for the string select menu.
      */
-    readonly placeholder: string;
+    readonly placeholder?: string;
     /**
      * The string select menu component created from this interactable.
      */
@@ -43,7 +44,8 @@ export default class StringSelectMenuInteractable extends ActionDirectiveInterac
         this.options = options;
         this.placeholder = placeholder?.substring(0, StringSelectMenuInteractable.PLACEHOLDER_CHARACTER_LIMIT);
         this.component = new StringSelectMenuBuilder().setCustomId(this.customId).setOptions(this.options);
-        if (this.placeholder) this.component.setPlaceholder(this.placeholder);
+        if (this.placeholder)
+            this.component.setPlaceholder(this.placeholder);
     }
 
     /**

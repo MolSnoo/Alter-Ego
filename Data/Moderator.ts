@@ -80,8 +80,8 @@ export default class Moderator extends GameConstruct implements User {
      */
     public sentMessageInLatchChannel(message: UserMessage) {
         if (this.getLatch() === null) return false;
-        if (this.getGame().communicationHandler.wasSentInRoomChannel(message) && message.channel.id === this.getLatch().location.channel.id) return true;
-        if (this.getGame().communicationHandler.wasSentInWhisperChannel(message)) {
+        if (this.getGame().guildContext.sentInRoomChannel(message) && message.channel.id === this.getLatch().location.channel.id) return true;
+        if (this.getGame().guildContext.sentInWhisperChannel(message)) {
             for (const whisper of this.getGame().whispers.values()) {
                 if (whisper.players.has(this.getLatch().name) && whisper.channel.id === message.channel.id) return true;
             }
