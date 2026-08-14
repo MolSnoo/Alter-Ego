@@ -145,10 +145,10 @@ export default class GuildContext {
     }
 
     /**
-     * Gets a member of the guild by their user ID. If no such member exists, returns undefined.
+     * Gets a member of the guild by their user ID. If no such member exists, returns null.
      * @param userId
      */
-    getMember(userId: string): GuildMember {
+    getMember(userId: string): GuildMember | null {
         return this.guild.members.resolve(userId);
     }
 
@@ -157,7 +157,7 @@ export default class GuildContext {
      * @param user - The user to create a DM channel with. Can be a guild member or a Discord user.
      */
     async createDM(user: GuildMember | User): Promise<Messageable> {
-        return await user?.createDM();
+        return await user.createDM();
     }
 
     /**
@@ -165,7 +165,7 @@ export default class GuildContext {
      * @param member - The guild member to check.
      * @param role - The role to check for.
      */
-    hasRole(member: GuildMember, role: Role): boolean {
+    hasRole(member?: GuildMember, role?: Role): boolean {
         if (!member || !role) return false;
         return member.roles.cache.has(role.id);
     }
@@ -239,8 +239,8 @@ export default class GuildContext {
      * Returns true if the given message was sent in the moderator command channel.
      * @param message
      */
-    sentInCommandChannel(message: UserMessage | PartialMessage): boolean {
-        return message.channel.id === this.commandChannel.id;
+    sentInCommandChannel(message?: UserMessage | PartialMessage): boolean {
+        return (message !== undefined && message.channel.id === this.commandChannel.id);
     }
 
     /**
@@ -248,7 +248,7 @@ export default class GuildContext {
      * @param message
      */
     sentInRoomChannel(message: UserMessage | PartialMessage): boolean {
-        return message.channel.type === ChannelType.GuildText && this.roomCategories.includes(message.channel.parentId);
+        return message.channel.type === ChannelType.GuildText && message.channel.parentId !== null && this.roomCategories.includes(message.channel.parentId);
     }
 
     /**
@@ -296,17 +296,18 @@ export default class GuildContext {
      * @param name - The name of the channel to find.
      * @param parentId - The parent ID the channel must have. Optional.
      */
-    findChannel(name: string, parentId?: string): GuildBasedChannel {
+    findChannel(name: string, parentId?: string): GuildBasedChannel | undefined {
         if (parentId)
             return this.guild.channels.cache.find(channel => channel.parent && channel.parentId === parentId && channel.name === name);
-        else return this.guild.channels.cache.find(channel => channel.name === name);
+        else
+            return this.guild.channels.cache.find(channel => channel.name === name);
     }
 
     /**
      * Gets the guild channel with the given ID.
      * @param id - The ID of the channel to get.
      */
-    getChannelWithId(id: string): GuildBasedChannel {
+    getChannelWithId(id: string): GuildBasedChannel | null {
         return this.guild.channels.resolve(id);
     }
 
@@ -323,7 +324,7 @@ export default class GuildContext {
      * @param name - The name to give to the new channel.
      * @param parent - The parent category to assign to the channel. Optional.
      */
-    async createChannel(name: string, parent?: CategoryChannelResolvable): Promise<TextChannel> {
+    async createChannel(name: string, parent?: CategoryChannelResolvable): Promise<TextChannel | undefined> {
         const channel = await this.guild.channels.create({
             name: name,
             parent: parent,
@@ -344,7 +345,8 @@ export default class GuildContext {
             }
             console.error(`Couldn't create channel${parentPhrase} with name "${name}".`, error);
         });
-        if (channel) return channel;
+        if (channel)
+            return channel;
     }
 
     /**
@@ -353,7 +355,7 @@ export default class GuildContext {
      * @param name - The name of the spectate channel to get or create. This should be a valid channel name, as it will be used to create the channel if it doesn't exist.
      */
     async getOrCreateSpectateChannel(name: string): Promise<TextChannel | null> {
-        let spectateChannel = this.findChannel(name, this.spectateCategoryId) as TextChannel;
+        let spectateChannel = this.findChannel(name, this.spectateCategoryId) as TextChannel | undefined;
         const spectateChannelCount = this.countChannelsInCategory(this.spectateCategoryId);
         if (!spectateChannel && spectateChannelCount < 50)
             spectateChannel = await this.createChannel(name, this.spectateCategoryId).catch();
