@@ -53,31 +53,13 @@ describe('instantiate_moderator command', () => {
         const pack = testGame.entityFinder.getPrefab("pack of pens");
         const pen = testGame.entityFinder.getPrefab("pen");
         const args = [
-            "pack",
-            "of",
-            "pens",
+            "pack", "of", "pens",
             "containing",
-            "pen",
-            "(ink",
-            "color",
-            "=",
-            "red)",
-            "+",
-            "pen",
-            "(ink",
-            "color",
-            "=",
-            "green)",
-            "+",
-            "pen",
-            "(ink",
-            "color",
-            "=",
-            "blue)",
+            "pen", "(ink", "color", "=", "red)", "+",
+            "pen", "(ink", "color", "=", "green)", "+",
+            "pen", "(ink", "color", "=", "blue)",
             "in",
-            "kyra's",
-            "left",
-            "hand",
+            "kyra's", "left", "hand",
         ];
         /** @type {InstantiateInventoryItemAction} */
         let context;
@@ -93,21 +75,15 @@ describe('instantiate_moderator command', () => {
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
         expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
             {
-                prefab: pen,
-                quantity: 1,
-                uses: pen.uses,
+                prefab: pen, quantity: 1, uses: pen.uses,
                 proceduralSelections: new Map([["ink color", "red"]]),
             },
             {
-                prefab: pen,
-                quantity: 1,
-                uses: pen.uses,
+                prefab: pen, quantity: 1, uses: pen.uses,
                 proceduralSelections: new Map([["ink color", "green"]]),
             },
             {
-                prefab: pen,
-                quantity: 1,
-                uses: pen.uses,
+                prefab: pen, quantity: 1, uses: pen.uses,
                 proceduralSelections: new Map([["ink color", "blue"]]),
             },
         ]);
