@@ -21,12 +21,12 @@ describe("dumplog_moderator command", () => {
     test('execute', async () => {
         const mockMessage = createMockMessage();
         // @ts-ignore
-        await dumplog_moderator.execute(testGame, mockMessage, "dumplog", [], moderator)
+        await dumplog_moderator.execute(testGame, mockMessage, "dumplog", [], moderator);
         expect(testGame.messageQueue.size()).toStrictEqual(0);
-        expect(testGame.guildContext.commandChannel.send).toHaveBeenCalledOnce()
+        expect(testGame.guildContext.commandChannel.send).toHaveBeenCalledOnce();
         // @ts-ignore
-        expect(testGame.guildContext.commandChannel.send.mock.lastCall[0].content).toBe("Successfully generated log files.")
+        expect(testGame.guildContext.commandChannel.send.mock.lastCall[0].content).toBe("Successfully generated log files.");
         // @ts-ignore
-        expect(testGame.guildContext.commandChannel.send.mock.lastCall[0].files.length).toBe(2)
+        expect(testGame.guildContext.commandChannel.send.mock.lastCall[0].files.length).toBe(2);
     });
 });

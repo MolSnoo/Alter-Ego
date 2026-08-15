@@ -41,14 +41,34 @@ describe('instantiate_moderator command', () => {
             // @ts-expect-error
             return original.apply(this, args);
         });
-        // @ts-ignore
+        // @ts-expect-error
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "in", "kyra's", "left", "hand"], moderator);
         expect(spy).toBeInvokedWith(coffee, "LEFT HAND", null, "", 1, new Map(), coffee.uses, []);
         expect(context).not.toBeUndefined();
         expect(context.player.name).toBe(kyra.name);
     });
 
-    test('valid item with procedural selections into player hand', async () => {
+    test('invalid item without procedural selections into player hand', async () => {
+        const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-expect-error
+        await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "in", "kyra's", "left", "hand"], moderator);
+        await testGame.messageQueue.process();
+        expect(spy).not.toHaveBeenCalled();
+        expect(context).toBeUndefined();
+        expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
+    });
+
+    test('valid item with valid procedural selections into player hand', async () => {
         const kyra = testGame.entityFinder.getPlayer("Kyra");
         const pen = testGame.entityFinder.getPrefab("pen");
         /** @type {InstantiateInventoryItemAction} */
@@ -61,14 +81,54 @@ describe('instantiate_moderator command', () => {
             // @ts-expect-error
             return original.apply(this, args);
         });
-        // @ts-ignore
+        // @ts-expect-error
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["pen", "(ink", "color", "=", "red)", "in", "kyra's", "left", "hand"], moderator);
         expect(spy).toBeInvokedWith(pen, "LEFT HAND", null, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
         expect(context).not.toBeUndefined();
         expect(context.player.name).toBe(kyra.name);
     });
 
-    test('valid item without procedural selections containing items with procedural selections into player hand', async () => {
+    test('valid item with invalid procedural selection possibility into player hand', async () => {
+        const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-expect-error
+        await instantiate_moderator.execute(testGame, message, "create", ["pen", "(ink", "color", "=", "rainbow)", "in", "kyra's", "left", "hand"], moderator);
+        await testGame.messageQueue.process();
+        expect(spy).not.toHaveBeenCalled();
+        expect(context).toBeUndefined();
+        expect(message.reply).toBeInvokedWith("PEN's procedural \"INK COLOR\" does not have possibility \"RAINBOW\".");
+    });
+
+    test('valid item with invalid procedural selection into player hand', async () => {
+        const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-expect-error
+        await instantiate_moderator.execute(testGame, message, "create", ["pen", "(scary", "=", "true)", "in", "kyra's", "left", "hand"], moderator);
+        await testGame.messageQueue.process();
+        expect(spy).not.toHaveBeenCalled();
+        expect(context).toBeUndefined();
+        expect(message.reply).toBeInvokedWith("PEN does not have procedural \"SCARY\".");
+    });
+
+    test('valid item without procedural selections containing items with valid procedural selections into player hand', async () => {
         const kyra = testGame.entityFinder.getPlayer("Kyra");
         const pack = testGame.entityFinder.getPrefab("pack of pens");
         const pen = testGame.entityFinder.getPrefab("pen");
@@ -91,7 +151,7 @@ describe('instantiate_moderator command', () => {
             // @ts-expect-error
             return original.apply(this, args);
         });
-        // @ts-ignore
+        // @ts-expect-error
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
         expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
             {
@@ -111,7 +171,7 @@ describe('instantiate_moderator command', () => {
         expect(context.player.name).toBe(kyra.name);
     });
 
-    test('valid item with procedural selections containing items with procedural selections into player hand', async () => {
+    test('valid item with valid procedural selections containing items with valid procedural selections into player hand', async () => {
         const kyra = testGame.entityFinder.getPlayer("Kyra");
         const pot = testGame.entityFinder.getPrefab("fired glazed clay pot");
         const pen = testGame.entityFinder.getPrefab("pen");
@@ -140,7 +200,7 @@ describe('instantiate_moderator command', () => {
             // @ts-expect-error
             return original.apply(this, args);
         });
-        // @ts-ignore
+        // @ts-expect-error
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
         expect(spy).toBeInvokedWith(pot, "LEFT HAND", null, "", 1, new Map([
             ["base color", "obscured"],
