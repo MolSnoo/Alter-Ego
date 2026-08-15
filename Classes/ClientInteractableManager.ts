@@ -824,14 +824,15 @@ export default class ClientInteractableManager {
         const containerIdentifier = args[2];
         const inventorySlotId = args[3];
         const inputs: TextInputInteractable[] = [];
-        inputs.push(new TextInputInteractable("Instantiate Inventory Item Prefab ID", "Prefab ID"));
+        const destination = containerIdentifier ? `to ${inventorySlotId} of ${player.name}'s ${containerIdentifier}` : `to ${player.name}'s ${equipmentSlotId}`;
+        inputs.push(new TextInputInteractable("Instantiate Inventory Item Prefab ID", "Prefab ID", `Prefab to instantiate ${destination}`));
         if (containerIdentifier)
             inputs.push(new TextInputInteractable("Instantiate Inventory Item Quantity", "Quantity", "Number.", true, "1"));
         inputs.push(new TextInputInteractable("Instantiate Inventory Item Uses", "Uses", "Number. If not provided, item will be instantiated with its default uses.", false));
         inputs.push(new TextInputInteractable("Instantiate Inventory Item Procedural Selections", "Procedural Selections", "Example: (color=metal + character=upa)", false, undefined, undefined, 5));
+        inputs.push(new TextInputInteractable("Instantiate Inventory Item Contained Items", "Contained Items", "Prefabs to instantiate inside of it. Example: FOLDER (color=yellow) + 2 PEN (type=quill+ink=blue)", false));
         const modalActionDirective = this.#createActionDirective(InstantiateInventoryItemAction, args.concat(["Modal"]), player, user);
-        const description = containerIdentifier ? `Instantiate to ${inventorySlotId} of ${player.name}'s ${containerIdentifier}` : `Instantiate to ${player.name}'s ${equipmentSlotId}`;
-        const modal = new ModalInteractable(modalActionDirective, "Instantiate Inventory Item", inputs, ActionPriority.INSTANTIATE, description);
+        const modal = new ModalInteractable(modalActionDirective, "Instantiate Inventory Item", inputs, ActionPriority.INSTANTIATE);
         this.#addInteractable(modal);
         return modal;
     }
@@ -887,13 +888,13 @@ export default class ClientInteractableManager {
         const inventorySlotId = args.length === 7 && args[0] === "RI" ? args[6] : undefined;
         const containerPhrase = inventorySlotId ? `${inventorySlotId} of ${containerIdentifier}` : containerIdentifier;
         const inputs: TextInputInteractable[] = [];
-        inputs.push(new TextInputInteractable("Instantiate Room Item Prefab ID", "Prefab ID"));
+        inputs.push(new TextInputInteractable("Instantiate Room Item Prefab ID", "Prefab ID", `Prefab to instantiate ${preposition} ${containerPhrase} at ${locationDisplayName}.`));
         inputs.push(new TextInputInteractable("Instantiate Room Item Quantity", "Quantity", "Number.", true, "1"));
         inputs.push(new TextInputInteractable("Instantiate Room Item Uses", "Uses", "Number. If not provided, item will be instantiated with its default uses.", false));
         inputs.push(new TextInputInteractable("Instantiate Room Item Procedural Selections", "Procedural Selections", "Example: (color=metal + character=upa)", false, undefined, undefined, 5));
+        inputs.push(new TextInputInteractable("Instantiate Room Item Contained Items", "Contained Items", "Prefabs to instantiate inside of it. Example: FOLDER (color=yellow) + 2 PEN (type=quill+ink=blue)", false));
         const modalActionDirective = this.#createActionDirective(InstantiateRoomItemAction, args.concat(["Modal"]), undefined, user);
-        const description = `Instantiate ${preposition} ${containerPhrase} at ${locationDisplayName}`;
-        const modal = new ModalInteractable(modalActionDirective, "Instantiate Room Item", inputs, ActionPriority.INSTANTIATE, description);
+        const modal = new ModalInteractable(modalActionDirective, "Instantiate Room Item", inputs, ActionPriority.INSTANTIATE);
         this.#addInteractable(modal);
         return modal;
     }

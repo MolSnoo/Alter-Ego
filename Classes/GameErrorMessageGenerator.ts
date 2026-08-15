@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { capitalizeFirstLetter, generateListString, makeCopyable } from "../Modules/helpers.ts";
+import type EquipmentSlot from "../Data/EquipmentSlot.ts";
 import type Fixture from "../Data/Fixture.ts";
 import type Game from "../Data/Game.ts";
 import type GameSettings from "./GameSettings.ts";
@@ -61,7 +62,7 @@ export default class GameErrorMessageGenerator {
      * Generates an error message indicating that the provided game entity was invalid.
      * @param entity - The type of entity that was invalid.
      */
-    generateInvalidEntityError(entity: PersistentGameEntityName | "ItemContainer") {
+    generateInvalidEntityError(entity: PersistentGameEntityName | "ItemContainer" | "InventorySlot" | "EquipmentSlot") {
         return `Invalid ${entity}.`;
     }
 
@@ -606,5 +607,45 @@ export default class GameErrorMessageGenerator {
      */
     generateCannotInstantiateWithInvalidQuantityError(prefab: Prefab, quantity: number) {
         return `Cannot instantiate ${prefab.id} with a quantity of ${quantity}. The quantity must be greater than or equal to 1.`;
+    }
+
+    /**
+     * Generates an error message indicating that an item cannot be instantiated to a player's equipment slot with a quantity other than 1.
+     */
+    generateCannotInstantiateEquippedItemWithInvalidQuantityError() {
+        return `Cannot instantiate an item to a player's equipment slot with a quantity other than 1.`;
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab cannot be instantiated with a quantity greater than 1 because it has no plural containing phrase.
+     * @param prefab - The prefab which cannot be instantiated.
+     */
+    generateNoPluralContainingPhraseError(prefab: Prefab) {
+        return `The given quantity is greater than 1, but ${prefab.id} has no plural containing phrase.`;
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab cannot be instantiated with the given uses.
+     * @param prefab - The prefab which cannot be instantiated.
+     * @param uses - The uses with which the prefab cannot be instantiated.
+     */
+    generateCannotInstantiateWithInvalidUsesError(prefab: Prefab, uses: number) {
+        return `Cannot instantiate ${prefab.id} with ${uses} uses. The number of uses must be greater than or equal to 1.`;
+    }
+
+    /**
+     * Generates an error message indicating that the given item cannot be equipped to the given equipment slot because an item is already equipped to it.
+     * @param equipmentSlot - The equipment slot which already has something equipped to it.
+     * @param context - The context in which the command is being issued.
+     * @param item - The item which cannot be equipped. Optional.
+     */
+    generateCannotEquipToOccupiedEquipmentSlotError(equipmentSlot: EquipmentSlot, context: UserContext, item?: ItemInstance | Prefab) {
+        switch (context) {
+            case "Player":
+                return `${item?.name ?? 'An item'} can't be equipped to equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.name} is already equipped to it.`;
+            default:
+                const possessive = `${equipmentSlot.equippedItem!.player.name}'s`;
+                return `${item?.getIdentifier() ?? 'An item'} can't be equipped to ${possessive} equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.getIdentifier()} is already equipped to it.`;
+        }
     }
 }
