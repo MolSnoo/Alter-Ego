@@ -340,20 +340,26 @@ export default class ClientContext {
      * @param type - The type of command.
      * @param alias - The alias to look up.
      */
-    getCommand<T extends CommandType>(type: T, alias: string): CommandOf<T> {
-        if (type === "Bot") return ClientContext.#botCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
-        if (type === "Moderator") return ClientContext.#moderatorCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
-        if (type === "Player") return ClientContext.#playerCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
-        if (type === "Eligible") return ClientContext.#eligibleCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+    getCommand<T extends CommandType>(type: T, alias: string): CommandOf<T> | undefined {
+        if (type === "Bot")
+            return ClientContext.#botCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+        if (type === "Moderator")
+            return ClientContext.#moderatorCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+        if (type === "Player")
+            return ClientContext.#playerCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+        if (type === "Eligible")
+            return ClientContext.#eligibleCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
         return undefined;
     }
 
     /**
-     * Returns true if the command was issued in a valid channel for its type.
+     * Returns true if the command was issued in a valid channel for its type. Always returns false if message is not provided.
      * @param command - The command that was issued.
      * @param message - The message in which the command was sent.
      */
-    commandIssuedInValidChannel(command: ModeratorCommand | PlayerCommand | EligibleCommand, message: UserMessage): boolean {
+    commandIssuedInValidChannel(command: ModeratorCommand | PlayerCommand | EligibleCommand, message?: UserMessage): boolean {
+        if (!message)
+            return false;
         const guild = this.#game.guildContext;
         if (command instanceof ModeratorCommand)
             return guild.sentInCommandChannel(message) || guild.sentInRoomChannel(message) || command.config.name === "delete_moderator";

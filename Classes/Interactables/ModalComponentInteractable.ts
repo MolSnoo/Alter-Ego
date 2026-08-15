@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -15,7 +16,7 @@ export default abstract class ModalComponentInteractable extends Interactable {
     /**
      * The description for the component. Optional. Max length is 100 characters.
      */
-    readonly description: string;
+    readonly description?: string;
     /**
      * The component created from this interactable.
      */
@@ -33,8 +34,9 @@ export default abstract class ModalComponentInteractable extends Interactable {
     protected constructor(type: InteractableType, customId: string, label: string, description?: string, priority: number = 1) {
         super(type, customId, priority);
         this.label = label?.substring(0, ModalComponentInteractable.LABEL_CHARACTER_LIMIT);
-        this.description = description?.substring(0, ModalComponentInteractable.DESCRIPTION_CHARACTER_LIMIT);
+        this.description = description?.substring(0, ModalComponentInteractable.DESCRIPTION_CHARACTER_LIMIT) ?? "";
         this.component = new LabelBuilder().setLabel(this.label);
-        if (this.description) this.component.setDescription(this.description);
+        if (this.description)
+            this.component.setDescription(this.description);
     }
 }

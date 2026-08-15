@@ -162,6 +162,7 @@ export async function execute(game, message, command, args, moderator) {
 async function testparse (game, fileName, player, plainText) {
     const warnings = [];
     const errors = [];
+    /** @type string[] */
     let dictionary = [];
 
     // Get rooms first.

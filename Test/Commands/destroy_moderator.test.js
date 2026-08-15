@@ -41,7 +41,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         context = this;
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -58,7 +60,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         context = this;
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -75,7 +79,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         contexts.push(this);
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -93,7 +99,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         contexts.push(this);
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -112,7 +120,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         context = this;
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -130,7 +140,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         context = this;
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -298,7 +310,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         context = this;
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -316,7 +330,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         context = this;
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore
@@ -334,7 +350,9 @@ describe('destroy_moderator command', () => {
                     const original = DestroyInventoryItemAction.prototype.performDestroyInventoryItem;
                     const spy = vi.spyOn(DestroyInventoryItemAction.prototype, "performDestroyInventoryItem");
                     spy.mockImplementation(function (...args) {
+                        // @ts-expect-error
                         context = this;
+                        // @ts-expect-error
                         return original.apply(this, args);
                     });
                     // @ts-ignore

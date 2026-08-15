@@ -54,7 +54,7 @@ export default class FindAction extends Action {
         if (!dataTypeMatch || !dataTypeMatch.groups) throw new Error(`Couldn't find a valid data type in "${query}".`);
         if (dataTypeMatch.groups.search) query = query.substring(query.indexOf(dataTypeMatch.groups.search)).trim();
         else query = '';
-        let results: PersistentGameEntity[] = [];
+        let results: PersistentGameEntity<any>[] = [];
         if (dataTypeMatch.groups.Room) results = this.#getRoomResults(query);
         else if (dataTypeMatch.groups.Fixture) results = this.#getFixtureResults(query);
         else if (dataTypeMatch.groups.Prefab) results = this.#getPrefabResults(query);
@@ -337,7 +337,7 @@ export default class FindAction extends Action {
      * Ensures that the length of the table will never exceed Discord's maximum character limit.
      * @param results - An array of rows and columns to convert into a table.
      */
-    #createResultPages<T = PersistentGameEntity>(results: T[]): string[][][] {
+    #createResultPages<T = PersistentGameEntity<any>>(results: T[]): string[][][] {
         // Divide the results into pages.
         const pages: string[][][] = [];
         let page: string[][] = [];
@@ -359,7 +359,7 @@ export default class FindAction extends Action {
 
         for (let i = 0, pageNo = 0; i < results.length; i++) {
             // Create a new row.
-            const row = [];
+            const row: string[] = [];
             Object.keys(this.#fields).forEach((key, j) => {
                 // Some fields require special access to get a string value. Handle those here.
                 let cellContents = "";
@@ -379,7 +379,7 @@ export default class FindAction extends Action {
                         product.prefab.id + (product.containedItems.length !== 0 ? ` (${product.containedItems.map(containedItem => containedItem.prefab.id).join('+')})` : ``)
                     ).join(',');
                 else
-                    cellContents = String(result[key]);
+                    cellContents = String(result[key as keyof T]);
                 // If the cellContents exceed the preset character limit, truncate it.
                 if (cellContents.length >= cellCharacterLimit)
                     cellContents = cellContents.substring(0, cellCharacterLimit) + '…';
@@ -423,7 +423,7 @@ export default class FindAction extends Action {
     /**
      * Sends the result list message and edits it when the user requests the next or previous page.
      */
-    #sendResultListMessage<T extends PersistentGameEntity>(results: T[]): void {
+    #sendResultListMessage<T extends PersistentGameEntity<any>>(results: T[]): void {
         const pages = this.#createResultPages(results);
         let page = 0;
         const resultCountString = `Found ${results.length} result${results.length === 1 ? '' : 's'}.`;
@@ -432,14 +432,16 @@ export default class FindAction extends Action {
 
         let interactables: Interactable[] = [];
         if (pages.length > 1) {
-            const prevPageCallback = (interaction: ButtonInteraction) => {
+            const prevPageCallback = (interaction: BotInteraction) => {
+                if (!interaction.isButton()) return;
                 if (page > 0)
                     page--;
                 pageString = ` Showing page ${page + 1}/${pages.length}.\n`;
                 resultsDisplay = '```' + table(pages[page]) + '```';
                 interaction.update(resultCountString + pageString + resultsDisplay);
             };
-            const nextPageCallback = (interaction: ButtonInteraction) => {
+            const nextPageCallback = (interaction: BotInteraction) => {
+                if (!interaction.isButton()) return;
                 if (page < pages.length - 1)
                     page++;
                 pageString = ` Showing page ${page + 1}/${pages.length}.\n`;
@@ -454,7 +456,7 @@ export default class FindAction extends Action {
         this.getGame().communicationHandler.sendToChannel(this.getGame().guildContext.commandChannel, resultCountString + pageString + resultsDisplay, [], interactables);
     }
 
-    #getInteractables<T extends PersistentGameEntity>(results: T[]): Interactable[] {
+    #getInteractables<T extends PersistentGameEntity<any>>(results: T[]): Interactable[] {
         let interactables: Interactable[] = [];
         const interactableManager = this.getGame().clientContext.interactableManager;
         interactables = interactableManager.getViewInteractables(undefined, [], results, this.user);

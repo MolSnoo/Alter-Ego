@@ -1,4 +1,5 @@
 import ViewAction from '../Data/Actions/ViewAction.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
@@ -72,7 +73,7 @@ export async function execute(game, message, command, args, moderator) {
 
     /** @type {PersistentGameEntityName} */
     let entityType;
-    /** @type {PersistentGameEntity} */
+    /** @type {PersistentGameEntity<any>} */
     let entity;
     if (isNaN(row)) {
         if (entityType === "Exit" || entityType === "Fixture" || entityType === "Recipe" || entityType === "RoomItem" || entityType === "Puzzle" || entityType === "InventoryItem")
@@ -153,6 +154,6 @@ export async function execute(game, message, command, args, moderator) {
         action.performView(entity);
     }
     catch (error) {
-        game.communicationHandler.reply(message, `${error.message} Usage:\n${usage(game.settings)}`);
+        game.communicationHandler.reply(message, `${getErrorMessage(error)} Usage:\n${usage(game.settings)}`);
     }
 }

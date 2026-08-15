@@ -53,7 +53,7 @@ export async function execute(game, message, command, args, moderator) {
             game.communicationHandler.sendToCommandChannel(response);
         }
         catch (err) {
-            game.communicationHandler.sendToCommandChannel(err);
+            game.communicationHandler.sendToCommandChannel(String(err));
         }
     }
 }

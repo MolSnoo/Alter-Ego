@@ -1,4 +1,5 @@
 import FindAction from '../Data/Actions/FindAction.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
@@ -78,6 +79,6 @@ export async function execute(game, message, command, args, moderator) {
         action.performFind(input);
     }
     catch (error) {
-        game.communicationHandler.reply(message, `${error.message} Usage:\n${usage(game.settings)}`);
+        game.communicationHandler.reply(message, `${getErrorMessage(error)} Usage:\n${usage(game.settings)}`);
     }
 }

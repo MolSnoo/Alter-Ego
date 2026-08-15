@@ -14,7 +14,7 @@ export type ExitField = "name"|"phrase"|"tags"|"x"|"y"|"z"|"unlocked"|"dest"|"li
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/exit.html
  */
-export default class Exit extends GameEntity implements PersistentGameEntity {
+export default class Exit extends GameEntity implements PersistentGameEntity<ExitField> {
     /**
      * The name of the exit.
      */

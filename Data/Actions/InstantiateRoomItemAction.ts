@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -12,6 +13,7 @@ import RoomItem from "../RoomItem.ts";
 import { parseProceduralSelections } from "../../Modules/stringDataExtractor.ts";
 import { instantiateRoomItem } from "../../Modules/itemManager.ts";
 import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
+import { getErrorMessage } from "../../Modules/errorHandler.ts";
 
 /**
  * Represents an instantiate room item action.
@@ -68,8 +70,8 @@ export default class InstantiateRoomItemAction extends Action {
 
     /**
      * Finds the required entities to call performInstantiateRoomItem.
-     * 
-     * @param args - The base args as strings. 
+     *
+     * @param args - The base args as strings.
      * @param prefabId - The ID of the prefab to instantiate.
      * @param quantityString - The quantity to instantiate the prefab with.
      * @param usesString - The number of uses to instantiate the prefab with.
@@ -102,7 +104,7 @@ export default class InstantiateRoomItemAction extends Action {
 
     /**
      * Validates the parsed args. The results can be passed directly into performInstantiateRoomItem.
-     * 
+     *
      * @param args - The args after being parsed.
      */
     validateInteractionArgs(args: [Prefab, RoomItemContainer, InventorySlot<RoomItem>, number, string, number]): [Prefab, RoomItemContainer, string, number, Map<string, string>, number] {
@@ -124,7 +126,7 @@ export default class InstantiateRoomItemAction extends Action {
         if (args[4]) {
             try {
                 proceduralSelections = parseProceduralSelections(args[4]);
-            } catch (error) { throw new Error(error.message); }
+            } catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (args[5] !== undefined && isNaN(args[5])) throw new Error("The given uses is not a number.");
         if (args[5] !== undefined && args[5] < 1) throw new Error("The given uses must be greater than or equal to 1.");
