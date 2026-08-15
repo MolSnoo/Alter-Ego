@@ -473,11 +473,12 @@ export default class ClientInteractionHandler {
                     quantity = interaction.fields.getTextInputValue("Instantiate Inventory Item Quantity");
                 const uses = interaction.fields.getTextInputValue("Instantiate Inventory Item Uses");
                 const proceduralSelections = interaction.fields.getTextInputValue("Instantiate Inventory Item Procedural Selections");
+                const containedItemsString = interaction.fields.getTextInputValue("Instantiate Inventory Item Contained Items");
                 const args = interactable.actionDirective.getArgs();
-                const parsedArgs = action.parseInteractionArgs(args, prefabId, quantity, uses, proceduralSelections);
+                const parsedArgs = action.parseInteractionArgs(args, prefabId, quantity, uses, proceduralSelections, containedItemsString);
                 try {
                     const validatedArgs = action.validateInteractionArgs(parsedArgs);
-                    action.performInstantiateInventoryItem(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3], validatedArgs[4], validatedArgs[5], validatedArgs[6]);
+                    action.performInstantiateInventoryItem(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3], validatedArgs[4], validatedArgs[5], validatedArgs[6], validatedArgs[7]);
                     this.#replyToInteraction(action.successMessage, interaction);
                     this.#logInteraction("InstantiateInventoryItemAction", author, timestamp, validatedArgs);
                     return true;
@@ -501,11 +502,12 @@ export default class ClientInteractionHandler {
                     quantity = interaction.fields.getTextInputValue("Instantiate Room Item Quantity");
                 const uses = interaction.fields.getTextInputValue("Instantiate Room Item Uses");
                 const proceduralSelections = interaction.fields.getTextInputValue("Instantiate Room Item Procedural Selections");
+                const containedItemsString = interaction.fields.getTextInputValue("Instantiate Room Item Contained Items");
                 const args = interactable.actionDirective.getArgs();
-                const parsedArgs = action.parseInteractionArgs(args, prefabId, quantity, uses, proceduralSelections);
+                const parsedArgs = action.parseInteractionArgs(args, prefabId, quantity, uses, proceduralSelections, containedItemsString);
                 try {
                     const validatedArgs = action.validateInteractionArgs(parsedArgs);
-                    action.performInstantiateRoomItem(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3], validatedArgs[4], validatedArgs[5]);
+                    action.performInstantiateRoomItem(validatedArgs[0], validatedArgs[1], validatedArgs[2], validatedArgs[3], validatedArgs[4], validatedArgs[5], validatedArgs[6]);
                     this.#replyToInteraction(action.successMessage, interaction);
                     this.#logInteraction("InstantiateRoomItemAction", author, timestamp, validatedArgs);
                     return true;

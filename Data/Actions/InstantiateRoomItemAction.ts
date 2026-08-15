@@ -11,7 +11,7 @@ import ItemInstance from "../ItemInstance.ts";
 import Prefab from "../Prefab.ts";
 import Puzzle from "../Puzzle.ts";
 import RoomItem from "../RoomItem.ts";
-import { parseProceduralSelections, type ContainedItem } from "../../Modules/stringDataExtractor.ts";
+import { parseProceduralSelections, type ContainedItem, parseInstantiateContainingString } from "../../Modules/stringDataExtractor.ts";
 import { instantiateRoomItem } from "../../Modules/itemManager.ts";
 import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
 import { getErrorMessage } from "../../Modules/errorHandler.ts";
@@ -91,8 +91,9 @@ export default class InstantiateRoomItemAction extends Action {
      * @param quantityString - The quantity to instantiate the prefab with.
      * @param usesString - The number of uses to instantiate the prefab with.
      * @param proceduralSelectionsString - The procedural selections to instantiate the prefab with.
+     * @param containedItemsString - The items to instantiate inside the room item in its first inventory slot.
      */
-    parseInteractionArgs(args: string[], prefabId: string, quantityString: string, usesString: string, proceduralSelectionsString: string): [Prefab, RoomItemContainer, InventorySlot<RoomItem>, number, string, number] {
+    parseInteractionArgs(args: string[], prefabId: string, quantityString: string, usesString: string, proceduralSelectionsString: string, containedItemsString: string): [Prefab, RoomItemContainer, InventorySlot<RoomItem>, number, string, number, string] {
         const containerIdentifier = args[1];
         const locationId = args[2];
         let container: RoomItemContainer;
@@ -114,7 +115,7 @@ export default class InstantiateRoomItemAction extends Action {
         const prefab = this.getGame().entityFinder.getPrefab(prefabId);
         const quantity = quantityString ? parseInt(quantityString) : 1;
         const uses = usesString ? parseInt(usesString) : undefined;
-        return [prefab, container, inventorySlot, quantity, proceduralSelectionsString, uses];
+        return [prefab, container, inventorySlot, quantity, proceduralSelectionsString, uses, containedItemsString];
     }
 
     /**
@@ -122,20 +123,26 @@ export default class InstantiateRoomItemAction extends Action {
      *
      * @param args - The args after being parsed.
      */
-    validateInteractionArgs(args: [Prefab, RoomItemContainer, InventorySlot<RoomItem>, number, string, number]): [Prefab, RoomItemContainer, string, number, Map<string, string>, number] {
-        if (args.length !== 6) throw new Error("Insufficient arguments.");
-        if (!args[0] || !(args[0] instanceof Prefab)) throw new Error("Invalid prefab.");
+    validateInteractionArgs(args: [Prefab, RoomItemContainer, InventorySlot<RoomItem>, number, string, number, string]): [Prefab, RoomItemContainer, string, number, Map<string, string>, number, ContainedItem[]] {
+        const errorMessageGenerator = this.getGame().errorMessageGenerator;
+        if (args.length !== 7) throw new Error(errorMessageGenerator.generateInsufficientArgumentsError());
+        if (!args[0] || !(args[0] instanceof Prefab))
+            throw new Error(errorMessageGenerator.generateInvalidEntityError("Prefab"));
         const prefab = args[0];
-        if (!args[1] || !(args[1] instanceof Fixture) && !(args[1] instanceof RoomItem) && !(args[1] instanceof Puzzle)) throw new Error("Invalid container.");
-        if (args[1] instanceof RoomItem && (args[1].prefab === null || args[1].quantity === 0)) throw new Error("Invalid container.");
-        if (!args[1].isItemContainer()) throw new Error(`${args[1].getContainerIdentifier()} cannot contain items.`);
-        if (!args[1].canCurrentlyContainItems(false, true)) throw new Error(`Items cannot be instantiated in ${args[1].getContainerIdentifier()} right now.`);
+        if (!args[1] || !(args[1] instanceof Fixture) && !(args[1] instanceof RoomItem) && !(args[1] instanceof Puzzle))
+            throw new Error(errorMessageGenerator.generateInvalidEntityError("ItemContainer"));
+        if (args[1] instanceof RoomItem && (args[1].prefab === null || args[1].quantity === 0))
+            throw new Error(errorMessageGenerator.generateInvalidEntityError("ItemContainer"));
+        const context = "Moderator";
+        if (!args[1].isItemContainer() || !args[1].canCurrentlyContainItems(false, true))
+            throw new Error(errorMessageGenerator.generateCannotPutItemsInContainerError(args[1], context));
         const container = args[1];
-        if (args[2] === null) throw new Error("Invalid inventory slot.");
+        if (args[2] === null) throw new Error(errorMessageGenerator.generateInvalidEntityError("InventorySlot"));
         const inventorySlot = args[2];
-        if (isNaN(args[3])) throw new Error("The given quantity is not a number.");
-        if (args[3] < 1) throw new Error("The given quantity must be greater than or equal to 1.");
-        if (args[3] > 1 && !prefab.pluralContainingPhrase) throw new Error(`The given quantity is greater than 1, but ${prefab.id} has no plural containing phrase.`);
+        if (isNaN(args[3]) || args[3] < 1)
+            throw new Error(errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, args[3]));
+        if (args[3] > 1 && !prefab.pluralContainingPhrase)
+            throw new Error(errorMessageGenerator.generateNoPluralContainingPhraseError(prefab));
         const quantity = args[3];
         let proceduralSelections: Map<string, string> = new Map();
         if (args[4]) {
@@ -143,17 +150,38 @@ export default class InstantiateRoomItemAction extends Action {
                 proceduralSelections = parseProceduralSelections(args[4]);
             } catch (error) { throw new Error(getErrorMessage(error)); }
         }
-        if (args[5] !== undefined && isNaN(args[5])) throw new Error("The given uses is not a number.");
-        if (args[5] !== undefined && args[5] < 1) throw new Error("The given uses must be greater than or equal to 1.");
+        if (args[5] !== undefined && (isNaN(args[5]) || args[5] < 1))
+            throw new Error(errorMessageGenerator.generateCannotInstantiateWithInvalidUsesError(prefab, args[5]));
         const uses = args[5];
-        if (inventorySlot && inventorySlot.capacityIsSmallerThan(prefab, quantity)) throw new Error(`${prefab.id} will not fit in ${inventorySlot.id} of ${container.getContainerIdentifier()} because it is too large.`);
-        if (inventorySlot && inventorySlot.willBeOverFilledBy(prefab, quantity)) throw new Error(`${prefab.id} will not fit in ${inventorySlot.id} of ${container.getContainerIdentifier()} because there isn't enough space left.`);
+        if (inventorySlot && inventorySlot.willBeOverFilledBy(prefab, quantity))
+            throw new Error(errorMessageGenerator.generateItemWillNotFitInInventorySlotError(prefab, container as RoomItem, inventorySlot, context));
         for (const [proceduralName, proceduralValue] of proceduralSelections.entries()) {
             if (!prefab.proceduralOptions.has(proceduralName))
-                throw new Error(`${prefab.id} does not have procedural "${proceduralName}".`);
+                throw new Error(errorMessageGenerator.generateProceduralNotFoundError(prefab, proceduralName));
             if (!prefab.proceduralOptions.get(proceduralName).has(proceduralValue))
-                throw new Error(`${prefab.id}'s procedural "${proceduralName}" does not have possibility "${proceduralValue}".`);
+                throw new Error(errorMessageGenerator.generatePossibilityNotFoundError(prefab, proceduralName, proceduralValue));
         }
-        return [prefab, container, inventorySlot?.id, quantity, proceduralSelections, uses];
+        let containedItems: ContainedItem[] = [];
+        if (args[6]) {
+            try {
+                containedItems = parseInstantiateContainingString(this.getGame(), args[6]);
+            } catch (error) { throw new Error(getErrorMessage(error)); }
+        }
+        if (containedItems.length > 0) {
+            if (prefab.inventory.size === 0) throw new Error(errorMessageGenerator.generateCannotPutItemsInContainerError(prefab, context));
+            if (prefab.inventory.size > 1) throw new Error(errorMessageGenerator.generateContainerHasMultipleInventorySlotsError(prefab, context));
+            const totalSize = containedItems.reduce((size, item) => size + (item.quantity * item.prefab.size), 0);
+            if (totalSize > prefab.inventory.first().capacity)
+                throw new Error(errorMessageGenerator.generateItemsWillNotFitInInventorySlotError(containedItems.map(item => item.prefab), prefab, prefab.inventory.first(), context));
+            for (const containedItem of containedItems) {
+                for (const [proceduralName, proceduralValue] of containedItem.proceduralSelections.entries()) {
+                    if (!containedItem.prefab.proceduralOptions.has(proceduralName))
+                        throw new Error(errorMessageGenerator.generateProceduralNotFoundError(containedItem.prefab, proceduralName));
+                    if (!containedItem.prefab.proceduralOptions.get(proceduralName).has(proceduralValue))
+                        throw new Error(errorMessageGenerator.generatePossibilityNotFoundError(containedItem.prefab, proceduralName, proceduralValue));
+                }
+            }
+        }
+        return [prefab, container, inventorySlot?.id, quantity, proceduralSelections, uses, containedItems];
     }
 }
