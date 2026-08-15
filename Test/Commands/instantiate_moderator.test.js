@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -8,6 +9,28 @@ import InstantiateInventoryItemAction from '../../Data/Actions/InstantiateInvent
 import { clearQueue } from '../../Modules/messageHandler.ts';
 import { createMockMessage } from '../__mocks__/libs/discord.js';
 import { createMockModerator } from '../__mocks__/utility.ts';
+
+/**
+ * @privateRemarks
+ * a few tests still need implementation, and nested describes would help clean up the test structure...
+ * inventory:
+ *   - invalid item with procedural selections into player hand
+ *     (should error on the same case as invalid item without procedural selections into player hand)
+ *   - valid item with invalid procedural selection possibility containing items with valid procedural selections into player hand
+ *     (should error on the same case as valid item with invalid procedural selection possibility into player hand)
+ *   - valid item with invalid procedural selection containing items with valid procedural selections into player hand
+ *     (should error on the same case as valid item with invalid procedural selection into player hand)
+ *   - valid item with invalid procedural selection possibility containing items with invalid procedural selection possibility into player hand
+ *     (should error on the same case as valid item with invalid procedural selection possibility into player hand)
+ *   - valid item with invalid procedural selection containing items with invalid procedural selection possibility into player hand
+ *     (should error on the same case as valid item with invalid procedural selection into player hand)
+ *   - valid item with invalid procedural selection possibility containing items with invalid procedural selection into player hand
+ *     (should error on the same case as valid item with invalid procedural selection possibility into player hand)
+ *   - valid item with invalid procedural selection containing items with invalid procedural selection into player hand
+ *     (should error on the same case as valid item with invalid procedural selection into player hand)
+ * all tests should be repeated for room item instantiation as well.
+ * -AC
+ */
 
 describe('instantiate_moderator command', () => {
     beforeAll(async () => {
