@@ -105,7 +105,7 @@ describe('instantiate_moderator command', () => {
         await testGame.messageQueue.process();
         expect(spy).not.toHaveBeenCalled();
         expect(context).toBeUndefined();
-        expect(message.reply).toBeInvokedWith("PEN's procedural \"INK COLOR\" does not have possibility \"RAINBOW\".");
+        expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
     });
 
     test('valid item with invalid procedural selection into player hand', async () => {
@@ -125,7 +125,7 @@ describe('instantiate_moderator command', () => {
         await testGame.messageQueue.process();
         expect(spy).not.toHaveBeenCalled();
         expect(context).toBeUndefined();
-        expect(message.reply).toBeInvokedWith("PEN does not have procedural \"SCARY\".");
+        expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
     });
 
     test('valid item without procedural selections containing items with valid procedural selections into player hand', async () => {
@@ -169,6 +169,64 @@ describe('instantiate_moderator command', () => {
         ]);
         expect(context).not.toBeUndefined();
         expect(context.player.name).toBe(kyra.name);
+    });
+
+    test('valid item without procedural selections containing items with invalid procedural selection possibility into player hand', async () => {
+        const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+        const args = [
+            "pack", "of", "pens",
+            "containing",
+            "pen", "(ink", "color", "=", "rainbow)", "+",
+            "pen", "(ink", "color", "=", "green)", "+",
+            "pen", "(ink", "color", "=", "blue)",
+            "in",
+            "kyra's", "left", "hand",
+        ];
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-expect-error
+        await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+        await testGame.messageQueue.process();
+        expect(spy).not.toHaveBeenCalled();
+        expect(context).toBeUndefined();
+        expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
+    });
+
+    test('valid item without procedural selections containing items with invalid procedural selection into player hand', async () => {
+        const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+        const args = [
+            "pack", "of", "pens",
+            "containing",
+            "pen", "(scary", "=", "true)", "+",
+            "pen", "(ink", "color", "=", "green)", "+",
+            "pen", "(ink", "color", "=", "blue)",
+            "in",
+            "kyra's", "left", "hand",
+        ];
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-expect-error
+        await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+        await testGame.messageQueue.process();
+        expect(spy).not.toHaveBeenCalled();
+        expect(context).toBeUndefined();
+        expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
     });
 
     test('valid item with valid procedural selections containing items with valid procedural selections into player hand', async () => {
