@@ -28,7 +28,7 @@ describe('instantiate_moderator command', () => {
     /** @type {typeof import('../../Data/Moderator.ts')} */
     let moderator;
 
-    test('valid item into player hand', async () => {
+    test('valid item without procedural selections into player hand', async () => {
         const kyra = testGame.entityFinder.getPlayer("Kyra");
         const coffee = testGame.entityFinder.getPrefab("mug of coffee");
         /** @type {InstantiateInventoryItemAction} */
@@ -48,7 +48,27 @@ describe('instantiate_moderator command', () => {
         expect(context.player.name).toBe(kyra.name);
     });
 
-    test('valid item containing pens into player hand', async () => {
+    test('valid item with procedural selections into player hand', async () => {
+        const kyra = testGame.entityFinder.getPlayer("Kyra");
+        const pen = testGame.entityFinder.getPrefab("pen");
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-ignore
+        await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["pen", "(ink", "color", "=", "red)", "in", "kyra's", "left", "hand"], moderator);
+        expect(spy).toBeInvokedWith(pen, "LEFT HAND", null, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
+        expect(context).not.toBeUndefined();
+        expect(context.player.name).toBe(kyra.name);
+    });
+
+    test('valid item without procedural selections containing items with procedural selections into player hand', async () => {
         const kyra = testGame.entityFinder.getPlayer("Kyra");
         const pack = testGame.entityFinder.getPrefab("pack of pens");
         const pen = testGame.entityFinder.getPrefab("pen");
@@ -74,6 +94,62 @@ describe('instantiate_moderator command', () => {
         // @ts-ignore
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
         expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
+            {
+                prefab: pen, quantity: 1, uses: pen.uses,
+                proceduralSelections: new Map([["ink color", "red"]]),
+            },
+            {
+                prefab: pen, quantity: 1, uses: pen.uses,
+                proceduralSelections: new Map([["ink color", "green"]]),
+            },
+            {
+                prefab: pen, quantity: 1, uses: pen.uses,
+                proceduralSelections: new Map([["ink color", "blue"]]),
+            },
+        ]);
+        expect(context).not.toBeUndefined();
+        expect(context.player.name).toBe(kyra.name);
+    });
+
+    test('valid item with procedural selections containing items with procedural selections into player hand', async () => {
+        const kyra = testGame.entityFinder.getPlayer("Kyra");
+        const pot = testGame.entityFinder.getPrefab("fired glazed clay pot");
+        const pen = testGame.entityFinder.getPrefab("pen");
+        const args = [
+            "fired", "glazed", "clay", "pot",
+                "(base", "color", "=", "obscured", "+",
+                "quality", "=", "excellent", "+",
+                "glaze", "color", "=", "black", "+",
+                "pattern", "=", "drip", "lines", "+",
+                "pattern", "quality", "=", "ornate", "+",
+                "pattern", "color", "=", "white)",
+            "containing",
+                "pen", "(ink", "color", "=", "red)", "+",
+                "pen", "(ink", "color", "=", "green)", "+",
+                "pen", "(ink", "color", "=", "blue)",
+            "in",
+                "kyra's", "left", "hand",
+        ];
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-ignore
+        await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
+        expect(spy).toBeInvokedWith(pot, "LEFT HAND", null, "", 1, new Map([
+            ["base color", "obscured"],
+            ["quality", "excellent"],
+            ["glaze color", "black"],
+            ["pattern", "drip lines"],
+            ["pattern quality", "ornate"],
+            ["pattern color", "white"],
+        ]), pot.uses, [
             {
                 prefab: pen, quantity: 1, uses: pen.uses,
                 proceduralSelections: new Map([["ink color", "red"]]),
