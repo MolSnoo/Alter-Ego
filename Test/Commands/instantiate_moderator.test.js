@@ -29,8 +29,8 @@ describe('instantiate_moderator command', () => {
     let moderator;
 
     test('valid item into player hand', async () => {
-        const player = testGame.entityFinder.getPlayer("Kyra");
-        const prefab = testGame.entityFinder.getPrefab("mug of coffee");
+        const kyra = testGame.entityFinder.getPlayer("Kyra");
+        const coffee = testGame.entityFinder.getPrefab("mug of coffee");
         /** @type {InstantiateInventoryItemAction} */
         let context;
         const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
@@ -43,14 +43,15 @@ describe('instantiate_moderator command', () => {
         });
         // @ts-ignore
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "in", "kyra's", "left", "hand"], moderator);
-        expect(spy).toBeInvokedWith(prefab, "LEFT HAND", null, "", 1, expect.any(Map), prefab.uses, []);
+        expect(spy).toBeInvokedWith(coffee, "LEFT HAND", null, "", 1, new Map(), coffee.uses, []);
         expect(context).not.toBeUndefined();
-        expect(context.player.name).toBe(player.name);
+        expect(context.player.name).toBe(kyra.name);
     });
 
     test('valid item containing pens into player hand', async () => {
-        const player = testGame.entityFinder.getPlayer("Kyra");
-        const prefab = testGame.entityFinder.getPrefab("mug of coffee");
+        const kyra = testGame.entityFinder.getPlayer("Kyra");
+        const pack = testGame.entityFinder.getPrefab("pack of pens");
+        const pen = testGame.entityFinder.getPrefab("pen");
         const args = [
             "pack",
             "of",
@@ -90,14 +91,27 @@ describe('instantiate_moderator command', () => {
         });
         // @ts-ignore
         await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
-        expect(spy).toHaveBeenCalled();
-        /**
-         * @privateRemarks
-         * the exact invocation should be checked, but as of right now, this invocation has a bug...
-         * - AC
-         */
-        //expect(spy).toBeInvokedWith(prefab, "LEFT HAND", null, "", 1, expect.any(Map), prefab.uses, []);
+        expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
+            {
+                prefab: pen,
+                quantity: 1,
+                uses: pen.uses,
+                proceduralSelections: new Map([["ink color", "red"]]),
+            },
+            {
+                prefab: pen,
+                quantity: 1,
+                uses: pen.uses,
+                proceduralSelections: new Map([["ink color", "green"]]),
+            },
+            {
+                prefab: pen,
+                quantity: 1,
+                uses: pen.uses,
+                proceduralSelections: new Map([["ink color", "blue"]]),
+            },
+        ]);
         expect(context).not.toBeUndefined();
-        expect(context.player.name).toBe(player.name);
+        expect(context.player.name).toBe(kyra.name);
     });
 });
