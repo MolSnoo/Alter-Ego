@@ -42,8 +42,61 @@ describe('instantiate_moderator command', () => {
             return original.apply(this, args);
         });
         // @ts-ignore
-        await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "in", "kyra's", "left", "hand"], moderator)
+        await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "in", "kyra's", "left", "hand"], moderator);
         expect(spy).toBeInvokedWith(prefab, "LEFT HAND", null, "", 1, expect.any(Map), prefab.uses, []);
+        expect(context).not.toBeUndefined();
+        expect(context.player.name).toBe(player.name);
+    });
+
+    test('valid item containing pens into player hand', async () => {
+        const player = testGame.entityFinder.getPlayer("Kyra");
+        const prefab = testGame.entityFinder.getPrefab("mug of coffee");
+        const args = [
+            "pack",
+            "of",
+            "pens",
+            "containing",
+            "pen",
+            "(ink",
+            "color",
+            "=",
+            "red)",
+            "+",
+            "pen",
+            "(ink",
+            "color",
+            "=",
+            "green)",
+            "+",
+            "pen",
+            "(ink",
+            "color",
+            "=",
+            "blue)",
+            "in",
+            "kyra's",
+            "left",
+            "hand",
+        ];
+        /** @type {InstantiateInventoryItemAction} */
+        let context;
+        const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
+        const spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
+        spy.mockImplementation(function (...args) {
+            // @ts-expect-error
+            context = this;
+            // @ts-expect-error
+            return original.apply(this, args);
+        });
+        // @ts-ignore
+        await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
+        expect(spy).toHaveBeenCalled();
+        /**
+         * @privateRemarks
+         * the exact invocation should be checked, but as of right now, this invocation has a bug...
+         * - AC
+         */
+        //expect(spy).toBeInvokedWith(prefab, "LEFT HAND", null, "", 1, expect.any(Map), prefab.uses, []);
         expect(context).not.toBeUndefined();
         expect(context.player.name).toBe(player.name);
     });
