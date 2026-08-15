@@ -635,17 +635,17 @@ export default class GameErrorMessageGenerator {
 
     /**
      * Generates an error message indicating that the given item cannot be equipped to the given equipment slot because an item is already equipped to it.
-     * @param item - The item which cannot be equipped.
      * @param equipmentSlot - The equipment slot which already has something equipped to it.
      * @param context - The context in which the command is being issued.
+     * @param item - The item which cannot be equipped. Optional.
      */
-    generateCannotEquipToOccupiedEquipmentSlotError(item: ItemInstance | Prefab, equipmentSlot: EquipmentSlot, context: UserContext) {
+    generateCannotEquipToOccupiedEquipmentSlotError(equipmentSlot: EquipmentSlot, context: UserContext, item?: ItemInstance | Prefab) {
         switch (context) {
             case "Player":
-                return `${item.name} can't be equipped to equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.name} is already equipped to it.`;
+                return `${item?.name ?? 'An item'} can't be equipped to equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.name} is already equipped to it.`;
             default:
                 const possessive = `${equipmentSlot.equippedItem!.player.name}'s`;
-                return `${item.getIdentifier()} can't be equipped to ${possessive} equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.getIdentifier()} is already equipped to it.`;
+                return `${item?.getIdentifier() ?? 'An item'} can't be equipped to ${possessive} equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.getIdentifier()} is already equipped to it.`;
         }
     }
 }

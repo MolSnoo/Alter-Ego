@@ -80,7 +80,7 @@ export async function execute(game, message, command, args, moderator) {
     // Guard against that.
     const isMessageStartingWithIs = command === 'is' && !message.content.startsWith(game.settings.commandPrefix);
     if (args.length < 4 && !isMessageStartingWithIs)
-        return game.communicationHandler.reply(message, `Not enough arguments given. Usage:\n${usage(game.settings)}`);
+        return game.communicationHandler.reply(message, game.errorMessageGenerator.generateSpecifyErrorWithUsage(`a prefab and a container`, usage));
 
     let quantity = 1;
     if (args[0].match(/^\d+$/)) {
@@ -111,7 +111,7 @@ export async function execute(game, message, command, args, moderator) {
     // If a parenthetical expression is included, procedural options are being manually set.
     /** @type {Map<string, string>} */
     let proceduralSelections = new Map();
-    if (parsedInput.indexOf('(') < parsedInput.indexOf(')')) {
+    if (parsedInput.indexOf('(') < parsedInput.indexOf(')') && parsedInput.indexOf('(') < parsedInput.indexOf(" CONTAINING ")) {
         try {
             proceduralSelections = parseProceduralSelections(parsedInput);
         }
@@ -131,9 +131,9 @@ export async function execute(game, message, command, args, moderator) {
         let fixture = null;
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === room.id);
         for (let i = 0; i < fixtures.length; i++) {
-            if (fixtures[i].name === parsedInput) return game.communicationHandler.reply(message, `You need to supply a prefab and a preposition.`);
+            if (fixtures[i].name === parsedInput) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateSpecifyError(`a prefab and a preposition`));
             if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`) || parsedInput.endsWith(`IN ${fixtures[i].name}`)) {
-                if (fixtures[i].preposition === "") return game.communicationHandler.reply(message, `${fixtures[i].name} cannot hold items.`);
+                if (fixtures[i].preposition === "") return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotPutItemsInContainerError(fixtures[i], "Moderator"));
                 fixture = fixtures[i];
                 if (parsedInput.endsWith(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(`${fixtures[i].preposition.toUpperCase()} ${fixtures[i].name}`)).trimEnd();
@@ -296,9 +296,9 @@ export async function execute(game, message, command, args, moderator) {
         let containerItemSlot = null;
         const items = game.inventoryItems.filter(item => item.player.name === player.name && item.prefab !== null);
         for (let i = 0; i < items.length; i++) {
-            if (items[i].identifier === parsedInput || items[i].prefab.id === parsedInput || items[i].name === parsedInput) return game.communicationHandler.reply(message, `You need to supply a prefab and a preposition.`);
+            if (items[i].identifier === parsedInput || items[i].prefab.id === parsedInput || items[i].name === parsedInput) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateSpecifyError(`a prefab and a preposition`));
             if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].prefab.id) || parsedInput.endsWith(items[i].name)) {
-                if (items[i].inventory.size === 0 || items[i].prefab.preposition === "") return game.communicationHandler.reply(message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
+                if (items[i].inventory.size === 0 || items[i].prefab.preposition === "") return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotPutItemsInContainerError(items[i], "Moderator"));
                 containerItem = items[i];
 
                 if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "")
@@ -340,7 +340,7 @@ export async function execute(game, message, command, args, moderator) {
                     const newArgs = parsedInput.split(' ');
                     newArgs.splice(newArgs.length - 1, 1);
                     parsedInput = newArgs.join(' ');
-                    if (slot.equippedItem !== null) return game.communicationHandler.reply(message, `Cannot equip items to ${equipmentSlotId} because ${slot.equippedItem.name} is already equipped to it.`);
+                    if (slot.equippedItem !== null) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotEquipToOccupiedEquipmentSlotError(slot, "Moderator"));
                     break;
                 }
             }
@@ -383,7 +383,7 @@ export async function execute(game, message, command, args, moderator) {
 
         if (isNaN(quantity) || quantity < 1)
             return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
-        if (equipmentSlotId !== "" && quantity !== 1) return game.communicationHandler.reply(message, `Cannot instantiate more than 1 item to a player's equipment slot.`);
+        if (equipmentSlotId !== "" && quantity !== 1) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateEquippedItemWithInvalidQuantityError());
         if (containerItem !== null) {
             equipmentSlotId = containerItem.equipmentSlot;
             if (containerItemSlot.willBeOverFilledBy(prefab, quantity))

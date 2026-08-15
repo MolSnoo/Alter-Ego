@@ -152,7 +152,7 @@ export default class InstantiateInventoryItemAction extends Action {
         const context = "Moderator";
         const equipItem = container === undefined;
         if (equipItem) {
-            if (equipmentSlot.equippedItem !== null) throw new Error(errorMessageGenerator.generateCannotEquipToOccupiedEquipmentSlotError(prefab, equipmentSlot, context));
+            if (equipmentSlot.equippedItem !== null) throw new Error(errorMessageGenerator.generateCannotEquipToOccupiedEquipmentSlotError(equipmentSlot, context, prefab));
             if (quantity !== 1) throw new Error(errorMessageGenerator.generateCannotInstantiateEquippedItemWithInvalidQuantityError());
         }
         else {
