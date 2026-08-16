@@ -19,8 +19,8 @@ import { createMockModerator } from '../__mocks__/utility.ts';
 
 /**
  * @privateRemarks
- * TODO: all inventory tests should be repeated for room item instantiation.
- * -AC
+ * TODO: room items should have additional tests for syntax instantiating an item in a slot of another inventory item..
+ * -LDL
  */
 
 describe('instantiate_moderator command', () => {
@@ -564,11 +564,251 @@ describe('instantiate_moderator command', () => {
         });
 
         describe('invalid invocations (prefab)', () => {
+            test('invalid item without procedural selections into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "on", "floor", "at", "lobby"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
+            });
 
+            test('invalid item with procedural selections into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "(scary", "=", "true)", "on", "floor", "at", "lobby"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
+            });
         });
 
         describe('invalid invocations (procedural)', () => {
+            test('valid item with invalid procedural selection possibility into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(ink", "color", "=", "rainbow)", "on", "floor", "at", "lobby"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
+            });
 
+            test('valid item with invalid procedural selection into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(scary", "=", "true)", "on", "floor", "at", "lobby"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
+            });
+
+            test('valid item without procedural selections containing items with invalid procedural selection possibility into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                    "pen", "(ink", "color", "=", "rainbow)", "+",
+                    "pen", "(ink", "color", "=", "green)", "+",
+                    "pen", "(ink", "color", "=", "blue)",
+                    "on",
+                    "floor",
+                    "at",
+                    "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
+            });
+
+            test('valid item without procedural selections containing items with invalid procedural selection into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                    "pen", "(scary", "=", "true)", "+",
+                    "pen", "(ink", "color", "=", "green)", "+",
+                    "pen", "(ink", "color", "=", "blue)",
+                    "on",
+                    "floor",
+                    "at",
+                    "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
+            });
+
+            test('valid item with invalid procedural selection possibility containing items with valid procedural selections into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "fired", "glazed", "clay", "pot",
+                        "(base", "color", "=", "obscured", "+",
+                        "quality", "=", "excellent", "+",
+                        "glaze", "color", "=", "black", "+",
+                        "pattern", "=", "drip", "lines", "+",
+                        "pattern", "quality", "=", "ornate", "+",
+                        "pattern", "color", "=", "rainbow)",
+                    "containing",
+                        "pen", "(ink", "color", "=", "red)", "+",
+                        "pen", "(ink", "color", "=", "green)", "+",
+                        "pen", "(ink", "color", "=", "blue)",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
+            });
+
+            test('valid item with invalid procedural selection containing items with valid procedural selections into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "fired", "glazed", "clay", "pot",
+                        "(base", "color", "=", "obscured", "+",
+                        "quality", "=", "excellent", "+",
+                        "glaze", "color", "=", "black", "+",
+                        "pattern", "=", "drip", "lines", "+",
+                        "pattern", "quality", "=", "ornate", "+",
+                        "scary", "=", "true)",
+                    "containing",
+                        "pen", "(ink", "color", "=", "red)", "+",
+                        "pen", "(ink", "color", "=", "green)", "+",
+                        "pen", "(ink", "color", "=", "blue)",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
+            });
+
+            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection possibility into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "fired", "glazed", "clay", "pot",
+                        "(base", "color", "=", "obscured", "+",
+                        "quality", "=", "excellent", "+",
+                        "glaze", "color", "=", "black", "+",
+                        "pattern", "=", "drip", "lines", "+",
+                        "pattern", "quality", "=", "ornate", "+",
+                        "pattern", "color", "=", "rainbow)",
+                    "containing",
+                        "pen", "(ink", "color", "=", "rainbow)", "+",
+                        "pen", "(ink", "color", "=", "green)", "+",
+                        "pen", "(ink", "color", "=", "red)",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
+            });
+
+            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "fired", "glazed", "clay", "pot",
+                        "(base", "color", "=", "obscured", "+",
+                        "quality", "=", "excellent", "+",
+                        "glaze", "color", "=", "black", "+",
+                        "pattern", "=", "drip", "lines", "+",
+                        "pattern", "quality", "=", "ornate", "+",
+                        "pattern", "color", "=", "rainbow)",
+                    "containing",
+                        "pen", "(scary", "=", "true)", "+",
+                        "pen", "(ink", "color", "=", "green)", "+",
+                        "pen", "(ink", "color", "=", "blue)",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
+            });
+
+            test('valid item with invalid procedural selection containing items with invalid procedural selection possibility into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "fired", "glazed", "clay", "pot",
+                        "(base", "color", "=", "obscured", "+",
+                        "quality", "=", "excellent", "+",
+                        "glaze", "color", "=", "black", "+",
+                        "pattern", "=", "drip", "lines", "+",
+                        "pattern", "quality", "=", "ornate", "+",
+                        "scary", "=", "true)",
+                    "containing",
+                        "pen", "(ink", "color", "=", "rainbow)", "+",
+                        "pen", "(ink", "color", "=", "green)", "+",
+                        "pen", "(ink", "color", "=", "red)",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
+            });
+
+            test('valid item with invalid procedural selection containing items with invalid procedural selection into fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "fired", "glazed", "clay", "pot",
+                        "(base", "color", "=", "obscured", "+",
+                        "quality", "=", "excellent", "+",
+                        "glaze", "color", "=", "black", "+",
+                        "pattern", "=", "drip", "lines", "+",
+                        "pattern", "quality", "=", "ornate", "+",
+                        "scary", "=", "true)",
+                    "containing",
+                        "pen", "(scary", "=", "true)", "+",
+                        "pen", "(ink", "color", "=", "green)", "+",
+                        "pen", "(ink", "color", "=", "blue)",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
+            });
         });
     });
 });
