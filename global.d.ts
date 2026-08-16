@@ -32,7 +32,7 @@ declare global {
         /** The Discord ID of the user. */
         id: string;
         /** The Discord member object of the user. */
-        readonly member: GuildMember;
+        readonly member: GuildMember | null;
         /** The name that will be displayed for this user. */
         displayName: string;
         /** An image URL that will be used as an avatar when the user's messages are mirrored in a webhook. */

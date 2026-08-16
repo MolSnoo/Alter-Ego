@@ -20,7 +20,7 @@ export default class ActionDirective<T extends Action = Action> {
     /**
      * The player the action should be constructed with by default.
      */
-    readonly #player: Player;
+    readonly #player?: Player;
     /**
      * The raw arguments provided for this action.
      */
@@ -33,12 +33,12 @@ export default class ActionDirective<T extends Action = Action> {
 
     /**
      * @param action - The action this directive should create.
-     * @param player - The player the action should be constructed with by default.
      * @param args - The raw arguments provided for this action. These will be used to generate the custom ID, and will be passed to the action's perform function.
      * @param user - The user this directive is being generated for. This is included in the hash to ensure that directives generated for different user with the same action and arguments will have different custom IDs, preventing conflicts.
+     * @param player - The player the action should be constructed with by default.
      * @throws {TypeError} If the provided action is not a subclass of Action.
      */
-    constructor(action: T, player: Player, args: any[], user: User) {
+    constructor(action: T, args: any[], user: User, player?: Player) {
         this.action = action.constructor as Constructor<T>;
         this.#player = player;
         this.#args = args;
