@@ -232,8 +232,12 @@ export async function execute(game, message, command, args, moderator) {
         else if (prefab === null && container !== null) return game.communicationHandler.reply(message, `Couldn't find prefab with id "${parsedInput}".`);
         else if (prefab === null && container === null) return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
 
+        if (!container.isItemContainer() || !container.canCurrentlyContainItems(false, true))
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotPutItemsInContainerError(container, "Moderator"));
         if (isNaN(quantity) || quantity < 1)
             return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
+        if (quantity > 1 && !prefab.pluralContainingPhrase)
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateNoPluralContainingPhraseError(prefab));
         if (containerItem !== null && container instanceof RoomItem) {
             if (containerItemSlot.willBeOverFilledBy(prefab, quantity))
                 return game.communicationHandler.reply(message, game.errorMessageGenerator.generateItemWillNotFitInInventorySlotError(prefab, container, containerItemSlot, "Moderator"));
@@ -383,7 +387,10 @@ export async function execute(game, message, command, args, moderator) {
 
         if (isNaN(quantity) || quantity < 1)
             return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
-        if (equipmentSlotId !== "" && quantity !== 1) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateEquippedItemWithInvalidQuantityError());
+        if (equipmentSlotId !== "" && quantity !== 1)
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateEquippedItemWithInvalidQuantityError());
+        if (quantity > 1 && !prefab.pluralContainingPhrase)
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateNoPluralContainingPhraseError(prefab));
         if (containerItem !== null) {
             equipmentSlotId = containerItem.equipmentSlot;
             if (containerItemSlot.willBeOverFilledBy(prefab, quantity))
