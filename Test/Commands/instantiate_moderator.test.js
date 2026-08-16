@@ -561,6 +561,121 @@ describe('instantiate_moderator command', () => {
                 ]);
                 expect(context).not.toBeUndefined();
             });
+
+            test('valid item without procedural selections into room item', async () => {
+                const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
+                const coffee = testGame.entityFinder.getPrefab("mug of coffee");
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                expect(spy).toBeInvokedWith(coffee, pot, "POT", 1, new Map(), coffee.uses, []);
+                expect(context).not.toBeUndefined();
+            });
+
+            test('valid item with valid procedural selections into room item', async () => {
+                const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
+                const pen = testGame.entityFinder.getPrefab("pen");
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["pen", "(ink", "color", "=", "red)", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                expect(spy).toBeInvokedWith(pen, pot, "POT", 1, new Map([["ink color", "red"]]), pen.uses, []);
+                expect(context).not.toBeUndefined();
+            });
+
+            test('valid item without procedural selections containing items with valid procedural selections into room item', async () => {
+                /**
+                 * @privateRemarks
+                 * fails with following error:
+                 * `Couldn't find "" to instantiate PACK OF PENS into.`
+                 * - LDL
+                 */
+                const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
+                const pack = testGame.entityFinder.getPrefab("pack of pens");
+                const pen = testGame.entityFinder.getPrefab("pen");
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                    "pen", "(ink", "color", "=", "red)", "+",
+                    "pen", "(ink", "color", "=", "green)", "+",
+                    "pen", "(ink", "color", "=", "blue)",
+                    "in",
+                    "pot",
+                    "of",
+                    "pot", "1",
+                    "at",
+                    "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
+                expect(spy).toBeInvokedWith(pack, pot, "POT", 1, new Map(), pack.uses, [
+                    {
+                        prefab: pen, quantity: 1, uses: pen.uses,
+                        proceduralSelections: new Map([["ink color", "red"]]),
+                    },
+                    {
+                        prefab: pen, quantity: 1, uses: pen.uses,
+                        proceduralSelections: new Map([["ink color", "green"]]),
+                    },
+                    {
+                        prefab: pen, quantity: 1, uses: pen.uses,
+                        proceduralSelections: new Map([["ink color", "blue"]]),
+                    },
+                ]);
+                expect(context).not.toBeUndefined();
+            });
+
+            test('valid item with valid procedural selections containing items with valid procedural selections into room item', async () => {
+                /**
+                 * @privateRemarks
+                 * fails with following error:
+                 * `Couldn't find "" to instantiate FIRED GLAZED CLAY POT into.`
+                 * - LDL
+                 */
+                const kitchenPot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
+                const pot = testGame.entityFinder.getPrefab("fired glazed clay pot");
+                const pen = testGame.entityFinder.getPrefab("pen");
+                const args = [
+                    "fired", "glazed", "clay", "pot",
+                        "(base", "color", "=", "obscured", "+",
+                        "quality", "=", "excellent", "+",
+                        "glaze", "color", "=", "black", "+",
+                        "pattern", "=", "drip", "lines", "+",
+                        "pattern", "quality", "=", "ornate", "+",
+                        "pattern", "color", "=", "white)",
+                    "containing",
+                        "pen", "(ink", "color", "=", "red)", "+",
+                        "pen", "(ink", "color", "=", "green)", "+",
+                        "pen", "(ink", "color", "=", "blue)",
+                    "in",
+                        "pot",
+                    "of",
+                        "pot", "1",
+                    "at",
+                        "lobby",
+                ];
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
+                expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 1, new Map([
+                    ["base color", "obscured"],
+                    ["quality", "excellent"],
+                    ["glaze color", "black"],
+                    ["pattern", "drip lines"],
+                    ["pattern quality", "ornate"],
+                    ["pattern color", "white"],
+                ]), pot.uses, [
+                    {
+                        prefab: pen, quantity: 1, uses: pen.uses,
+                        proceduralSelections: new Map([["ink color", "red"]]),
+                    },
+                    {
+                        prefab: pen, quantity: 1, uses: pen.uses,
+                        proceduralSelections: new Map([["ink color", "green"]]),
+                    },
+                    {
+                        prefab: pen, quantity: 1, uses: pen.uses,
+                        proceduralSelections: new Map([["ink color", "blue"]]),
+                    },
+                ]);
+                expect(context).not.toBeUndefined();
+            });
         });
 
         describe('invalid invocations (prefab)', () => {
