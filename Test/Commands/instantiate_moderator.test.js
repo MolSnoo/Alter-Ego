@@ -581,12 +581,6 @@ describe('instantiate_moderator command', () => {
             });
 
             test('valid item without procedural selections containing items with valid procedural selections into room item', async () => {
-                /**
-                 * @privateRemarks
-                 * fails with following error:
-                 * `Couldn't find "" to instantiate PACK OF PENS into.`
-                 * - LDL
-                 */
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pack = testGame.entityFinder.getPrefab("pack of pens");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -601,7 +595,7 @@ describe('instantiate_moderator command', () => {
                     "of",
                     "pot", "1",
                     "at",
-                    "lobby",
+                    "kitchen",
                 ];
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
@@ -623,12 +617,6 @@ describe('instantiate_moderator command', () => {
             });
 
             test('valid item with valid procedural selections containing items with valid procedural selections into room item', async () => {
-                /**
-                 * @privateRemarks
-                 * fails with following error:
-                 * `Couldn't find "" to instantiate FIRED GLAZED CLAY POT into.`
-                 * - LDL
-                 */
                 const kitchenPot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pot = testGame.entityFinder.getPrefab("fired glazed clay pot");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -649,7 +637,7 @@ describe('instantiate_moderator command', () => {
                     "of",
                         "pot", "1",
                     "at",
-                        "lobby",
+                        "kitchen",
                 ];
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
