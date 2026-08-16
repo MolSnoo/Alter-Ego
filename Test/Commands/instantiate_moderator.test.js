@@ -6,12 +6,14 @@
 import ModeratorCommand from '../../Classes/ModeratorCommand.ts';
 import { usage, execute, config } from '../../Commands/instantiate_moderator.js'
 import InstantiateInventoryItemAction from '../../Data/Actions/InstantiateInventoryItemAction.ts';
+import InstantiateRoomItemAction from '../../Data/Actions/InstantiateRoomItemAction.ts';
 import { clearQueue } from '../../Modules/messageHandler.ts';
 import { createMockMessage } from '../__mocks__/libs/discord.js';
 import { createMockModerator } from '../__mocks__/utility.ts';
 
 /** @import Prefab from '../../Data/Prefab.ts' */
 /** @import InventoryItem from '../../Data/InventoryItem.ts' */
+/** @import RoomItem from '../../Data/RoomItem.ts' */
 /** @import { ContainedItem } from '../../Modules/stringDataExtractor.ts' */
 /** @import { Mock } from 'vitest' */
 
@@ -439,6 +441,27 @@ describe('instantiate_moderator command', () => {
     });
 
     describe('room items', () => {
+        beforeEach(() => {
+            const original = InstantiateRoomItemAction.prototype.performInstantiateRoomItem;
+            spy = vi.spyOn(InstantiateRoomItemAction.prototype, "performInstantiateRoomItem");
+            spy.mockImplementation(function (...args) {
+                // @ts-expect-error
+                context = this;
+                // @ts-expect-error
+                return original.apply(this, args);
+            });
+        });
+
+        afterEach(() => {
+            context = undefined;
+        });
+
+        /** @type Mock<(prefab: Prefab, container: RoomItemContainer, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, containedItems?: ContainedItem[]) => RoomItem[]> */
+        let spy;
+
+        /** @type {InstantiateRoomItemAction} */
+        let context;
+
         describe('valid invocations', () => {
 
         });
