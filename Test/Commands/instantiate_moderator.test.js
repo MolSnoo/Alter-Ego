@@ -183,6 +183,26 @@ describe('instantiate_moderator command', () => {
                 expect(context).toBeUndefined();
                 expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
             });
+
+            test('invalid item without procedural selections into invalid player hand', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "in", "nobody's", "left", "hand"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
+            });
+
+            test('invalid item with procedural selections into invalid player hand', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "(scary", "=", "true)", "in", "nobody's", "left", "hand"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
+            });
         });
 
         describe('invalid invocations (procedural)', () => {
@@ -394,15 +414,39 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
             });
         });
+
+        describe('invalid invocations (player)', () => {
+            test('valid item without procedural selections into invalid player hand', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["mug", "of", "coffee", "in", "nobody's", "left", "hand"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find a room or player in your input.");
+            });
+
+            test('valid item with valid procedural selections into invalid player hand', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                // @ts-expect-error
+                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(ink", "color", "=", "red)", "in", "nobody's", "left", "hand"], moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find a room or player in your input.");
+            });
+        });
     });
 
     describe('room items', () => {
         describe('valid invocations', () => {
 
         });
+
         describe('invalid invocations (prefab)', () => {
 
         });
+
         describe('invalid invocations (procedural)', () => {
 
         });
