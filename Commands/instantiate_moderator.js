@@ -111,7 +111,7 @@ export async function execute(game, message, command, args, moderator) {
     // If a parenthetical expression is included, procedural options are being manually set.
     /** @type {Map<string, string>} */
     let proceduralSelections = new Map();
-    if (parsedInput.indexOf('(') < parsedInput.indexOf(')') && parsedInput.indexOf('(') < parsedInput.indexOf(" CONTAINING ")) {
+    if (parsedInput.indexOf('(') < parsedInput.indexOf(')') && (!parsedInput.includes(" CONTAINING" ) || parsedInput.indexOf('(') < parsedInput.indexOf(" CONTAINING "))) {
         try {
             proceduralSelections = parseProceduralSelections(parsedInput);
         }
