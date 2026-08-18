@@ -207,10 +207,21 @@ export async function execute(game, command, args, player, callee) {
         /** @type {ContainedItem[]} */
         let containedItems = [];
         if (parsedInput.includes(" CONTAINING ")) {
-            const containedItemString = parsedInput.substring(parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length);
+            const containedItemStringStart = parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length;
+            const containedItemString = parsedInput.substring(containedItemStringStart);
             try {
                 containedItems = parseInstantiateContainingString(game, containedItemString);
-                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
+                let containedItemStringEnd = -1;
+                if (containedItemString.includes(')')) containedItemStringEnd = parsedInput.lastIndexOf(')') + 1;
+                else {
+                    const lastContainedItemId = containedItems[containedItems.length - 1]?.prefab.id.toUpperCase();
+                    if (containedItemString.includes(lastContainedItemId)) {
+                        const offset = containedItemString.lastIndexOf(lastContainedItemId) + lastContainedItemId.length;
+                        containedItemStringEnd = containedItemStringStart + offset;
+                    }
+                }
+                const affix = containedItemStringEnd !== -1 ? parsedInput.substring(containedItemStringEnd) : ``;
+                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING ")) + affix;
             }
             catch (error) {
                 return game.communicationHandler.sendToCommandChannel(`${game.errorMessageGenerator.getErrorPrefix(cmdString)}${getErrorMessage(error)}`);
@@ -376,10 +387,21 @@ export async function execute(game, command, args, player, callee) {
             /** @type {ContainedItem[]} */
             let containedItems = [];
             if (parsedInput.includes(" CONTAINING ")) {
-                const containedItemString = parsedInput.substring(parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length);
+                const containedItemStringStart = parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length;
+                const containedItemString = parsedInput.substring(containedItemStringStart);
                 try {
                     containedItems = parseInstantiateContainingString(game, containedItemString);
-                    parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING "));
+                    let containedItemStringEnd = -1;
+                    if (containedItemString.includes(')')) containedItemStringEnd = parsedInput.lastIndexOf(')') + 1;
+                    else {
+                        const lastContainedItemId = containedItems[containedItems.length - 1]?.prefab.id.toUpperCase();
+                        if (containedItemString.includes(lastContainedItemId)) {
+                            const offset = containedItemString.lastIndexOf(lastContainedItemId) + lastContainedItemId.length;
+                            containedItemStringEnd = containedItemStringStart + offset;
+                        }
+                    }
+                    const affix = containedItemStringEnd !== -1 ? parsedInput.substring(containedItemStringEnd) : ``;
+                    parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING ")) + affix;
                 }
                 catch (error) {
                     return game.communicationHandler.sendToCommandChannel(`${game.errorMessageGenerator.getErrorPrefix(cmdString)}${getErrorMessage(error)}`);
@@ -403,7 +425,6 @@ export async function execute(game, command, args, player, callee) {
                 return game.communicationHandler.sendToCommandChannel(game.errorMessageGenerator.generateEntityNotFoundError("inventory item or equipment slot", parsedInput2, "Bot", cmdString));
             }
             else if (prefab === null && (containerItem !== null || equipmentSlotId !== "")) {
-                parsedInput2 = parsedInput2.substring(0, parsedInput2.lastIndexOf(' '));
                 return game.communicationHandler.sendToCommandChannel(game.errorMessageGenerator.generateEntityNotFoundError("prefab with id", parsedInput2, "Bot", cmdString));
             }
             else if (prefab === null && containerItem === null && equipmentSlotId === "") return game.communicationHandler.sendToCommandChannel(game.errorMessageGenerator.generateNotFoundError(parsedInput2, "Bot", cmdString));
