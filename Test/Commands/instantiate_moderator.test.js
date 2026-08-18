@@ -59,7 +59,7 @@ describe('instantiate_moderator command', () => {
         let context;
 
         describe('valid invocations', () => {
-            test('valid item without procedural selections into player hand', async () => {
+            test('1 valid item without procedural selections into player hand', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
                 // @ts-expect-error
@@ -69,7 +69,7 @@ describe('instantiate_moderator command', () => {
                 expect(context.player.name).toBe(kyra.name);
             });
 
-            test('valid item with valid procedural selections into player hand', async () => {
+            test('1 valid item with valid procedural selections into player hand', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const pen = testGame.entityFinder.getPrefab("pen");
                 // @ts-expect-error
@@ -79,7 +79,7 @@ describe('instantiate_moderator command', () => {
                 expect(context.player.name).toBe(kyra.name);
             });
 
-            test('valid item without procedural selections containing items with valid procedural selections into player hand', async () => {
+            test('1 valid item without procedural selections containing 3 items with valid procedural selections into player hand', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const pack = testGame.entityFinder.getPrefab("pack of pens");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -112,7 +112,7 @@ describe('instantiate_moderator command', () => {
                 expect(context.player.name).toBe(kyra.name);
             });
 
-            test('valid item with valid procedural selections containing items with valid procedural selections into player hand', async () => {
+            test('1 valid item with valid procedural selections containing 3 items with valid procedural selections into player hand', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const pot = testGame.entityFinder.getPrefab("fired glazed clay pot");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -160,7 +160,7 @@ describe('instantiate_moderator command', () => {
         });
 
         describe('invalid invocations (prefab)', () => {
-            test('invalid item without procedural selections into player hand', async () => {
+            test('1 invalid item without procedural selections into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary in kyra's left hand".split(/[^\S\n]/), moderator);
@@ -170,7 +170,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
             });
 
-            test('invalid item with procedural selections into player hand', async () => {
+            test('1 invalid item with procedural selections into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in kyra's left hand".split(/[^\S\n]/), moderator);
@@ -182,7 +182,7 @@ describe('instantiate_moderator command', () => {
         });
 
         describe('invalid invocations (procedural)', () => {
-            test('valid item with invalid procedural selection possibility into player hand', async () => {
+            test('1 valid item with invalid procedural selection possibility into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) in kyra's left hand".split(/[^\S\n]/), moderator);
@@ -192,7 +192,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection into player hand', async () => {
+            test('1 valid item with invalid procedural selection into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) in kyra's left hand".split(/[^\S\n]/), moderator);
@@ -202,7 +202,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
             });
 
-            test('valid item without procedural selections containing items with invalid procedural selection possibility into player hand', async () => {
+            test('1 valid item without procedural selections containing 3 items with invalid procedural selection possibility into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "pack", "of", "pens",
@@ -221,7 +221,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item without procedural selections containing items with invalid procedural selection into player hand', async () => {
+            test('1 valid item without procedural selections containing 3 items with invalid procedural selection into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "pack", "of", "pens",
@@ -240,7 +240,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with valid procedural selections into player hand', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with valid procedural selections into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -265,7 +265,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection containing items with valid procedural selections into player hand', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with valid procedural selections into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -290,7 +290,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection possibility into player hand', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with invalid procedural selection possibility into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -315,7 +315,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection into player hand', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with invalid procedural selection into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -340,7 +340,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection containing items with invalid procedural selection possibility into player hand', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with invalid procedural selection possibility into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -365,7 +365,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection containing items with invalid procedural selection into player hand', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with invalid procedural selection into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -392,7 +392,7 @@ describe('instantiate_moderator command', () => {
         });
 
         describe('invalid invocations (player)', () => {
-            test('valid item without procedural selections into invalid player hand', async () => {
+            test('1 valid item without procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "mug of coffee in nobody's left hand".split(/[^\S\n]/), moderator);
@@ -402,7 +402,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find a room or player in your input.");
             });
 
-            test('valid item with valid procedural selections into invalid player hand', async () => {
+            test('1 valid item with valid procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = red) in nobody's left hand".split(/[^\S\n]/), moderator);
@@ -412,7 +412,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find a room or player in your input.");
             });
 
-            test('invalid item without procedural selections into invalid player hand', async () => {
+            test('1 invalid item without procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary in nobody's left hand".split(/[^\S\n]/), moderator);
@@ -422,7 +422,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find a room or player in your input.");
             });
 
-            test('invalid item with procedural selections into invalid player hand', async () => {
+            test('1 invalid item with procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in nobody's left hand".split(/[^\S\n]/), moderator);
@@ -457,7 +457,7 @@ describe('instantiate_moderator command', () => {
         let context;
 
         describe('valid invocations', () => {
-            test('valid item without procedural selections into fixture', async () => {
+            test('1 valid item without procedural selections into fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
                 // @ts-expect-error
@@ -466,7 +466,7 @@ describe('instantiate_moderator command', () => {
                 expect(context).not.toBeUndefined();
             });
 
-            test('valid item with valid procedural selections into fixture', async () => {
+            test('1 valid item with valid procedural selections into fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pen = testGame.entityFinder.getPrefab("pen");
                 // @ts-expect-error
@@ -475,7 +475,7 @@ describe('instantiate_moderator command', () => {
                 expect(context).not.toBeUndefined();
             });
 
-            test('valid item without procedural selections containing items with valid procedural selections into fixture', async () => {
+            test('1 valid item without procedural selections containing 3 items with valid procedural selections into fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pack = testGame.entityFinder.getPrefab("pack of pens");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -509,7 +509,7 @@ describe('instantiate_moderator command', () => {
                 expect(context).not.toBeUndefined();
             });
 
-            test('valid item with valid procedural selections containing items with valid procedural selections into fixture', async () => {
+            test('1 valid item with valid procedural selections containing 3 items with valid procedural selections into fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pot = testGame.entityFinder.getPrefab("fired glazed clay pot");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -556,7 +556,7 @@ describe('instantiate_moderator command', () => {
                 expect(context).not.toBeUndefined();
             });
 
-            test('valid item without procedural selections into room item', async () => {
+            test('1 valid item without procedural selections into room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
                 // @ts-expect-error
@@ -565,7 +565,7 @@ describe('instantiate_moderator command', () => {
                 expect(context).not.toBeUndefined();
             });
 
-            test('valid item with valid procedural selections into room item', async () => {
+            test('1 valid item with valid procedural selections into room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pen = testGame.entityFinder.getPrefab("pen");
                 // @ts-expect-error
@@ -574,7 +574,7 @@ describe('instantiate_moderator command', () => {
                 expect(context).not.toBeUndefined();
             });
 
-            test('valid item without procedural selections containing items with valid procedural selections into room item', async () => {
+            test('1 valid item without procedural selections containing 3 items with valid procedural selections into room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pack = testGame.entityFinder.getPrefab("pack of pens");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -610,7 +610,7 @@ describe('instantiate_moderator command', () => {
                 expect(context).not.toBeUndefined();
             });
 
-            test('valid item with valid procedural selections containing items with valid procedural selections into room item', async () => {
+            test('1 valid item with valid procedural selections containing 3 items with valid procedural selections into room item', async () => {
                 const kitchenPot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pot = testGame.entityFinder.getPrefab("fired glazed clay pot");
                 const pen = testGame.entityFinder.getPrefab("pen");
@@ -661,7 +661,7 @@ describe('instantiate_moderator command', () => {
         });
 
         describe('invalid invocations (prefab)', () => {
-            test('invalid item without procedural selections into fixture', async () => {
+            test('1 invalid item without procedural selections into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary on floor at lobby".split(/[^\S\n]/), moderator);
@@ -671,7 +671,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
             });
 
-            test('invalid item with procedural selections into fixture', async () => {
+            test('1 invalid item with procedural selections into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
@@ -681,7 +681,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
             });
 
-            test('invalid item without procedural selections into room item', async () => {
+            test('1 invalid item without procedural selections into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
@@ -691,7 +691,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find prefab with id \"SOMETHING VERY SCARY\".");
             });
 
-            test('invalid item with procedural selections into room item', async () => {
+            test('1 invalid item with procedural selections into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
@@ -703,7 +703,7 @@ describe('instantiate_moderator command', () => {
         });
 
         describe('invalid invocations (procedural)', () => {
-            test('valid item with invalid procedural selection possibility into fixture', async () => {
+            test('1 valid item with invalid procedural selection possibility into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/), moderator);
@@ -713,7 +713,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection into fixture', async () => {
+            test('1 valid item with invalid procedural selection into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
@@ -723,7 +723,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
             });
 
-            test('valid item without procedural selections containing items with invalid procedural selection possibility into fixture', async () => {
+            test('1 valid item without procedural selections containing 3 items with invalid procedural selection possibility into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "pack", "of", "pens",
@@ -744,7 +744,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item without procedural selections containing items with invalid procedural selection into fixture', async () => {
+            test('1 valid item without procedural selections containing 3 items with invalid procedural selection into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "pack", "of", "pens",
@@ -765,7 +765,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with valid procedural selections into fixture', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with valid procedural selections into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -792,7 +792,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection containing items with valid procedural selections into fixture', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with valid procedural selections into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -819,7 +819,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection possibility into fixture', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with invalid procedural selection possibility into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -846,7 +846,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection into fixture', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with invalid procedural selection into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -873,7 +873,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection containing items with invalid procedural selection possibility into fixture', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with invalid procedural selection possibility into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -900,7 +900,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection containing items with invalid procedural selection into fixture', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with invalid procedural selection into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -928,7 +928,7 @@ describe('instantiate_moderator command', () => {
             });
 
             // Additional tests targeting room item destination
-            test('valid item with invalid procedural selection possibility into room item', async () => {
+            test('1 valid item with invalid procedural selection possibility into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
@@ -938,7 +938,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection into room item', async () => {
+            test('1 valid item with invalid procedural selection into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
@@ -948,7 +948,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
             });
 
-            test('valid item without procedural selections containing items with invalid procedural selection possibility into room item', async () => {
+            test('1 valid item without procedural selections containing 3 items with invalid procedural selection possibility into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "pack", "of", "pens",
@@ -971,7 +971,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN's procedural \"ink color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item without procedural selections containing items with invalid procedural selection into room item', async () => {
+            test('1 valid item without procedural selections containing 3 items with invalid procedural selection into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "pack", "of", "pens",
@@ -994,7 +994,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("PEN does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with valid procedural selections into room item', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with valid procedural selections into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -1023,7 +1023,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection containing items with valid procedural selections into room item', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with valid procedural selections into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -1052,7 +1052,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection possibility into room item', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with invalid procedural selection possibility into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -1081,7 +1081,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection possibility containing items with invalid procedural selection into room item', async () => {
+            test('1 valid item with invalid procedural selection possibility containing 3 items with invalid procedural selection into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -1110,7 +1110,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT's procedural \"pattern color\" does not have possibility \"rainbow\".");
             });
 
-            test('valid item with invalid procedural selection containing items with invalid procedural selection possibility into room item', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with invalid procedural selection possibility into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
@@ -1139,7 +1139,7 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("FIRED GLAZED CLAY POT does not have procedural \"scary\".");
             });
 
-            test('valid item with invalid procedural selection containing items with invalid procedural selection into room item', async () => {
+            test('1 valid item with invalid procedural selection containing 3 items with invalid procedural selection into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
                     "fired", "glazed", "clay", "pot",
