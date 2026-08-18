@@ -76,6 +76,7 @@ export function parseInstantiateContainingString(game: Game, input: string): Con
         let prefab = game.entityFinder.getPrefab(itemString);
         if (!prefab) throw new Error(game.errorMessageGenerator.generateEntityNotFoundError("prefab", itemString));
         if (isNaN(quantity) || quantity < 1) throw new Error(game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
+        if (quantity > 1 && !prefab.pluralContainingPhrase) throw new Error(game.errorMessageGenerator.generateNoPluralContainingPhraseError(prefab));
         const uses = prefab.uses;
         containedItems.push({ prefab: prefab, quantity: quantity, uses: uses, proceduralSelections: proceduralSelections });
     }
