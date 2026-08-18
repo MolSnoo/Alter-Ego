@@ -49,30 +49,30 @@ declare global {
         messageId: Snowflake;
     }
 
-	/**
-	 * Represents a Discord message handled by Alter Ego.
-	 */
-	type UserMessage = OmitPartialGroupDMChannel<Message>;
+    /**
+     * Represents a Discord message handled by Alter Ego.
+     */
+    type UserMessage = OmitPartialGroupDMChannel<Message>;
 
-	/**
-	 * Represents a Discord object that can be messaged.
-	 */
-	type Messageable = UserMessage['channel'];
+    /**
+     * Represents a Discord object that can be messaged.
+     */
+    type Messageable = UserMessage['channel'];
 
-	/**
-	 * Represents the callee of a bot command.
-	 */
-	type Callee = Event | Flag | InventoryItem | Puzzle;
+    /**
+     * Represents the callee of a bot command.
+     */
+    type Callee = Event | Flag | InventoryItem | Puzzle;
 
     /**
      * Represents a container that can hold room items.
      */
     type RoomItemContainer = Fixture | Puzzle | RoomItem;
 
-	/**
-	 * Represents an inspectable game entity.
-	 */
-	type Inspectable = Room|Fixture|RoomItem|InventoryItem|Player;
+    /**
+     * Represents an inspectable game entity.
+     */
+    type Inspectable = Room|Fixture|RoomItem|InventoryItem|Player;
 
     /**
      * Represents a game entity that can be used as a target for gestures.
@@ -84,71 +84,72 @@ declare global {
      */
     type BotInteraction = ButtonInteraction|StringSelectMenuInteraction|ModalSubmitInteraction;
 
-	/**
-	 * The configuration for a command.
-	 */
-	interface CommandConfig {
+    /**
+     * The configuration for a command.
+     */
+    interface CommandConfig {
         /** The name of the command. */
-		name: string;
+        name: string;
         /** A brief description of what the command does. */
-		description: string;
+        description: string;
         /** Detailed information about the command. */
-		details: string;
+        details: string;
         /** The role that can use the command. */
-		usableBy: string;
+        usableBy: string;
         /** Alternative names for the command. */
-		aliases: string[];
+        aliases: string[];
         /** Indicates whether the command requires an ongoing game to be executed. */
-		requiresGame: boolean;
+        requiresGame: boolean;
         /** Whether or not the command is sensitive to whitespace, and should not have argument whitespace altered. */
         whitespaceSensitive?: boolean;
         /** Whether the command is usable in edit mode. */
         usableInEditMode?: boolean;
-	}
+    }
 
-	/**
-	 * Represents an abstract command with its configuration.
-	 */
-	interface ICommand {
+    /**
+     * Represents an abstract command with its configuration.
+     */
+    interface ICommand {
         /** The specific configuration of the command. */
-		config: CommandConfig;
+        config: CommandConfig;
         /** Examples of the command's usage. */
-		usage: (settings: GameSettings) => string;
-	}
+        usage: (settings: GameSettings) => string;
+    }
 
     /**
      * A command usable by the bot itself. Command sets can be written for some in-game data structures to be executed when certain conditions are met.
      */
-	interface IBotCommand extends ICommand {
+    interface IBotCommand extends ICommand {
         /** The code to execute when the command is called. */
-		execute: (game: Game, command: string, args: string[], player?: Player, callee?: Callee) => Promise<void>;
-	}
+        execute: (game: Game, command: string, args: string[], player?: Player, callee?: Callee) => Promise<void>;
+    }
 
     /**
      * A command usable by a moderator.
      */
-	interface IModeratorCommand extends ICommand {
+    interface IModeratorCommand extends ICommand {
         /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[], moderator: Moderator) => Promise<void>;
-	}
+        execute: (game: Game, message: UserMessage, command: string, args: string[], moderator: Moderator) => Promise<void>;
+    }
 
     /**
      * A command usable by a player.
      */
-	interface IPlayerCommand extends ICommand {
+    interface IPlayerCommand extends ICommand {
         /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[], player: Player) => Promise<void>;
-	}
+        execute: (game: Game, message: UserMessage, command: string, args: string[], player: Player) => Promise<void>;
+    }
 
     /**
      * A command usable by someone with the eligible role.
      */
-	interface IEligibleCommand extends ICommand {
+    interface IEligibleCommand extends ICommand {
         /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[]) => Promise<void>;
-	}
+        execute: (game: Game, message: UserMessage, command: string, args: string[]) => Promise<void>;
+    }
 
     type PersistentGameEntityName = "Room"|"Exit"|"Fixture"|"Prefab"|"Recipe"|"RoomItem"|"Puzzle"|"Event"|"StatusEffect"|"Player"|"InventoryItem"|"Gesture"|"Flag";
+    type GameEntityName = PersistentGameEntityName|"ItemContainer"|"InventorySlot"|"EquipmentSlot";
 
     interface PersistentGameEntity<F extends string> extends GameEntity {
         getEntityID: () => string;
@@ -162,122 +163,122 @@ declare global {
         value: string
     }
 
-	/**
-	 * Represents a range of values in a spreadsheet.
-	 */
-	interface ValueRange {
+    /**
+     * Represents a range of values in a spreadsheet.
+     */
+    interface ValueRange {
         /** The A1 notation of the range. */
-		range: string;
+        range: string;
         /** The major dimension of the values. Either 'ROWS' or 'COLUMNS'. Optional. */
-		majorDimension?: string;
+        majorDimension?: string;
         /** The values within the specified range. */
-		values: string[][];
-	}
+        values: string[][];
+    }
 
-	/**
-	 * Represents a 3D position.
-	 */
-	interface Pos {
+    /**
+     * Represents a 3D position.
+     */
+    interface Pos {
         /** X coordinate */
-		x: number;
+        x: number;
         /** Y coordinate */
-		y: number;
+        y: number;
         /** Z coordinate */
-		z: number;
-	}
+        z: number;
+    }
 
-	/**
-	 * Represents a player's stats.
-	 */
-	interface Stats {
+    /**
+     * Represents a player's stats.
+     */
+    interface Stats {
         /** Physical strength. */
-		strength: number;
+        strength: number;
         /** Perception. */
-		perception: number;
+        perception: number;
         /**
          * Alias for perception.
          * @deprecated Use perception instead.
          */
-		intelligence?: number;
+        intelligence?: number;
         /** Agility or dexterity. */
-		dexterity: number;
+        dexterity: number;
         /** Movement speed. */
-		speed: number;
+        speed: number;
         /** Physical stamina. */
-		stamina: number;
-	}
+        stamina: number;
+    }
 
-	interface StatModifier {
+    interface StatModifier {
         /** Whether the stat modifier modifies the player's own stat. */
-		modifiesSelf: boolean;
+        modifiesSelf: boolean;
         /** The stat to modify. */
-		stat: string;
+        stat: string;
         /** Whether it assigns the value or adds to it. */
-		assignValue: boolean;
+        assignValue: boolean;
         /** The value to assign or add. */
-		value: number;
-	}
+        value: number;
+    }
 
-	interface StatusDisplay {
+    interface StatusDisplay {
         /** The ID of the status effect. */
-		id: string;
+        id: string;
         /** The remaining time for the status effect. */
-		timeRemaining: string;
-	}
+        timeRemaining: string;
+    }
 
-	interface CraftingResult {
+    interface CraftingResult {
         /** The first product of the crafting result, or null if none. */
-		product1: InventoryItem | null;
+        product1: InventoryItem | null;
         /** The second product of the crafting result, or null if none. */
-		product2: InventoryItem | null;
-	}
+        product2: InventoryItem | null;
+    }
 
-	interface UncraftingResult {
+    interface UncraftingResult {
         /** The first ingredient recovered from uncrafting, or null if none. */
-		ingredient1: InventoryItem | null;
+        ingredient1: InventoryItem | null;
         /** The second ingredient recovered from uncrafting, or null if none. */
-		ingredient2: InventoryItem | null;
-	}
+        ingredient2: InventoryItem | null;
+    }
 
-	interface Possibility {
-		index: number;
-		chance: number;
+    interface Possibility {
+        index: number;
+        chance: number;
         name: string;
-	}
+    }
 
-	interface TestParserWarningOrError {
-		cell: string;
-		warnings?: string[];
-		errors?: string[];
-	}
+    interface TestParserWarningOrError {
+        cell: string;
+        warnings?: string[];
+        errors?: string[];
+    }
 
-	interface TestParserResults {
-		warnings: TestParserWarningOrError[];
-		errors: TestParserWarningOrError[];
+    interface TestParserResults {
+        warnings: TestParserWarningOrError[];
+        errors: TestParserWarningOrError[];
         gameDictionary: Set<string>;
-	}
+    }
 
-	type ScriptEvaluationContext = {
+    type ScriptEvaluationContext = {
         /** The game entity this script is attached to. */
-		container: GameEntity;
+        container: GameEntity;
         /** The player currently in scope. */
-		player: Player;
-	};
+        player: Player;
+    };
 
-	type ScriptProxyHandler = {
+    type ScriptProxyHandler = {
         /** Function to handle property access. */
-		get: (targetObject: any, propKey: string | symbol, thisReceiver: any) => any;
+        get: (targetObject: any, propKey: string | symbol, thisReceiver: any) => any;
         /** Function to handle property assignment. */
-		set: () => any;
-		deleteProperty: () => any;
-		defineProperty: () => any;
-		setPrototypeOf: () => any;
-		has: (targetObject: Node, propKey: string | symbol) => boolean;
-		ownKeys: (targetObject: Node) => (string | symbol)[];
-		getOwnPropertyDescriptor: (targetObject: Node, propKey: string | symbol) => TypedPropertyDescriptor<any>;
-		getPrototypeOf: (targetObject: Node) => object;
-	};
+        set: () => any;
+        deleteProperty: () => any;
+        defineProperty: () => any;
+        setPrototypeOf: () => any;
+        has: (targetObject: Node, propKey: string | symbol) => boolean;
+        ownKeys: (targetObject: Node) => (string | symbol)[];
+        getOwnPropertyDescriptor: (targetObject: Node, propKey: string | symbol) => TypedPropertyDescriptor<any>;
+        getPrototypeOf: (targetObject: Node) => object;
+    };
 
-	/** Convenience alias for the constructor of T. */
+    /** Convenience alias for the constructor of T. */
     type Constructor<T extends any> = { new(...args: any[]): T }
 }
