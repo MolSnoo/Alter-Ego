@@ -63,7 +63,7 @@ describe('instantiate_moderator command', () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "in", "kyra's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", "mug of coffee in kyra's left hand".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, "LEFT HAND", null, "", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
                 expect(context.player.name).toBe(kyra.name);
@@ -73,7 +73,7 @@ describe('instantiate_moderator command', () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const pen = testGame.entityFinder.getPrefab("pen");
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["pen", "(ink", "color", "=", "red)", "in", "kyra's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", "pen (ink color = red) in kyra's left hand".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, "LEFT HAND", null, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
                 expect(context.player.name).toBe(kyra.name);
@@ -163,7 +163,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item without procedural selections into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "in", "kyra's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -173,7 +173,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item with procedural selections into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "(scary", "=", "true)", "in", "kyra's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -185,7 +185,7 @@ describe('instantiate_moderator command', () => {
             test('valid item with invalid procedural selection possibility into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(ink", "color", "=", "rainbow)", "in", "kyra's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -195,7 +195,7 @@ describe('instantiate_moderator command', () => {
             test('valid item with invalid procedural selection into player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(scary", "=", "true)", "in", "kyra's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -395,7 +395,7 @@ describe('instantiate_moderator command', () => {
             test('valid item without procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["mug", "of", "coffee", "in", "nobody's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "mug of coffee in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -405,7 +405,7 @@ describe('instantiate_moderator command', () => {
             test('valid item with valid procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(ink", "color", "=", "red)", "in", "nobody's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = red) in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -415,7 +415,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item without procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "in", "nobody's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -425,7 +425,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item with procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "(scary", "=", "true)", "in", "nobody's", "left", "hand"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -461,7 +461,7 @@ describe('instantiate_moderator command', () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "on", "floor", "at", "lobby"], moderator);
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", "mug of coffee on floor at lobby".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, floor, "", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -470,7 +470,7 @@ describe('instantiate_moderator command', () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pen = testGame.entityFinder.getPrefab("pen");
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["pen", "(ink", "color", "=", "red)", "on", "floor", "at", "lobby"], moderator);
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", "pen (ink color = red) on floor at lobby".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, floor, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -560,7 +560,7 @@ describe('instantiate_moderator command', () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["mug", "of", "coffee", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", "mug of coffee in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, pot, "POT", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -569,7 +569,7 @@ describe('instantiate_moderator command', () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pen = testGame.entityFinder.getPrefab("pen");
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, createMockMessage(), "create", ["pen", "(ink", "color", "=", "red)", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                await instantiate_moderator.execute(testGame, createMockMessage(), "create", "pen (ink color = red) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, pot, "POT", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -664,7 +664,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item without procedural selections into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "on", "floor", "at", "lobby"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -674,7 +674,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item with procedural selections into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "(scary", "=", "true)", "on", "floor", "at", "lobby"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -684,7 +684,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item without procedural selections into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -694,7 +694,7 @@ describe('instantiate_moderator command', () => {
             test('invalid item with procedural selections into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["something", "very", "scary", "(scary", "=", "true)", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -706,7 +706,7 @@ describe('instantiate_moderator command', () => {
             test('valid item with invalid procedural selection possibility into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(ink", "color", "=", "rainbow)", "on", "floor", "at", "lobby"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -716,7 +716,7 @@ describe('instantiate_moderator command', () => {
             test('valid item with invalid procedural selection into fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(scary", "=", "true)", "on", "floor", "at", "lobby"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -931,7 +931,7 @@ describe('instantiate_moderator command', () => {
             test('valid item with invalid procedural selection possibility into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(ink", "color", "=", "rainbow)", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -941,7 +941,7 @@ describe('instantiate_moderator command', () => {
             test('valid item with invalid procedural selection into room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 // @ts-expect-error
-                await instantiate_moderator.execute(testGame, message, "create", ["pen", "(scary", "=", "true)", "in", "pot", "of", "pot", "1", "at", "kitchen"], moderator);
+                await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
