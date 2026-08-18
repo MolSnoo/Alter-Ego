@@ -123,7 +123,7 @@ export async function execute(game, message, command, args, moderator) {
     }
     args = parsedInput.split(' ');
 
-    /** @type Player | null */
+    /** @type {Player | null} */
     let player = null;
     // Room was found. Look for the container in it.
     if (room !== null) {
@@ -153,9 +153,9 @@ export async function execute(game, message, command, args, moderator) {
             // Check if a container item was specified.
             const items = game.entityFinder.getRoomItems(null, room.id);
             for (let i = 0; i < items.length; i++) {
-                if (items[i].identifier === parsedInput || items[i].prefab.id === parsedInput || items[i].name === parsedInput) return game.communicationHandler.reply(message, `You need to supply a prefab and a preposition.`);
+                if (items[i].identifier === parsedInput || items[i].prefab.id === parsedInput || items[i].name === parsedInput) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateSpecifyError(`a prefab and a preposition`));
                 if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "" || parsedInput.endsWith(items[i].prefab.id) || parsedInput.endsWith(items[i].name)) {
-                    if (items[i].inventory.size === 0 || items[i].prefab.preposition === "") return game.communicationHandler.reply(message, `${items[i].identifier ? items[i].identifier : items[i].name} cannot hold items.`);
+                    if (items[i].inventory.size === 0 || items[i].prefab.preposition === "") return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotPutItemsInContainerError(items[i], "Moderator"));
                     containerItem = items[i];
 
                     if (parsedInput.endsWith(items[i].identifier) && items[i].identifier !== "")
@@ -176,7 +176,7 @@ export async function execute(game, message, command, args, moderator) {
                                 break;
                             }
                         }
-                        if (containerItemSlot === null) return game.communicationHandler.reply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                        if (containerItemSlot === null) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateInventorySlotNotFoundError(containerItem, newArgs[newArgs.length - 1], "Moderator"));
                     }
                     if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                         parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -189,6 +189,7 @@ export async function execute(game, message, command, args, moderator) {
         }
 
         // Now decide what the container should be.
+        /** @type {RoomItemContainer} */
         let container = null;
         let slotName = "";
         if (fixture !== null && fixture.childPuzzle === null && containerItem === null)
@@ -227,10 +228,10 @@ export async function execute(game, message, command, args, moderator) {
         if (prefab !== null && container === null) {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
-            return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateEntityNotFoundError("fixture, room item, or puzzle", parsedInput));
         }
-        else if (prefab === null && container !== null) return game.communicationHandler.reply(message, `Couldn't find prefab with id "${parsedInput}".`);
-        else if (prefab === null && container === null) return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
+        else if (prefab === null && container !== null) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateEntityNotFoundError("prefab with id", parsedInput));
+        else if (prefab === null && container === null) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateNotFoundError(parsedInput));
 
         if (!container.isItemContainer() || !container.canCurrentlyContainItems(false, true))
             return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotPutItemsInContainerError(container, "Moderator"));
@@ -287,7 +288,7 @@ export async function execute(game, message, command, args, moderator) {
             }
         }
         if (player === null) {
-            if (!isMessageStartingWithIs) game.communicationHandler.reply(message, `Couldn't find a room or player in your input.`);
+            if (!isMessageStartingWithIs) game.communicationHandler.reply(message, game.errorMessageGenerator.generateRoomOrPlayerNotFoundError());
             return;
         }
 
@@ -322,7 +323,7 @@ export async function execute(game, message, command, args, moderator) {
                             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(id)).trimEnd();
                         }
                     }
-                    if (containerItemSlot === null) return game.communicationHandler.reply(message, `Couldn't find "${newArgs[newArgs.length - 1]}" of ${containerItem.identifier ? containerItem.identifier : containerItem.name}.`);
+                    if (containerItemSlot === null) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateInventorySlotNotFoundError(containerItem, newArgs[newArgs.length - 1], "Moderator"));
                 }
                 if (parsedInput.endsWith(containerItem.prefab.preposition.toUpperCase()))
                     parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(containerItem.prefab.preposition.toUpperCase())).trimEnd();
@@ -377,13 +378,13 @@ export async function execute(game, message, command, args, moderator) {
         if (prefab !== null && containerItem === null && equipmentSlotId === "") {
             parsedInput = parsedInput.substring(prefab.id.length).trimStart();
             parsedInput = parsedInput.substring(parsedInput.indexOf(' ')).trimStart();
-            return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}" to instantiate ${prefab.id} into.`);
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateEntityNotFoundError("inventory item or equipment slot", parsedInput));
         }
         else if (prefab === null && (containerItem !== null || equipmentSlotId !== "")) {
             parsedInput = parsedInput.substring(0, parsedInput.lastIndexOf(' '));
-            return game.communicationHandler.reply(message, `Couldn't find prefab with id "${parsedInput}".`);
+            return game.communicationHandler.reply(message, game.errorMessageGenerator.generateEntityNotFoundError("prefab with id", parsedInput));
         }
-        else if (prefab === null && containerItem === null && equipmentSlotId === "") return game.communicationHandler.reply(message, `Couldn't find "${parsedInput}".`);
+        else if (prefab === null && containerItem === null && equipmentSlotId === "") return game.communicationHandler.reply(message, game.errorMessageGenerator.generateNotFoundError(parsedInput));
 
         if (isNaN(quantity) || quantity < 1)
             return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
