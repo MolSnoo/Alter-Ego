@@ -829,7 +829,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("Couldn't find \"ABYSSAL VOID\" to instantiate PACK OF PENS into.");
+                expect(message.reply).toBeInvokedWith("Couldn't find inventory item or equipment slot \"ABYSSAL VOID\".");
             });
 
             test('1 valid item with valid procedural selections containing 4 items with valid procedural selections into invalid player equipment slot', async () => {
@@ -853,7 +853,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("Couldn't find \"ABYSSAL VOID\" to instantiate FIRED GLAZED CLAY POT into.");
+                expect(message.reply).toBeInvokedWith("Couldn't find inventory item or equipment slot \"ABYSSAL VOID\".");
             });
         });
     });
@@ -3590,7 +3590,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("Couldn't find \"VERY SCARY ABYSSAL VOID\" to instantiate PACK OF PENS into.");
+                expect(message.reply).toBeInvokedWith("Couldn't find fixture, room item, or puzzle \"VERY SCARY ABYSSAL VOID\".");
             });
 
             test('1 valid item with valid procedural selections containing 4 items with valid procedural selections into invalid fixture', async () => {
@@ -3616,7 +3616,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("Couldn't find \"VERY SCARY ABYSSAL VOID\" to instantiate FIRED GLAZED CLAY POT into.");
+                expect(message.reply).toBeInvokedWith("Couldn't find fixture, room item, or puzzle \"VERY SCARY ABYSSAL VOID\".");
             });
 
             test('1 valid item without procedural selections containing 9 items with valid procedural selections into invalid room item', async () => {
@@ -3639,7 +3639,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("Couldn't find \"VERY SCARY ABYSSAL VOID\" to instantiate PACK OF PENS into.");
+                expect(message.reply).toBeInvokedWith("Couldn't find fixture, room item, or puzzle \"VOID OF VERY SCARY ABYSSAL VOID\".");
             });
 
             test('1 valid item with valid procedural selections containing 4 items with valid procedural selections into invalid room item', async () => {
@@ -3667,7 +3667,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("Couldn't find \"VERY SCARY ABYSSAL VOID\" to instantiate FIRED GLAZED CLAY POT into.");
+                expect(message.reply).toBeInvokedWith("Couldn't find fixture, room item, or puzzle \"VOID OF VERY SCARY ABYSSAL VOID\".");
             });
 
             test('1 valid item without procedural selections containing 9 items with valid procedural selections into invalid room item slot', async () => {
