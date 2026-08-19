@@ -37,8 +37,6 @@ describe('instantiate_moderator command', () => {
     });
 
     afterEach(async () => {
-        await testGame.entityLoader.loadInventoryItems(false);
-        await testGame.entityLoader.loadRoomItems(false);
         clearQueue(testGame);
         vi.resetAllMocks();
     });
@@ -71,6 +69,10 @@ describe('instantiate_moderator command', () => {
         let context;
 
         describe('valid invocations', () => {
+            afterEach(async () => {
+                await testGame.entityLoader.loadInventoryItems(false);
+            });
+
             test('1 valid item without procedural selections into valid player equipment slot', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
@@ -879,6 +881,10 @@ describe('instantiate_moderator command', () => {
         let context;
 
         describe('valid invocations', () => {
+            afterEach(async () => {
+                await testGame.entityLoader.loadRoomItems(false);
+            });
+
             test('1 valid item without procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
