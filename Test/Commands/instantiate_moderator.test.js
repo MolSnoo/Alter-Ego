@@ -48,13 +48,11 @@ describe('instantiate_moderator command', () => {
 
     describe('inventory items', () => {
         beforeEach(() => {
-            const original = InstantiateInventoryItemAction.prototype.performInstantiateInventoryItem;
             spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
             spy.mockImplementation(function (...args) {
                 // @ts-expect-error
                 context = this;
-                // @ts-expect-error
-                return original.apply(this, args);
+                return [];
             });
         });
 
@@ -69,10 +67,6 @@ describe('instantiate_moderator command', () => {
         let context;
 
         describe('valid invocations', () => {
-            afterEach(async () => {
-                await testGame.entityLoader.loadInventoryItems(false);
-            });
-
             test('1 valid item without procedural selections into valid player equipment slot', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
@@ -860,13 +854,11 @@ describe('instantiate_moderator command', () => {
 
     describe('room items', () => {
         beforeEach(() => {
-            const original = InstantiateRoomItemAction.prototype.performInstantiateRoomItem;
             spy = vi.spyOn(InstantiateRoomItemAction.prototype, "performInstantiateRoomItem");
             spy.mockImplementation(function (...args) {
                 // @ts-expect-error
                 context = this;
-                // @ts-expect-error
-                return original.apply(this, args);
+                return [];
             });
         });
 
@@ -881,10 +873,6 @@ describe('instantiate_moderator command', () => {
         let context;
 
         describe('valid invocations', () => {
-            afterEach(async () => {
-                await testGame.entityLoader.loadRoomItems(false);
-            });
-
             test('1 valid item without procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
