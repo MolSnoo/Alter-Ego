@@ -6,9 +6,12 @@ import Action from "../Action.ts";
 import ActivateAction from "./ActivateAction.ts";
 import AttemptAction from "./AttemptAction.ts";
 import type Fixture from "../Fixture.ts";
+import type Game from "../Game.ts";
 import type ItemInstance from "../ItemInstance.ts";
-import Player from "../Player.ts";
+import type Player from "../Player.ts";
 import type Puzzle from "../Puzzle.ts";
+import type Room from "../Room.ts";
+import type Whisper from "../Whisper.ts";
 
 /**
  * Represents an activate and attempt action.
@@ -16,6 +19,24 @@ import type Puzzle from "../Puzzle.ts";
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/action.html#activate-and-attempt-action
  */
 export default class ActivateAndAttemptAction extends Action {
+    private readonly activateAction: ActivateAction;
+    private readonly attemptAction: AttemptAction;
+
+    /**
+     * @param game - The game this belongs to.
+     * @param message - The message that initiated the action.
+     * @param player - The player performing the action.
+     * @param location - The location where this action is being performed.
+     * @param forced - Whether or not the action was performed by someone other than the player themselves.
+     * @param whisper - The whisper where this action is being performed, if applicable.
+     * @param user - The user who created the action, if applicable.
+     */
+    constructor(game: Game, message: UserMessage, player: Player, location: Room, forced: boolean, whisper?: Whisper, user?: User) {
+        super(game, message, player, location, forced, whisper, user);
+        this.activateAction = new ActivateAction(game, message, player, location, forced, whisper, user);
+        this.attemptAction = new AttemptAction(game, message, player, location, forced, whisper, user);
+    }
+
     /**
      * Performs an activate and attempt action.
      *
@@ -30,10 +51,34 @@ export default class ActivateAndAttemptAction extends Action {
     performActivateAndAttempt(fixture: Fixture, puzzle: Puzzle, item: ItemInstance, password: string, command: string, input: string, targetPlayer?: Player): void {
         if (this.performed) return;
         super.perform();
-        const activateAction = new ActivateAction(this.getGame(), this.message, this.player, this.player.location, this.forced, this.whisper, this.user);
-        activateAction.performActivate(fixture, false);
-        const attemptAction = new AttemptAction(this.getGame(), this.message, this.player, this.player.location, this.forced, this.whisper, this.user);
-        attemptAction.performAttempt(puzzle, item, password, command, input, targetPlayer);
+        this.activateAction.performActivate(fixture, false);
+        this.attemptAction.performAttempt(puzzle, item, password, command, input, targetPlayer);
         this.successMessage = `Successfully activated ${fixture.name} and attempted ${puzzle.name} for ${this.player?.name}.`;
+    }
+
+    /**
+     * Finds the required fixture to call performActivateAndAttempt.
+     *
+     * @param args - The args as strings.
+     */
+    parseInteractionArgs(args: string[]): [Fixture, boolean, Puzzle, ItemInstance, string, string, string, string, Player] {
+        const fixtureArgs = args.slice(0, 3);
+        const puzzleArgs = args.slice(3);
+        const [fixture, narrate] = this.activateAction.parseInteractionArgs(fixtureArgs);
+        const [puzzle, item, password, command, input, targetPlayerDisplayName, targetPlayer] = this.attemptAction.parseInteractionArgs(puzzleArgs);
+        return [fixture, narrate, puzzle, item, password, command, input, targetPlayerDisplayName, targetPlayer];
+    }
+
+    /**
+     * Validates the parsed args. The results can be passed directly into performActivateAndAttempt.
+     *
+     * @param args - The args after being parsed.
+     */
+    validateInteractionArgs(args: ReturnType<typeof this.parseInteractionArgs>): [Fixture, Puzzle, ItemInstance, string, string, string, Player] {
+        const fixtureArgs = args.slice(0, 2) as [Fixture, boolean];
+        const puzzleArgs = args.slice(2) as [Puzzle, ItemInstance, string, string, string, string, Player];
+        const [fixture] = this.activateAction.validateInteractionArgs(fixtureArgs);
+        const [puzzle, item, password, command, input, targetPlayer] = this.attemptAction.validateInteractionArgs(puzzleArgs);
+        return [fixture, puzzle, item, password, command, input, targetPlayer];
     }
 }

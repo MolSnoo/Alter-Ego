@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 // SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -46,6 +47,8 @@ import InventoryAction from "../Data/Actions/InventoryAction.ts";
 import ActivateAction from "../Data/Actions/ActivateAction.ts";
 import DeactivateAction from "../Data/Actions/DeactivateAction.ts";
 import AttemptAction from "../Data/Actions/AttemptAction.ts";
+import ActivateAndAttemptAction from "../Data/Actions/ActivateAndAttemptAction.ts";
+import DeactivateAndAttemptAction from "../Data/Actions/DeactivateAndAttemptAction.ts";
 import InstantiateInventoryItemAction from "../Data/Actions/InstantiateInventoryItemAction.ts";
 import InstantiateRoomItemAction from "../Data/Actions/InstantiateRoomItemAction.ts";
 import DestroyInventoryItemAction from "../Data/Actions/DestroyInventoryItemAction.ts";
@@ -681,16 +684,42 @@ export default class ClientInteractableManager {
     }
 
     /**
+     * Creates an appropriate attempt action directive based on the presence and activation state of the fixture, if one exists.
+     * @param puzzleArgs - The puzzle args to create the action directive with.
+     * @param player - The player these interactables are being created for.
+     * @param user - The user these interactables are being created for.
+     * @param fixture - The matching fixture that can be activated or deactivated. Optional.
+     * @param fixtureArgs - The fixture args to create the action directive with. Defaults to an empty array.
+     */
+    private getAttemptActionDirective(
+        puzzleArgs: ReturnType<typeof Puzzle.prototype.getAttemptActionDirectiveArgs>,
+        player: Player,
+        user: User,
+        fixture?: Fixture,
+        fixtureArgs: string[] = [],
+    ): ActionDirective<AttemptAction | ActivateAndAttemptAction | DeactivateAndAttemptAction> {
+        if (fixture && fixture.activated)
+            return this.#createActionDirective(DeactivateAndAttemptAction, fixtureArgs.concat(puzzleArgs), user, player);
+        else if (fixture)
+            return this.#createActionDirective(ActivateAndAttemptAction, fixtureArgs.concat(puzzleArgs), user, player);
+        else
+            return this.#createActionDirective(AttemptAction, puzzleArgs, user, player);
+    }
+
+    /**
      * Creates Button Interactables for an attemptable puzzle and adds them to the cache.
      * @param puzzle - The puzzle that can be attempted.
      * @param player - The player these interactables are being created for.
      * @param user - The user these interactables are being created for. Defaults to the given player.
+     * @param fixture - The matching fixture that can be activated or deactivated. Optional.
      * @param respondWithModal - Whether or not to respond to the input with a modal to gather additional input. Optional. Defaults to false.
      * @param solved - Whether or not to consider the puzzle solved or not. Optional. If not provided, the puzzle's actual solved state will be used.
      */
-    private createSimpleAttemptActionInteractables(puzzle: Puzzle, player: Player, user: User = player, respondWithModal: boolean = false, solved?: boolean): ButtonInteractable[] {
+    private createSimpleAttemptActionInteractables(puzzle: Puzzle, player: Player, user: User = player, fixture?: Fixture, respondWithModal: boolean = false, solved?: boolean): ButtonInteractable[] {
         if (!player.canUseCommand("use")) return [];
-        const actionDirective = this.#createActionDirective(AttemptAction, puzzle.getAttemptActionDirectiveArgs(solved), user, player);
+        const fixtureArgs: string[] = fixture ? fixture.getActivateOrDeactivateActionDirectiveArgs(false) : [];
+        const puzzleArgs = puzzle.getAttemptActionDirectiveArgs(solved);
+        const actionDirective = this.getAttemptActionDirective(puzzleArgs, player, user, fixture, fixtureArgs);
         const suffix = respondWithModal ? `…` : ``;
         const label = `${capitalizeFirstLetter(puzzle.getAttemptVerb(solved))} ${puzzle.getDisplayName()}${suffix}`;
         const interactableOptions = new InteractableOptions(actionDirective, label, undefined, undefined, respondWithModal);
@@ -703,17 +732,20 @@ export default class ClientInteractableManager {
      * @param items - The inventory items the puzzle can be attempted with.
      * @param player - The player these interactables are being created for.
      * @param user - The user these interactables are being created for. Defaults to the given player.
+     * @param fixture - The matching fixture that can be activated or deactivated. Optional.
      * @param respondWithModal - Whether or not to respond to the input with a modal to gather additional input. Optional. Defaults to false.
      * @param solved - Whether or not to consider the puzzle solved or not. Optional. If not provided, the puzzle's actual solved state will be used.
      */
-    private createAttemptActionWithItemInteractables(puzzle: Puzzle, items: InventoryItem[], player: Player, user: User = player, respondWithModal: boolean = false, solved?: boolean): StringSelectMenuInteractable[] {
+    private createAttemptActionWithItemInteractables(puzzle: Puzzle, items: InventoryItem[], player: Player, user: User = player, fixture?: Fixture, respondWithModal: boolean = false, solved?: boolean): StringSelectMenuInteractable[] {
         if (!player.canUseCommand("use")) return [];
-        const interactableOptions: InteractableOptions<AttemptAction>[] = [];
+        const interactableOptions: InteractableOptions<AttemptAction | ActivateAndAttemptAction | DeactivateAndAttemptAction>[] = [];
         const puzzleName = puzzle.getDisplayName();
         const verb = `${capitalizeFirstLetter(puzzle.getAttemptVerb(solved))}`;
         const preposition = `${puzzle.getAttemptWithItemPreposition(solved)}`;
+        const fixtureArgs: string[] = fixture ? fixture.getActivateOrDeactivateActionDirectiveArgs(false) : [];
         for (const item of items) {
-            const actionDirective = this.#createActionDirective(AttemptAction, puzzle.getAttemptActionDirectiveArgs(solved, item), user, player);
+            const puzzleArgs = puzzle.getAttemptActionDirectiveArgs(solved, item);
+            const actionDirective = this.getAttemptActionDirective(puzzleArgs, player, user, fixture, fixtureArgs);
             const suffix = respondWithModal ? `…` : ``;
             const label = `${item.name}${suffix}`;
             let description: string;
@@ -732,17 +764,20 @@ export default class ClientInteractableManager {
      * @param solutions - The solutions the player can choose from.
      * @param player - The player these interactables are being created for.
      * @param user - The user these interactables are being created for. Defaults to the given player.
+     * @param fixture - The matching fixture that can be activated or deactivated. Optional.
      * @param solved - Whether or not to consider the puzzle solved or not. Optional. If not provided, the puzzle's actual solved state will be used.
      */
-    private createStringSelectAttemptActionInteractables(puzzle: Puzzle, solutions: string[], player: Player, user: User = player, solved?: boolean): StringSelectMenuInteractable[] {
+    private createStringSelectAttemptActionInteractables(puzzle: Puzzle, solutions: string[], player: Player, user: User = player, fixture?: Fixture, solved?: boolean): StringSelectMenuInteractable[] {
         if (!player.canUseCommand("use")) return [];
-        const interactableOptions: InteractableOptions<AttemptAction>[] = [];
+        const interactableOptions: InteractableOptions<AttemptAction | ActivateAndAttemptAction | DeactivateAndAttemptAction>[] = [];
         const puzzleName = puzzle.getDisplayName();
         const verb = `${capitalizeFirstLetter(puzzle.getAttemptVerb(solved))}`;
         const preposition = `${puzzle.getAttemptWithItemPreposition(solved)}`;
+        const fixtureArgs: string[] = fixture ? fixture.getActivateOrDeactivateActionDirectiveArgs(false) : [];
         for (const solution of solutions) {
             const targetPlayer = this.#game.entityFinder.getLivingPlayer(solution);
-            const actionDirective = this.#createActionDirective(AttemptAction, puzzle.getAttemptActionDirectiveArgs(solved, undefined, solution, targetPlayer?.displayName), user, player);
+            const puzzleArgs = puzzle.getAttemptActionDirectiveArgs(solved, undefined, solution, targetPlayer?.displayName);
+            const actionDirective = this.getAttemptActionDirective(puzzleArgs, player, user, fixture, fixtureArgs);
             const label = `${targetPlayer ? targetPlayer.displayName : solution}`;
             const description = `${verb} ${puzzleName} ${preposition} ${label}`;
             interactableOptions.push(new InteractableOptions(actionDirective, description, label, description));
@@ -759,17 +794,19 @@ export default class ClientInteractableManager {
      * @param player - The player these interactables are being created for.
      * @param user - The user these interactables are being created for.
      */
-    createAttemptActionModalInteractable(args: ReturnType<typeof Puzzle.prototype.getAttemptActionDirectiveArgs>, interactable: Interactable, player: Player, user: User): ModalInteractable {
-        const puzzle = this.#game.entityFinder.getPuzzle(args[0], args[1], args[2]);
-        const puzzleName = puzzle?.getDisplayName() ?? args[0];
+    createAttemptActionModalInteractable(args: string[], interactable: Interactable, player: Player, user: User, action: Constructor<Action | ActivateAndAttemptAction | DeactivateAndAttemptAction>): ModalInteractable {
+        const attemptAndActivate = args.length > 11;
+        const offset = attemptAndActivate ? 3 : 0;
+        const puzzle = this.#game.entityFinder.getPuzzle(args[0 + offset], args[1 + offset], args[2 + offset]);
+        const puzzleName = puzzle?.getDisplayName() ?? args[0 + offset];
         let title = interactable instanceof StringSelectMenuOptionInteractable && interactable.description
             ? interactable.description
             : interactable instanceof ButtonInteractable
                 ? interactable.label
-                : `${capitalizeFirstLetter(args[8])} ${puzzleName}`;
+                : `${capitalizeFirstLetter(args[8 + offset])} ${puzzleName}`;
         if (title.endsWith(`…`)) title = title.substring(0, title.lastIndexOf(`…`));
         const inputs: TextInputInteractable[] = [new TextInputInteractable("Attempt Solution", title)];
-        const modalActionDirective = this.#createActionDirective(AttemptAction, args.concat(["Modal"]), user, player);
+        const modalActionDirective = this.#createActionDirective(action, args.concat(["Modal"]), user, player);
         const modal = new ModalInteractable(modalActionDirective, title, inputs, ActionPriority.ATTEMPT);
         this.#addInteractable(modal);
         return modal;
@@ -1359,7 +1396,7 @@ export default class ClientInteractableManager {
     getActivateOrDeactivateInteractables(fixture: Fixture, player: Player, activated = fixture.activated, user: User = player): Interactable[] {
         let interactables: Interactable[] = [];
         // If there is a puzzle in the room with an identical name, we can't simply activate or deactivate it.
-        const matchingPuzzle = this.#game.entityFinder.getPuzzle(fixture.name, fixture.location.id);
+        const matchingPuzzle = fixture.childPuzzle || this.#game.entityFinder.getPuzzle(fixture.name, fixture.location.id);
         if (fixture.recipeTag !== "" && !matchingPuzzle && (fixture.activatable || user instanceof Moderator)) {
             if (activated)
                 interactables = interactables.concat(this.createDeactivateActionInteractables(fixture, player, user));
@@ -1384,8 +1421,9 @@ export default class ClientInteractableManager {
         let deleteStringSelectMenus = false;
         for (const puzzle of puzzles) {
             if (puzzle.requiresMod) continue;
-            const matchingFixture = this.#game.entityFinder.getFixture(puzzle.name, puzzle.location.id);
-            if (matchingFixture && matchingFixture.recipeTag !== "") continue;
+            let fixture: Fixture;
+            const matchingFixture = puzzle.parentFixture || this.#game.entityFinder.getFixture(puzzle.name, puzzle.location.id);
+            if (matchingFixture && matchingFixture.recipeTag !== "") fixture = matchingFixture;
             // Check if we can make the player select a single item from their inventory to attempt the puzzle with.
             const itemSolutions = puzzle.solutions.filter(solution => solution.startsWith("Item:") || solution.startsWith("InventoryItem:") || solution.startsWith("Prefab:"));
             const noMultiItemSolutions = itemSolutions.every(solution => !solution.includes("+"));
@@ -1393,8 +1431,8 @@ export default class ClientInteractableManager {
             const playerCanSelectItem = puzzleRequiresOneItem && inventoryItems.length > 0;
             if (Puzzle.SimpleInteractTypes.has(puzzle.type) || puzzle.type.endsWith("probability")) {
                 if (playerCanSelectItem)
-                    interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user));
-                else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user));
+                    interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user, fixture));
+                else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, fixture));
             }
             else if (Puzzle.SelectInteractTypes.has(puzzle.type)) {
                 let solutions: string[] = [];
@@ -1404,28 +1442,28 @@ export default class ClientInteractableManager {
                     solutions = puzzle.solutions.filter(solution => !solution.startsWith("Item:") && !solution.startsWith("InventoryItem:") && !solution.startsWith("Prefab:"));
                 if (!puzzle.solved || puzzle.type === "switch") {
                     if (solutions.length <= StringSelectMenuInteractable.OPTION_LIMIT)
-                        interactables = interactables.concat(this.createStringSelectAttemptActionInteractables(puzzle, solutions, player, user));
-                    else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, true));
+                        interactables = interactables.concat(this.createStringSelectAttemptActionInteractables(puzzle, solutions, player, user, fixture));
+                    else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, fixture, true));
                 }
             }
             else if (Puzzle.TextInputInteractTypes.has(puzzle.type)) {
                 if (!puzzle.solved && playerCanSelectItem)
-                    interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user, true));
+                    interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user, fixture, true));
                 else if (!puzzle.solved || puzzle.type === "password")
-                    interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, true));
-                else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user));
+                    interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, fixture, true));
+                else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, fixture));
             }
             else if (Puzzle.MixedInteractTypes.has(puzzle.type)) {
                 if (playerCanSelectItem && !puzzle.solved && (puzzle.type === "key lock" || puzzle.type === "media"))
-                    interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user));
+                    interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user, fixture));
                 if (puzzle.type === "channels" || puzzle.type === "option") {
                     if (playerCanSelectItem)
-                        interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user, true, false));
-                    else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, true, false));
+                        interactables = interactables.concat(this.createAttemptActionWithItemInteractables(puzzle, inventoryItems, player, user, fixture, true, false));
+                    else interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, fixture, true, false));
                 }
                 // All of these puzzle types can be attempted plainly if they're solved, regardless of solved state. Provide a button to do so.
                 if (puzzle.solved)
-                    interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user));
+                    interactables = interactables.concat(this.createSimpleAttemptActionInteractables(puzzle, player, user, fixture));
             }
             // Before we move onto the next puzzle, check if there's more than one string select menu.
             if (!deleteStringSelectMenus)
