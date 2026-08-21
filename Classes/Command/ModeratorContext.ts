@@ -98,7 +98,9 @@ export default class ModeratorContext extends Context {
         if (types.has(InventoryItem)) {
             for (const item of this.game.inventoryItems) {
                 if (item.prefab !== null && item.quantity > 0) {
-                    tokens.push(new ItemContainerToken(item.getIdentifier(), item));
+                    tokens.push(new ItemContainerToken(item.prefabId, item));
+                    if (item.getIdentifier() !== item.prefabId)
+                        tokens.push(new ItemContainerToken(item.getIdentifier(), item));
                     for (const [key, val] of item.inventory)
                         tokens.push(new PocketToken(key, val, item));
                     if (!prepositions.has(item.getPreposition())) {
