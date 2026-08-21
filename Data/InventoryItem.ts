@@ -401,7 +401,7 @@ export default class InventoryItem extends ItemInstance implements PersistentGam
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "InventoryItem" {
         return "InventoryItem";
     }
 }

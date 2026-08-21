@@ -19,6 +19,13 @@ import type RoomItem from "./Data/RoomItem.ts";
 import type { Node } from "acorn";
 import type Moderator from "./Data/Moderator.ts";
 import type { CommandConfig } from "./Classes/Command/Command.ts";
+import type EquipmentSlot from "./Data/EquipmentSlot.ts";
+import type Gesture from "./Data/Gesture.ts";
+import type HidingSpot from "./Data/HidingSpot.ts";
+import type InventorySlot from "./Data/InventorySlot.ts";
+import type Prefab from "./Data/Prefab.ts";
+import type Recipe from "./Data/Recipe.ts";
+import type Status from "./Data/Status.ts";
 
 export { };
 
@@ -33,6 +40,9 @@ declare global {
 
     /** Utility type that indicates that something is to be a value of T. Used for enums. */
     type valueof<T> = T[keyof T];
+
+    /** Type union of all subclasses of GameEntity. */
+    type InstantiatedGameEntity = EquipmentSlot | Event | Exit | Fixture | Flag | Gesture | HidingSpot | InventoryItem | InventorySlot<InventoryItem> | InventorySlot<RoomItem> | Player | Prefab | Puzzle | Recipe | Room | RoomItem | Status
 
     /**
      * Represents a user of the bot in a game context.

@@ -316,7 +316,7 @@ export default class Event extends GameEntity implements PersistentGameEntity<Ev
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Event" {
         return "Event";
     }
 }

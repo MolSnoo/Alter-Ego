@@ -353,7 +353,7 @@ export default class Room extends GameEntity implements PersistentGameEntity<Roo
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Room" {
         return "Room";
     }
 

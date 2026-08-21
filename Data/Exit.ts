@@ -189,7 +189,7 @@ export default class Exit extends GameEntity implements PersistentGameEntity<Exi
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Exit" {
         return "Exit";
     }
 }

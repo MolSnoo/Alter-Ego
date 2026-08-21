@@ -431,7 +431,7 @@ export default class Prefab extends GameEntity implements PersistentGameEntity<P
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Prefab" {
         return "Prefab";
     }
 }

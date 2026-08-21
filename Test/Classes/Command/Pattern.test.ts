@@ -406,15 +406,15 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
-            expect(invocation.args.get("item1")).not.toBeUndefined();
-            expect(invocation.args.get("item1").length).toBe(1);
-            invocation.args.get("item1").forEach((item: InventoryItem) => {
+            expect(invocation.getArgs("item1")).not.toBeUndefined();
+            expect(invocation.getArgs("item1").length).toBe(1);
+            invocation.getArgs("item1").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
-            expect(invocation.args.get("item2")).not.toBeUndefined();
-            expect(invocation.args.get("item2").length).toBe(1);
-            invocation.args.get("item2").forEach((item: InventoryItem) => { 
+            expect(invocation.getArgs("item2")).not.toBeUndefined();
+            expect(invocation.getArgs("item2").length).toBe(1);
+            invocation.getArgs("item2").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("PACK OF TOILET PAPER");
                 expect(item.getIdentifier()).toBe("PACK OF TOILET PAPER 2");
@@ -456,17 +456,17 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
-            expect(invocation.args.get("target")).not.toBeUndefined();
-            expect(invocation.args.get("target").length).toBe(1);
-            invocation.args.get("target").forEach((item: InventoryItem) => {
+            expect(invocation.getArgs("target")).not.toBeUndefined();
+            expect(invocation.getArgs("target").length).toBe(1);
+            invocation.getArgs("target").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
-            expect(invocation.args.get("destination")).not.toBeUndefined();
+            expect(invocation.getArgs("destination")).not.toBeUndefined();
             // there are 189 floor fixtures within the test data
             // however, two lack a preposition, and are thus excluded
-            expect(invocation.args.get("destination").length).toBe(187);
-            invocation.args.get("destination").forEach((fixture: Fixture) => { 
+            expect(invocation.getArgs("destination").length).toBe(187);
+            invocation.getArgs("destination").forEach(fixture => { 
                 expect.assert.instanceOf(fixture, Fixture);
                 expect(fixture.name).toBe("FLOOR");
             });
@@ -505,15 +505,15 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
-            expect(invocation.args.get("target")).not.toBeUndefined();
-            expect(invocation.args.get("target").length).toBe(1);
-            invocation.args.get("target").forEach((item: InventoryItem) => {
+            expect(invocation.getArgs("target")).not.toBeUndefined();
+            expect(invocation.getArgs("target").length).toBe(1);
+            invocation.getArgs("target").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
-            expect(invocation.args.get("destination")).not.toBeUndefined();
-            expect(invocation.args.get("destination").length).toBe(189);
-            invocation.args.get("destination").forEach((fixture: Fixture) => { 
+            expect(invocation.getArgs("destination")).not.toBeUndefined();
+            expect(invocation.getArgs("destination").length).toBe(189);
+            invocation.getArgs("destination").forEach(fixture => { 
                 expect.assert.instanceOf(fixture, Fixture);
                 expect(fixture.name).toBe("FLOOR");
             });
@@ -538,22 +538,22 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
-            expect(invocation.args.get("target")).not.toBeUndefined();
-            expect(invocation.args.get("target").length).toBe(1);
-            invocation.args.get("target").forEach((item: InventoryItem) => {
+            expect(invocation.getArgs("target")).not.toBeUndefined();
+            expect(invocation.getArgs("target").length).toBe(1);
+            invocation.getArgs("target").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
-            expect(invocation.args.get("destination")).not.toBeUndefined();
-            expect(invocation.args.get("destination").length).toBe(1);
-            invocation.args.get("destination").forEach((item: InventoryItem) => { 
+            expect(invocation.getArgs("destination")).not.toBeUndefined();
+            expect(invocation.getArgs("destination").length).toBe(1);
+            invocation.getArgs("destination").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
-            expect(invocation.args.get("destination pocket")).not.toBeUndefined();
-            expect(invocation.args.get("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
-            invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
+            expect(invocation.getArgs("destination pocket")).not.toBeUndefined();
+            expect(invocation.getArgs("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
+            invocation.getArgs("destination pocket").forEach(pocket => { 
                 expect.assert.instanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
@@ -600,22 +600,22 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
-            expect(invocation.args.get("target")).not.toBeUndefined();
-            expect(invocation.args.get("target").length).toBe(1);
-            invocation.args.get("target").forEach((item: InventoryItem) => {
+            expect(invocation.getArgs("target")).not.toBeUndefined();
+            expect(invocation.getArgs("target").length).toBe(1);
+            invocation.getArgs("target").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
-            expect(invocation.args.get("destination")).not.toBeUndefined();
-            expect(invocation.args.get("destination").length).toBe(1);
-            invocation.args.get("destination").forEach((item: InventoryItem) => { 
+            expect(invocation.getArgs("destination")).not.toBeUndefined();
+            expect(invocation.getArgs("destination").length).toBe(1);
+            invocation.getArgs("destination").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
-            expect(invocation.args.get("destination pocket")).not.toBeUndefined();
-            expect(invocation.args.get("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
-            invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
+            expect(invocation.getArgs("destination pocket")).not.toBeUndefined();
+            expect(invocation.getArgs("destination pocket").length).toBe(1); // there are 505 right pockets within the testing data, but we specifically want the right pocket of kyras lab coat 1
+            invocation.getArgs("destination pocket").forEach(pocket => { 
                 expect.assert.instanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
@@ -642,15 +642,15 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(2);
-            expect(invocation.args.get("target")).not.toBeUndefined();
-            expect(invocation.args.get("target").length).toBe(1);
-            invocation.args.get("target").forEach((item: InventoryItem) => {
+            expect(invocation.getArgs("target")).not.toBeUndefined();
+            expect(invocation.getArgs("target").length).toBe(1);
+            invocation.getArgs("target").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
-            expect(invocation.args.get("destination")).not.toBeUndefined();
-            expect(invocation.args.get("destination").length).toBe(1);
-            invocation.args.get("destination").forEach((item: InventoryItem) => { 
+            expect(invocation.getArgs("destination")).not.toBeUndefined();
+            expect(invocation.getArgs("destination").length).toBe(1);
+            invocation.getArgs("destination").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
@@ -671,9 +671,9 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
-            expect(invocation.args.get("recipient")).not.toBeUndefined();
-            expect(invocation.args.get("recipient").length).toBe(1);
-            invocation.args.get("recipient").forEach((player: Player) => {
+            expect(invocation.getArgs("recipient")).not.toBeUndefined();
+            expect(invocation.getArgs("recipient").length).toBe(1);
+            invocation.getArgs("recipient").forEach(player => {
                 expect.assert.instanceOf(player, Player);
                 expect(player.name).toBe("Kyra");
             });
@@ -694,9 +694,9 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(1);
-            expect(invocation.args.get("recipient")).not.toBeUndefined();
-            expect(invocation.args.get("recipient").length).toBe(1);
-            invocation.args.get("recipient").forEach((player: Player) => {
+            expect(invocation.getArgs("recipient")).not.toBeUndefined();
+            expect(invocation.getArgs("recipient").length).toBe(1);
+            invocation.getArgs("recipient").forEach(player => {
                 expect.assert.instanceOf(player, Player);
                 expect(player.name).toBe("Kyra");
             });
@@ -767,22 +767,22 @@ describe("Pattern file from NG Commands", () => {
             }
             expect.assert.instanceOf(invocation, MatchedInvocation);
             expect(invocation.args.size).toBe(3);
-            expect(invocation.args.get("target")).not.toBeUndefined();
-            expect(invocation.args.get("target").length).toBe(1);
-            invocation.args.get("target").forEach((item: InventoryItem) => {
+            expect(invocation.getArgs("target")).not.toBeUndefined();
+            expect(invocation.getArgs("target").length).toBe(1);
+            invocation.getArgs("target").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
-            expect(invocation.args.get("destination")).not.toBeUndefined();
-            expect(invocation.args.get("destination").length).toBe(1);
-            invocation.args.get("destination").forEach((item: InventoryItem) => { 
+            expect(invocation.getArgs("destination")).not.toBeUndefined();
+            expect(invocation.getArgs("destination").length).toBe(1);
+            invocation.getArgs("destination").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
             });
-            expect(invocation.args.get("destination pocket")).not.toBeUndefined();
-            expect(invocation.args.get("destination pocket").length).toBe(1);
-            invocation.args.get("destination pocket").forEach((pocket: InventorySlot<InventoryItem>) => { 
+            expect(invocation.getArgs("destination pocket")).not.toBeUndefined();
+            expect(invocation.getArgs("destination pocket").length).toBe(1);
+            invocation.getArgs("destination pocket").forEach(pocket => { 
                 expect.assert.instanceOf(pocket, InventorySlot);
                 expect(pocket.id).toBe("RIGHT POCKET");
             });
@@ -874,13 +874,13 @@ describe("Pattern file from NG Commands", () => {
             expect(invocationWith.args.size).toBe(2);
             expect(invocationWith.args.get("item 1")).not.toBeUndefined();
             expect(invocationWith.args.get("item 1").length).toBe(1);
-            invocationWith.args.get("item 1").forEach((item: InventoryItem) => {
+            invocationWith.args.get("item 1").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationWith.args.get("item 2")).not.toBeUndefined();
             expect(invocationWith.args.get("item 2").length).toBe(1);
-            invocationWith.args.get("item 2").forEach((item: InventoryItem) => { 
+            invocationWith.args.get("item 2").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
@@ -897,13 +897,13 @@ describe("Pattern file from NG Commands", () => {
             expect(invocationAnd.args.size).toBe(2);
             expect(invocationAnd.args.get("item 1")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 1").length).toBe(1);
-            invocationAnd.args.get("item 1").forEach((item: InventoryItem) => {
+            invocationAnd.args.get("item 1").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationAnd.args.get("item 2")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 2").length).toBe(1);
-            invocationAnd.args.get("item 2").forEach((item: InventoryItem) => { 
+            invocationAnd.args.get("item 2").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
@@ -930,13 +930,13 @@ describe("Pattern file from NG Commands", () => {
             expect(invocationWith.args.size).toBe(2);
             expect(invocationWith.args.get("item 1")).not.toBeUndefined();
             expect(invocationWith.args.get("item 1").length).toBe(1);
-            invocationWith.args.get("item 1").forEach((item: InventoryItem) => {
+            invocationWith.args.get("item 1").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationWith.args.get("item 2")).not.toBeUndefined();
             expect(invocationWith.args.get("item 2").length).toBe(1);
-            invocationWith.args.get("item 2").forEach((item: InventoryItem) => { 
+            invocationWith.args.get("item 2").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
@@ -957,13 +957,13 @@ describe("Pattern file from NG Commands", () => {
             expect(invocationAnd.args.size).toBe(2);
             expect(invocationAnd.args.get("item 1")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 1").length).toBe(1);
-            invocationAnd.args.get("item 1").forEach((item: InventoryItem) => {
+            invocationAnd.args.get("item 1").forEach(item => {
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("MUG OF COFFEE");
             });
             expect(invocationAnd.args.get("item 2")).not.toBeUndefined();
             expect(invocationAnd.args.get("item 2").length).toBe(1);
-            invocationAnd.args.get("item 2").forEach((item: InventoryItem) => { 
+            invocationAnd.args.get("item 2").forEach(item => { 
                 expect.assert.instanceOf(item, InventoryItem);
                 expect(item.prefabId).toBe("KYRAS LAB COAT");
                 expect(item.getIdentifier()).toBe("KYRAS LAB COAT 1");
