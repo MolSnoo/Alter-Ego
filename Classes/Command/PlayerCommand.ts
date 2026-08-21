@@ -4,10 +4,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import Command from "./Command.ts";
+import type { ValidatedInvocation } from "./Invocation.ts";
 import type PlayerContext from "./PlayerContext.ts";
 
 /**
  * New-generation command usable by a player.
  */
-export default class PlayerCommand extends Command<PlayerContext> {
+export default class PlayerCommand<I extends ValidatedInvocation> extends Command<PlayerContext, I> {
 }

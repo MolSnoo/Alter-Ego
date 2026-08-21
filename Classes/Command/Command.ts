@@ -10,8 +10,8 @@ import type { Pattern } from "./Pattern.ts";
 
 export type CommandType = "Bot" | "Moderator" | "Player" | "Eligible";
 type CommandUsage = (settings: GameSettings) => string;
-type CommandValidate<T extends Context> = (context: T, invocation: MatchedInvocation) => Promise<ValidationResult>;
-type CommandExecute<T extends Context> = (context: T, invocation: ValidatedInvocation) => Promise<void>;
+type CommandValidate<T extends Context, I extends ValidatedInvocation> = (context: T, invocation: MatchedInvocation) => Promise<ValidationResult<I>>;
+type CommandExecute<T extends Context, I extends ValidatedInvocation> = (context: T, invocation: I) => Promise<void>;
 
 /**
  * The configuration for a command.
@@ -44,7 +44,7 @@ export interface CommandConfig<T extends (Set<string> | Array<string>)> {
     playerNameStyle?: 0 | 1 | 2;
 }
 
-interface CommandConstructorArgs<T extends Context> {
+interface CommandConstructorArgs<T extends Context, I extends ValidatedInvocation> {
     /**
      * The specific configuration of the command.
      */
@@ -60,11 +60,11 @@ interface CommandConstructorArgs<T extends Context> {
     /**
      * The code to execute when the command is called, inputs matched to at least one pattern, but the invocation is not yet validated.
      */
-    validate: CommandValidate<T>;
+    validate: CommandValidate<T, I>;
     /**
      * The code to execute when the command is called, and the invocation has been validated.
      */
-    execute: CommandExecute<T>;
+    execute: CommandExecute<T, I>;
 }
 
 /**
@@ -83,7 +83,7 @@ function toSetConfig(config: CommandConfig<string[]>): CommandConfig<Set<string>
 /**
  * Abstract base class for all new-generation commands.
  */
-export default abstract class Command<T extends Context> {
+export default abstract class Command<T extends Context, I extends ValidatedInvocation> {
     /**
      * The specific configuration of the command.
      */
@@ -102,14 +102,14 @@ export default abstract class Command<T extends Context> {
     /**
      * The code to execute when the command is called, inputs matched to at least one pattern, but the invocation is not yet validated.
      */
-    readonly validate: CommandValidate<T>;
+    readonly validate: CommandValidate<T, I>;
 
     /**
      * The code to execute when the command is called, and the invocation has been validated.
      */
-    readonly execute: CommandExecute<T>;
+    readonly execute: CommandExecute<T, I>;
 
-    constructor(args: CommandConstructorArgs<T>) {
+    constructor(args: CommandConstructorArgs<T, I>) {
         this.config = toSetConfig(args.config);
         this.usage = args.usage;
         this.patterns = args.patterns ?? [];

@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { InvalidInvocation, ValidatedInvocation, type MatchedInvocation } from "../../Classes/Command/Invocation.ts";
+import { InvalidInvocation, ValidatedInvocation, type MatchedInvocation, type ValidationResult } from "../../Classes/Command/Invocation.ts";
 import { Pattern, Glob } from "../../Classes/Command/Pattern.ts";
 import PlayerCommand from "../../Classes/Command/PlayerCommand.ts";
 import type PlayerContext from "../../Classes/Command/PlayerContext.ts";
@@ -43,7 +43,7 @@ const command = new PlayerCommand({
 
     patterns: [new Pattern([new Glob()])],
 
-    validate: async (ctx: PlayerContext, inv: MatchedInvocation) => {
+    validate: async (ctx: PlayerContext, inv: MatchedInvocation): Promise<ValidationResult<ValidatedInvocation>> => {
         if (inv.glob.length === 0)
             return new InvalidInvocation([ctx.game.errorMessageGenerator.generateSpecifyErrorWithUsage("a room or exit", command.usage)]);
 

@@ -5,9 +5,10 @@
 
 import Command from "./Command.ts";
 import type EligibleContext from "./EligibleContext.ts";
+import type { ValidatedInvocation } from "./Invocation.ts";
 
 /**
  * New-generation command usable by a Discord user with the eligible role.
  */
-export default class EligibleCommand extends Command<EligibleContext> {
+export default class EligibleCommand<I extends ValidatedInvocation> extends Command<EligibleContext, I> {
 }

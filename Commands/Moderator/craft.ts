@@ -9,7 +9,6 @@ import { InvalidInvocation, ValidatedInvocation, type MatchedInvocation } from "
 import { Pattern, Slot, Multiconstant, type ErrorFactory } from "../../Classes/Command/Pattern.ts";
 import type GameSettings from "../../Classes/GameSettings.js";
 import InventoryItem from "../../Data/InventoryItem.ts";
-import type GameEntity from "../../Data/GameEntity.ts";
 import type Recipe from "../../Data/Recipe.ts";
 import CraftAction from "../../Data/Actions/CraftAction.ts";
 import ModeratorCommand from "../../Classes/Command/ModeratorCommand.ts";
@@ -96,7 +95,7 @@ const command = new ModeratorCommand({
                     `Couldn't find recipe requiring ${items[0].name} and ${items[1].name}.`,
                 ]);
 
-            const args: Collection<string, ArrayNonEmpty<GameEntity>> = new Collection();
+            const args: Collection<string, ArrayNonEmpty<InstantiatedGameEntity>> = new Collection();
 
             args.set("item 1", [items[0]]);
             args.set("item 2", [items[1]]);

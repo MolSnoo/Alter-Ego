@@ -338,5 +338,5 @@ export class InvalidInvocation extends BaseInvocation<false, false> {
 }
 
 export type MatchResult = MatchedInvocation | InvalidInvocation;
-export type ValidationResult = ValidatedInvocation | InvalidInvocation;
+export type ValidationResult<I extends ValidatedInvocation> = I | InvalidInvocation;
 export type Invocation = ValidatedInvocation | MatchedInvocation | InvalidInvocation;

@@ -52,7 +52,6 @@ const command = new PlayerCommand({
         if (status.length > 0)
             return new InvalidInvocation([`You cannot do that because you are **${status[0].id}**.`]);
 
-        const args: Collection<string, ArrayNonEmpty<GameEntity>> = new Collection();
         const item1 = inv.getInventoryItems("item 1").find(item => ctx.heldItems.has(item));
         const item2 = inv.getInventoryItems("item 2").find(item => ctx.heldItems.has(item));
 
@@ -77,6 +76,7 @@ const command = new PlayerCommand({
         if (recipe === null)
             return new InvalidInvocation([`Couldn't find recipe requiring ${items[0].name} and ${items[1].name}. Contact a moderator if you think there should be one.`]);
 
+        const args: Collection<string, ArrayNonEmpty<InstantiatedGameEntity>> = new Collection();
         args.set("item 1", [items[0]]);
         args.set("item 2", [items[1]]);
         args.set("recipe", [recipe]);

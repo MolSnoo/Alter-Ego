@@ -5,9 +5,10 @@
 
 import Command from "./Command.ts";
 import type BotContext from "./BotContext.ts";
+import type { ValidatedInvocation } from "./Invocation.ts";
 
 /**
  * New-generation command usable by the bot.
  */
-export default class BotCommand extends Command<BotContext> {
+export default class BotCommand<I extends ValidatedInvocation> extends Command<BotContext, I> {
 }

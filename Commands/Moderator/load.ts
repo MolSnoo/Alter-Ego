@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { InvalidInvocation, ValidatedInvocation, type MatchedInvocation } from "../../Classes/Command/Invocation.ts";
+import { InvalidInvocation, ValidatedInvocation, type MatchedInvocation, type ValidationResult } from "../../Classes/Command/Invocation.ts";
 import { Pattern, Glob } from "../../Classes/Command/Pattern.ts";
 import type GameSettings from "../../Classes/GameSettings.js";
 import ModeratorCommand from "../../Classes/Command/ModeratorCommand.ts";
@@ -93,7 +93,7 @@ const command = new ModeratorCommand({
 
     patterns: [new Pattern([new Glob()])],
 
-    validate: async (ctx: ModeratorContext, inv: MatchedInvocation) => {
+    validate: async (ctx: ModeratorContext, inv: MatchedInvocation): Promise<ValidationResult<LoadInvocation>> => {
         if (ctx.invokedAlias !== "las" && ctx.invokedAlias !== "lar" && inv.glob.length === 0)
             return new InvalidInvocation([
                 `You need to specify what data to get. Usage:\n${command.usage(ctx.game.settings)}`,
