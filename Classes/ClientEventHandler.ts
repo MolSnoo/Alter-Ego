@@ -4,6 +4,7 @@
 
 import type { Client } from "discord.js";
 import type ClientEvent from "./ClientEvent.ts";
+import { getErrorStack } from "../Modules/errorHandler.ts";
 
 /**
  * Represents the client event handler as a singleton.
@@ -56,7 +57,7 @@ export default class ClientEventHandler {
                  * - AC
                  */
                 console.error(
-                    `An error occurred in event "${event.name}".\n${error.stack}\n`
+                    `An error occurred in event "${event.name}".\n${getErrorStack(error)}\n`
                 );
             }
         };

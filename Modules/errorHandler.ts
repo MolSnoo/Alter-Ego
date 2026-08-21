@@ -13,6 +13,15 @@ export function getErrorMessage(error: unknown): string {
 }
 
 /**
+ * Get the error stack from any arbitrary error. It is safe to pass the output of try-catch into this function.
+ * @param error - The error to get the message from.
+ */
+export function getErrorStack(error: unknown): string {
+    if (error instanceof Error) return error.stack;
+    else return String(error);
+}
+
+/**
  * Get an error from any arbitrary error. It is safe to pass the output of try-catch into this function.
  * @param error - The error to return from.
  */
