@@ -431,7 +431,7 @@ export default class PlayerContext extends Context {
         if (types.has(Room))
             for (const room of this.adjacentRooms) {
                 tokens.push(new EntityToken(room.id, room));
-                tokens.push(new EntityToken(room.id.replace("-", " "), room));
+                tokens.push(new EntityToken(room.id.replace(/-/g, " "), room));
             }
 
         if (types.has(Exit))

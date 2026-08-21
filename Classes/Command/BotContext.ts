@@ -150,7 +150,7 @@ export default class BotContext extends Context {
             for (const room of this.game.rooms.values()) {
                 if (types.has(Room)) {
                     tokens.push(new EntityToken(room.id, room));
-                    tokens.push(new EntityToken(room.id.replace("-", " "), room));
+                    tokens.push(new EntityToken(room.id.replace(/-/g, " "), room));
                 }
                 if (types.has(Exit))
                     for (const exit of room.exits.values())
