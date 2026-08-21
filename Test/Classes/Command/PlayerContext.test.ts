@@ -703,17 +703,17 @@ describe("PlayerContext class from NG Commands", () => {
                 expect(stream.length).toBe(2);
             }
             // ItemContainerToken: should be COFFEE, with empty preposition string
-            const coffee = streams[0][0] as ItemContainerToken<InventoryItem>;
-            expect(coffee instanceof ItemContainerToken).toBeTruthy();
+            const coffee = streams[0][0];
+            expect.assert.instanceOf(coffee, ItemContainerToken);
             expect(coffee.value).toBe("COFFEE");
             expect(coffee.preposition).toBe("");
             // PrepositionToken: should be "on"
-            const preposition = streams[1][0] as PrepositionToken;
-            expect(preposition instanceof PrepositionToken).toBeTruthy();
+            const preposition = streams[1][0];
+            expect.assert.instanceOf(preposition, PrepositionToken);
             expect(preposition.value).toBe("on");
             // ItemContainerToken: should be FLOOR, with preposition "on"
-            const floor = streams[2][0] as ItemContainerToken<Fixture>;
-            expect(floor instanceof ItemContainerToken).toBeTruthy();
+            const floor = streams[2][0];
+            expect.assert.instanceOf(floor, ItemContainerToken);
             expect(floor.value).toBe("FLOOR");
             expect(floor.preposition).toBe("on");
         });
