@@ -149,8 +149,10 @@ export default class ModeratorContext extends Context {
 
         if (types.has(Room) || types.has(Exit)) {
             for (const room of this.game.rooms.values()) {
-                if (types.has(Room))
+                if (types.has(Room)) {
                     tokens.push(new EntityToken(room.id, room));
+                    tokens.push(new EntityToken(room.id.replace("-", " "), room));
+                }
                 if (types.has(Exit))
                     for (const exit of room.exits.values())
                         tokens.push(new EntityToken(exit.name, exit));
