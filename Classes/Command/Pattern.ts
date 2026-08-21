@@ -857,8 +857,11 @@ export class Pattern implements PatternElement {
         data.matches.forEach((tokens, element) => {
             if (element instanceof Preposition)
                 prepositions.set(element.name, [element, tokens.filter(token => token instanceof PrepositionToken)]);
-            else if (element instanceof Slot || element instanceof Multislot)
-                slots.set(element.name, [element, tokens.filter(token => token instanceof ItemContainerToken)]);
+            else if (element instanceof Slot || element instanceof Multislot) {
+                const filtered = tokens.filter(token => token instanceof ItemContainerToken);
+                if (filtered.length > 0)
+                    slots.set(element.name, [element, filtered]);
+            }
         });
 
         // if there are no prepositions or slots, this function is unnecessary, and we can return the unmodified base MatchData
@@ -935,13 +938,11 @@ export class Pattern implements PatternElement {
         data.matches.forEach((tokens, element) => {
             if (element instanceof Pocket)
                 pockets.set(element.id, [element, tokens.filter(token => token instanceof PocketToken)]);
-            else if (element instanceof Slot || element instanceof Multislot)
-                slots.set(element.name, [
-                    element,
-                    tokens.filter(
-                        token => token instanceof ItemContainerToken && token.reference instanceof ItemInstance,
-                    ) as ItemContainerToken<ItemInstance>[],
-                ]);
+            else if (element instanceof Slot || element instanceof Multislot) {
+                const filtered = tokens.filter(token => token instanceof ItemContainerToken && token.reference instanceof ItemInstance) as ItemContainerToken<ItemInstance>[]
+                if (filtered.length > 0)
+                    slots.set(element.name, [element, filtered]);
+            }
         });
 
         // if there are no pockets or slots, this function is unnecessary, and we can return the unmodified base MatchData
