@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { ActivityType, Client, type ClientUser, Collection, GatewayIntentBits, Message, Partials } from "discord.js";
+import { ActivityType, type ApplicationEmoji, Client, type ClientUser, Collection, GatewayIntentBits, Message, Partials } from "discord.js";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -108,7 +108,11 @@ export default class ClientContext {
 	/**
 	 * A timeout which updates the client user's presence every 30 seconds.
 	 */
-	readonly #presenceUpdateInterval: NodeJS.Timeout;
+    readonly #presenceUpdateInterval: NodeJS.Timeout;
+    /**
+     * Cache for Client application emojis.
+     */
+    emojis: Collection<string, ApplicationEmoji>;
 
 	/**
 	 * @param client - The Discord Client associated with the bot.
@@ -118,7 +122,8 @@ export default class ClientContext {
 		this.client = client;
 		this.#game = game;
         this.commandHandler = ClientCommandHandler.Instance(this);
-		this.#commandLog = [];
+        this.#commandLog = [];
+        this.emojis = new Collection();
 		this.prettyPrinter = new PrettyPrinter();
 		this.interactableManager = new ClientInteractableManager(this.#game);
 		this.interactionHandler = new ClientInteractionHandler(this.#game);

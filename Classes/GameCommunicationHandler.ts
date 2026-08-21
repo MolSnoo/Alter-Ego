@@ -165,7 +165,8 @@ export default class GameCommunicationHandler {
             await sharp(await emoji.bytes(), { animated: true }).gif().toBuffer() :
             await sharp(await emoji.bytes()).png().toBuffer();
         const emojiBase64 = emojiData.toString("base64");
-        await this.#game.clientContext.client.application.emojis.create({ attachment: `data:image/${ data.animated ? "gif" : "png" };base64,${emojiBase64}`, name: selfName });
+        const emojiInstance = await this.#game.clientContext.client.application.emojis.create({ attachment: `data:image/${data.animated ? "gif" : "png"};base64,${emojiBase64}`, name: selfName });
+        this.#game.clientContext.emojis.set(emojiInstance.id, emojiInstance);
     }
 
     /**
@@ -190,10 +191,10 @@ export default class GameCommunicationHandler {
         if (emojiData.length === 0)
             return;
 
-        if (application.emojis.cache.size >= 1975)
+        if (this.#game.clientContext.emojis.size >= 1975)
             await this.deleteNumberOfOldestEmoji(emojiData.length);
 
-        const appEmojis = new Set(application.emojis.cache.map(emoji => emoji.name));
+        const appEmojis = new Set(this.#game.clientContext.emojis.map(emoji => emoji.name));
 
         const promises: Promise<void>[] = [];
         for (const data of emojiData)
@@ -206,7 +207,7 @@ export default class GameCommunicationHandler {
      * @param x - The number of emoji to delete.
      */
     private async deleteNumberOfOldestEmoji(x: number): Promise<void> {
-        const emojis = this.#game.clientContext.client.application.emojis.cache.map(emoji => emoji);
+        const emojis = this.#game.clientContext.emojis.map(emoji => emoji);
 
         emojis.sort((a, b) => {
             const aSnow = SnowflakeUtil.deconstruct(a.id);
@@ -218,8 +219,11 @@ export default class GameCommunicationHandler {
         });
 
         const promises: Promise<void>[] = [];
-        for (let i = 0; i < x; i++)
-            promises.push(this.#game.clientContext.client.application.emojis.delete(emojis.pop()));
+        for (let i = 0; i < x; i++) {
+            const emoji = emojis.pop();
+            this.#game.clientContext.emojis.delete(emoji.id);
+            promises.push(this.#game.clientContext.client.application.emojis.delete(emoji));
+        }
         await Promise.all(promises);
     }
 
@@ -228,7 +232,6 @@ export default class GameCommunicationHandler {
      * @param emoji - The message that initiated the cache.
      */
     fetchCachedEmoji(emoji: {animated: boolean, name: string, snowflake: string}): ApplicationEmoji | undefined {
-        const application = this.#game.clientContext.client.application;
         const guildEmojis = this.#game.guildContext.guild.emojis.cache;
         if (guildEmojis.has(emoji.snowflake))
             return undefined;
@@ -236,7 +239,7 @@ export default class GameCommunicationHandler {
         const hash = this.hashEmoji(emoji.name, emoji.snowflake, emoji.animated);
         const name = this.generateEmojiName(emoji.name, hash);
 
-        return application.emojis.cache.find(emoji => emoji.name === name);
+        return this.#game.clientContext.emojis.find(emoji => emoji.name === name);
     }
 
     /**
