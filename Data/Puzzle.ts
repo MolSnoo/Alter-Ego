@@ -755,7 +755,7 @@ export default class Puzzle extends ItemContainer implements PersistentGameEntit
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Puzzle" {
         return "Puzzle";
     }
 }

@@ -23,9 +23,14 @@ import InventoryItem from '../Data/InventoryItem.ts';
 import EquipmentSlot from '../Data/EquipmentSlot.ts';
 import Recipe from '../Data/Recipe.ts';
 import type { NewPlugin, Config, Refs } from 'pretty-format';
+import TrieNode from './Command/TrieNode.ts';
+import Trie from './Command/Trie.ts';
+import { ConstantToken, EntityToken, ItemContainerToken, PrepositionToken, SentinelToken } from './Command/Token.ts';
+import type GameEntity from '../Data/GameEntity.ts';
 
 interface AEConfig extends Config {
-	printShadowRoot?: boolean;
+    printShadowRoot?: boolean;
+    nodeNames?: Map<TrieNode, string>;
 }
 
 type AEPrinter = (value: unknown, config: AEConfig, indentation: string, depth: number, refs: Refs, hasCalledToJSON?: boolean) => string;
@@ -135,6 +140,120 @@ export class DescriptionPlugin implements AEPlugin<Description> {
 
 	serialize(value: Description) {
 		return value.text.length !== 0 ? `<Description>${value.text}</Description>` : '<Description empty/>';
+	}
+}
+
+export class TriePlugin implements AEPlugin<Trie> {
+	/** Set of objects currently being processed by the TrieNodePlugin to prevent recursion errors. */
+    processing: Set<Trie>;
+
+	constructor() {
+		this.processing = new Set();
+    }
+
+    test(value: unknown): value is Trie {
+        return value instanceof Trie && !this.processing.has(value);
+    }
+
+    serialize(value: Trie, config: AEConfig, indentation: string, depth: number, refs: Refs, printer: AEPrinter) {
+        if (!(config.nodeNames instanceof Map)) config.nodeNames = new Map();
+        this.processing.add(value);
+        indentation += "    "
+        config.nodeNames.set(value.root, "root")
+        const serialized = `<Trie>\n${indentation}${printer(value.root, config, indentation, depth + 1, refs)}\n</Trie>`;
+        config.nodeNames.delete(value.root)
+        this.processing.delete(value);
+        return serialized;
+	}
+}
+
+export class TrieNodePlugin implements AEPlugin<TrieNode> {
+	/** Set of objects currently being processed by the TrieNodePlugin to prevent recursion errors. */
+    processing: Set<TrieNode>;
+
+	constructor() {
+		this.processing = new Set();
+    }
+
+	test(value: unknown): value is TrieNode {
+		return value instanceof TrieNode && !this.processing.has(value);
+	}
+
+    serialize(value: TrieNode, config: AEConfig, indentation: string, depth: number, refs: Refs, printer: AEPrinter) {
+        this.processing.add(value);
+        let serialized: string;
+        const output: string[] = [];
+        for (const token of value.value) {
+            output.push(printer(token, config, indentation + "    ", depth, refs));
+        }
+        for (const node of value.children) {
+            const key = node[0];
+            const val = node[1];
+            config.nodeNames.set(val, key);
+            output.push(printer(val, config, indentation + "    ", depth, refs));
+            config.nodeNames.delete(val);
+        }
+        if (output.length > 0) {
+            serialized = `<TrieNode key="${config.nodeNames.get(value)}">\n`;
+            for (const line of output) {
+                serialized += `${indentation + "    "}${line}\n`;
+            }
+            serialized += `${indentation}</TrieNode>`;
+        } else {
+            serialized = `<TrieNode key="${config.nodeNames.get(value)}"/>`;
+        }
+        this.processing.delete(value);
+        return serialized;
+	}
+}
+
+export class ConstantTokenPlugin implements AEPlugin<ConstantToken> {
+    test(value: unknown): value is ConstantToken {
+        return value instanceof ConstantToken;
+    }
+
+    serialize(value: ConstantToken) {
+        return `<ConstantToken value="${value.value}"/>`
+	}
+}
+
+export class EntityTokenPlugin implements AEPlugin<EntityToken<GameEntity>> {
+    test(value: unknown): value is EntityToken<GameEntity> {
+        return value instanceof EntityToken;
+    }
+
+    serialize(value: EntityToken<GameEntity>) {
+        return `<EntityToken type="${value.reference.getEntityType()}" value="${value.value}"/>`
+	}
+}
+
+export class ItemContainerTokenPlugin implements AEPlugin<ItemContainerToken<RoomItem | Puzzle | InventoryItem | Fixture>> {
+    test(value: unknown): value is ItemContainerToken<RoomItem | Puzzle | InventoryItem | Fixture> {
+        return value instanceof ItemContainerToken;
+    }
+
+    serialize(value: ItemContainerToken<RoomItem | Puzzle | InventoryItem | Fixture>) {
+        return `<ItemContainerToken type="${value.reference.getEntityType()}" value="${value.value}"/>`
+	}
+}
+
+export class PrepositionTokenPlugin implements AEPlugin<PrepositionToken> {
+    test(value: unknown): value is PrepositionToken {
+        return value instanceof PrepositionToken;
+    }
+
+    serialize(value: PrepositionToken) {
+        return `<PrepositionToken value="${value.value}"/>`
+	}
+}
+
+export class SentinelTokenPlugin implements AEPlugin<SentinelToken> {
+    test(value: unknown): value is SentinelToken {
+        return value instanceof SentinelToken;
+    }
+
+    serialize(value: SentinelToken) {
+        return `<SentinelToken value="${value.value}"/>`
 	}
 }
 
@@ -545,6 +664,13 @@ const plugins = [
 	new GesturePlugin(),
 	new ClientContextPlugin(),
 	new DescriptionPlugin(),
+    new TriePlugin(),
+    new TrieNodePlugin(),
+    new ConstantTokenPlugin(),
+    new EntityTokenPlugin(),
+    new ItemContainerTokenPlugin(),
+    new PrepositionTokenPlugin(),
+    new SentinelTokenPlugin(),
 	new StatusPlugin(),
 	new PuzzlePlugin(),
 	new PrefabPlugin(),

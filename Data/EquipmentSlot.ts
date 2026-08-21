@@ -136,7 +136,7 @@ export default class EquipmentSlot extends GameEntity {
         return ["II", this.id, undefined, undefined, undefined];
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "EquipmentSlot" {
         return "EquipmentSlot";
     }
 }

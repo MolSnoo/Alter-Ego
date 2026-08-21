@@ -172,7 +172,7 @@ export default class Flag extends GameEntity implements PersistentGameEntity<Fla
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Flag" {
         return "Flag";
     }
 }

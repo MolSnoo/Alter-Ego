@@ -236,7 +236,7 @@ export default class Status extends GameEntity implements PersistentGameEntity<S
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Status" {
         return "Status";
     }
 

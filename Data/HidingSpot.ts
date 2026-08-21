@@ -174,7 +174,7 @@ export default class HidingSpot extends GameEntity {
         return generatePlayerListString(this.occupants.map(player => player));
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "HidingSpot" {
         return "HidingSpot";
     }
 }

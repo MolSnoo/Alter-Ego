@@ -245,7 +245,7 @@ export default class Recipe extends GameEntity implements PersistentGameEntity<R
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Recipe" {
         return "Recipe";
     }
 }

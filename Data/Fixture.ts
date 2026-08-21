@@ -598,7 +598,7 @@ export default class Fixture extends RecipeProcessor implements PersistentGameEn
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Fixture" {
         return "Fixture";
     }
 }

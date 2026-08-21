@@ -8,6 +8,7 @@ import { Duration } from 'luxon';
 import type ItemInstance from '../Data/ItemInstance.ts';
 import type Player from '../Data/Player.ts';
 import type { DurationObjectUnits } from 'luxon';
+import { setTimeout } from 'timers/promises';
 
 /**
  * Rounds the given value to a specified number of decimal places.
@@ -278,4 +279,12 @@ export function addPages<T>(pages: T[][], array: T[], pageSize = 5): void {
         }
         pages[pageNo].push(array[i]);
     }
+}
+
+/**
+ * Sleep for the given duration of time.
+ * @param ms - Milliseconds to sleep for.
+ */
+export async function sleep(ms: number): Promise<void> {
+    await setTimeout(ms);
 }

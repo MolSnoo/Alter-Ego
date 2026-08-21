@@ -18,12 +18,31 @@ import type Room from "./Data/Room.ts";
 import type RoomItem from "./Data/RoomItem.ts";
 import type { Node } from "acorn";
 import type Moderator from "./Data/Moderator.ts";
+import type { CommandConfig } from "./Classes/Command/Command.ts";
+import type EquipmentSlot from "./Data/EquipmentSlot.ts";
+import type Gesture from "./Data/Gesture.ts";
+import type HidingSpot from "./Data/HidingSpot.ts";
+import type InventorySlot from "./Data/InventorySlot.ts";
+import type Prefab from "./Data/Prefab.ts";
+import type Recipe from "./Data/Recipe.ts";
+import type Status from "./Data/Status.ts";
 
 export { };
 
 declare global {
+    /**
+     * Utility type that indicates an array that is not empty.
+     * 
+     * This only means that at least one of T exists in the array.
+     * As long as the length of the array is greater than 0, then it is an ArrayNonEmpty.
+     */
+    type ArrayNonEmpty<T> = [T, ...T[]];
+
     /** Utility type that indicates that something is to be a value of T. Used for enums. */
     type valueof<T> = T[keyof T];
+
+    /** Type union of all subclasses of GameEntity. */
+    type InstantiatedGameEntity = EquipmentSlot | Event | Exit | Fixture | Flag | Gesture | HidingSpot | InventoryItem | InventorySlot<InventoryItem> | InventorySlot<RoomItem> | Player | Prefab | Puzzle | Recipe | Room | RoomItem | Status
 
     /**
      * Represents a user of the bot in a game context.
@@ -83,70 +102,6 @@ declare global {
      * Represents an interaction that the bot can accept.
      */
     type BotInteraction = ButtonInteraction|StringSelectMenuInteraction|ModalSubmitInteraction;
-
-	/**
-	 * The configuration for a command.
-	 */
-	interface CommandConfig {
-        /** The name of the command. */
-		name: string;
-        /** A brief description of what the command does. */
-		description: string;
-        /** Detailed information about the command. */
-		details: string;
-        /** The role that can use the command. */
-		usableBy: string;
-        /** Alternative names for the command. */
-		aliases: string[];
-        /** Indicates whether the command requires an ongoing game to be executed. */
-		requiresGame: boolean;
-        /** Whether or not the command is sensitive to whitespace, and should not have argument whitespace altered. */
-        whitespaceSensitive?: boolean;
-        /** Whether the command is usable in edit mode. */
-        usableInEditMode?: boolean;
-	}
-
-	/**
-	 * Represents an abstract command with its configuration.
-	 */
-	interface ICommand {
-        /** The specific configuration of the command. */
-		config: CommandConfig;
-        /** Examples of the command's usage. */
-		usage: (settings: GameSettings) => string;
-	}
-
-    /**
-     * A command usable by the bot itself. Command sets can be written for some in-game data structures to be executed when certain conditions are met.
-     */
-	interface IBotCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, command: string, args: string[], player?: Player, callee?: Callee) => Promise<void>;
-	}
-
-    /**
-     * A command usable by a moderator.
-     */
-	interface IModeratorCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[], moderator: Moderator) => Promise<void>;
-	}
-
-    /**
-     * A command usable by a player.
-     */
-	interface IPlayerCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[], player: Player) => Promise<void>;
-	}
-
-    /**
-     * A command usable by someone with the eligible role.
-     */
-	interface IEligibleCommand extends ICommand {
-        /** The code to execute when the command is called. */
-		execute: (game: Game, message: UserMessage, command: string, args: string[]) => Promise<void>;
-	}
 
     type PersistentGameEntityName = "Room"|"Exit"|"Fixture"|"Prefab"|"Recipe"|"RoomItem"|"Puzzle"|"Event"|"StatusEffect"|"Player"|"InventoryItem"|"Gesture"|"Flag";
 

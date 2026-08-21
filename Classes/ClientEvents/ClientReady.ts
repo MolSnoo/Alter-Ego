@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { Client, Events, PermissionFlagsBits } from "discord.js";
+import { Client, Collection, Events, PermissionFlagsBits } from "discord.js";
 import { readFileSync } from "fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,6 +14,8 @@ import type GameSettings from "../GameSettings.ts";
 import { createGuildContext } from "../../Modules/serverManager.ts";
 import autoUpdate from "../../Modules/updateHandler.js";
 import { loadGameSettingsAndPlayerDefaults } from "../../Modules/settingsLoader.ts";
+import ModeratorContext from "../Command/ModeratorContext.ts";
+import { MatchedInvocation, ValidatedInvocation } from "../Command/Invocation.ts";
 
 export default new ClientEvent({
     name: Events.ClientReady,
@@ -45,8 +47,11 @@ export default new ClientEvent({
         if (gameSettings.autoLoad) {
             console.log("The AUTO_LOAD setting is enabled. Loading and resuming game...");
             let loadCommand = clientContext.getCommand("Moderator", "load");
-            if (loadCommand)
-                await loadCommand.execute(game, undefined, "lar", []);
+            if (loadCommand) {
+                const context = new ModeratorContext(game, "lar", undefined, undefined);
+                const invocation = (await loadCommand.validate(context, new MatchedInvocation())) as ValidatedInvocation;
+                await loadCommand.execute(context, invocation);
+            }
         }
 
         // Set the bot as finished initializing.

@@ -9,19 +9,27 @@ import type Game from '../Data/Game.ts';
 import Flag from '../Data/Flag.ts';
 import type Player from '../Data/Player.ts';
 import Puzzle from '../Data/Puzzle.ts';
-import type Command from '../Classes/Command.ts';
-import BotCommand from '../Classes/BotCommand.ts';
-import ModeratorCommand from '../Classes/ModeratorCommand.ts';
-import PlayerCommand from '../Classes/PlayerCommand.ts';
-import EligibleCommand from '../Classes/EligibleCommand.ts';
-import { getErrorMessage } from '../Modules/errorHandler.ts';
+import { type default as Command, type CommandType } from '../Classes/Command/Command.ts';
+import BotCommand from '../Classes/Command/BotCommand.ts';
+import ModeratorCommand from '../Classes/Command/ModeratorCommand.ts';
+import PlayerCommand from '../Classes/Command/PlayerCommand.ts';
+import EligibleCommand from '../Classes/Command/EligibleCommand.ts';
+import type Context from '../Classes/Command/Context.ts';
+import BotContext from '../Classes/Command/BotContext.ts';
+import ModeratorContext from '../Classes/Command/ModeratorContext.ts';
+import PlayerContext from '../Classes/Command/PlayerContext.ts';
+import EligibleContext from '../Classes/Command/EligibleContext.ts';
+import { MatchedInvocation, ValidatedInvocation, type InvalidInvocation, type MatchResult, type ValidationResult } from '../Classes/Command/Invocation.ts';
+import type { Pattern } from '../Classes/Command/Pattern.ts';
+import type { Token } from '../Classes/Command/Token.ts';
+import Trie from '../Classes/Command/Trie.ts';
+import { getErrorMessage, getErrorStack } from '../Modules/errorHandler.ts';
 
-export type CommandType = "Bot" | "Moderator" | "Player" | "Eligible";
 export type CommandOf<T extends CommandType> =
-    T extends "Bot" ? BotCommand
-        : T extends "Moderator" ? ModeratorCommand
-            : T extends "Player" ? PlayerCommand
-                : T extends "Eligible" ? EligibleCommand
+    T extends "Bot" ? BotCommand<ValidatedInvocation>
+        : T extends "Moderator" ? ModeratorCommand<ValidatedInvocation>
+            : T extends "Player" ? PlayerCommand<ValidatedInvocation>
+                : T extends "Eligible" ? EligibleCommand<ValidatedInvocation>
                     : undefined;
 
 /**
@@ -84,6 +92,76 @@ export default class ClientCommandHandler {
     }
 
     /**
+     * Match a stream of tokens against command patterns.
+     * @param tokens - The array of token arrays to match with.
+     * @param patterns - The array of patterns to attempt matches against.
+     * @param game - The game to match within.
+     * @returns The array of pattern match results, that is, an array of Invalid Invocations and/or Matched Invocations.
+     */
+    private async matchTokens(tokens: Token[][], patterns: Pattern[], game: Game): Promise<MatchResult[]> {
+        return patterns.map(pattern => pattern.match(tokens, game));
+    }
+
+    /**
+     * Validate an array of matches against a command's validator function.
+     * @param matches - The array of matches to validate.
+     * @param command - The command to validate for.
+     * @param context - The context to validate within.
+     * @returns The array of validation results, that is, an array of Invalid Invocations and/or Validated Invocations.
+     */
+    private async validateMatches<T extends Context, I extends ValidatedInvocation>(matches: MatchedInvocation[], command: Command<T, I>, context: T): Promise<ValidationResult<I>[]> {
+        const invocations: ValidationResult<I>[] = [];
+        for (const match of matches)
+            invocations.push(await command.validate(context, match));
+        return invocations;
+    }
+
+    /**
+     * Validates the command and returns the first validated invocation.
+     * @param command - The command to validate.
+     * @param context - The context with which the command was invoked.
+     * @param args - The args the command was invoked with.
+     * @param game - The game to validate on.
+     * @returns The first validated invocation.
+     * @throws {@link Error}
+     * Thrown if the command invocation is invalid.
+     */
+    private async validateCommand<T extends Context, I extends ValidatedInvocation>(command: Command<T, I>, context: T, args: string[], game: Game): Promise<ValidatedInvocation> {
+        const trie = Trie.buildFromCommandAndPatterns(context, command);
+        const tokens = trie.tokenize(args);
+        const errors: InvalidInvocation[] = [];
+        const matches: MatchedInvocation[] = [];
+        const validations: ValidatedInvocation[] = [];
+        let patterns: Pattern[] = [];
+        if (context instanceof ModeratorContext) {
+            const latch = context.moderator.getLatch() !== null
+            patterns = command.patterns.filter(pattern => pattern.latch === latch || pattern.latch === undefined);
+        }
+        else patterns = command.patterns;
+
+        const matchResults = await this.matchTokens(tokens, patterns, game);
+        for (const result of matchResults) {
+            if (result instanceof MatchedInvocation) matches.push(result);
+            else errors.push(result);
+        }
+        if (matches.length === 0) {
+            if (errors.length > 0) throw new Error(errors.pop().errors[0]);
+            else matches.push(new MatchedInvocation());
+        }
+
+        const validationResults = await this.validateMatches(matches, command, context);
+        for (const result of validationResults) {
+            if (result instanceof ValidatedInvocation) validations.push(result);
+            else errors.push(result);
+        }
+        if (validations.length === 0) {
+            if (errors.length > 0) throw new Error(errors.pop().errors[0]);
+            else validations.push(new ValidatedInvocation());
+        }
+        return validations[0];
+    }
+
+    /**
      * A function used to wait a set amount of time before executing the next command.
      * @param seconds - The number of seconds to wait.
      */
@@ -113,12 +191,15 @@ export default class ClientCommandHandler {
 
         // Execute the command based on who issued it.
         if (command instanceof BotCommand) {
+            const context = new BotContext(game, commandAlias, player, callee);
             try {
-                await command.execute(game, commandAlias, args, player, callee);
+                const invocation = await this.validateCommand(command, context, args, game);
+                await command.execute(context, invocation);
                 this.#client.logCommand(this.#client.user.username, commandStr, timestamp);
             }
             catch (error) {
                 game.communicationHandler.sendToCommandChannel(getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }
@@ -135,13 +216,17 @@ export default class ClientCommandHandler {
             }
             if (command.config.whitespaceSensitive)
                 args = commandStr.split(" ").slice(1);
+            const context = new ModeratorContext(game, commandAlias, message, moderator);
             try {
-                await command.execute(game, message, commandAlias, args, moderator);
+                const invocation = await this.validateCommand(command, context, args, game);
+                await command.execute(context, invocation);
+                if (messageDeletable) await message.delete();
                 this.#client.logCommand(message.author.username, message.content, timestamp);
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
                 game.communicationHandler.reply(message, getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }
@@ -179,13 +264,25 @@ export default class ClientCommandHandler {
             player.setOnline();
             if (command.config.whitespaceSensitive)
                 args = commandStr.split(" ").slice(1);
+            const context = new PlayerContext(game, player, commandAlias, message);
             try {
-                await command.execute(game, message, commandAlias, args, player);
+                const invocation = await this.validateCommand(command, context, args, game);
+                await command.execute(context, invocation);
+                /**
+                 * @privateRemarks
+                 * We make an exception here for the say command because it handles its own deletion after using some of the
+                 * properties of the original message. However, if we're awaiting the command execution, is this necessary
+                 * anymore? This will require some investigation.
+                 * - MS
+                 */
+                if (!game.settings.debug && commandName !== "say" && !game.guildContext.sentInDMChannel(message))
+                    await message.delete().catch();
                 this.#client.logCommand(player.name, message.content, timestamp);
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
                 game.communicationHandler.reply(message, getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }
@@ -195,13 +292,18 @@ export default class ClientCommandHandler {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
                 return true;
             }
+            const context = new EligibleContext(game, commandAlias, message);
             try {
-                await command.execute(game, message, commandAlias, args);
+                const invocation = await this.validateCommand(command, context, args, game);
+                await command.execute(context, invocation);
+                if (!game.settings.debug && !game.guildContext.sentInDMChannel(message))
+                    await message.delete().catch();
                 this.#client.logCommand(message.author.username, message.content, timestamp);
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
                 game.communicationHandler.reply(message, getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }

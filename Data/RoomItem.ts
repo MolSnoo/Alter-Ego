@@ -371,7 +371,7 @@ export default class RoomItem extends ItemInstance implements PersistentGameEnti
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "RoomItem" {
         return "RoomItem";
     }
 }

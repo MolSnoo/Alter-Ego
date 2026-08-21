@@ -4,6 +4,7 @@
 
 import type { Client } from "discord.js";
 import type ClientEvent from "./ClientEvent.ts";
+import { getErrorStack } from "../Modules/errorHandler.ts";
 
 /**
  * Represents the client event handler as a singleton.
@@ -48,8 +49,15 @@ export default class ClientEventHandler {
                 await event.execute(...args);
             }
             catch (error) {
+                /**
+                 * @privateRemarks
+                 * Discarding the error stack trace is extremely unhelpful when debugging errors that occur within events.
+                 * This can be reverted before merge, but please keep in mind that this is the only way to catch the
+                 * stack trace of a command validator error.
+                 * - AC
+                 */
                 console.error(
-                    `An error occurred in event "${event.name}".\n${error}\n`
+                    `An error occurred in event "${event.name}".\n${getErrorStack(error)}\n`
                 );
             }
         };

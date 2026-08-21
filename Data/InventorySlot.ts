@@ -150,7 +150,7 @@ export default class InventorySlot<T extends ItemInstance | RoomItem | Inventory
         return `${this.id}: ${this.capacity}`;
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "InventorySlot" {
         return "InventorySlot";
     }
 }

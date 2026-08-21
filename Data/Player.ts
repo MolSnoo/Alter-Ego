@@ -1935,7 +1935,7 @@ export default class Player extends RecipeProcessor implements PersistentGameEnt
         return { label: this.getLabel(field), value: this.getValue(field) };
     }
 
-    override getEntityType(): string {
+    override getEntityType(): "Player" {
         return "Player";
     }
 

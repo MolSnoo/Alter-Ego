@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -10,15 +11,18 @@ import { fileURLToPath } from "node:url";
 import ClientEventHandler from "./ClientEventHandler.ts";
 import ClientEvent from "./ClientEvent.ts";
 import PrettyPrinter from "./PrettyPrinter.ts";
-import ClientCommandHandler, { type CommandType, type CommandOf } from "./ClientCommandHandler.ts";
+import ClientCommandHandler, { type CommandOf } from "./ClientCommandHandler.ts";
 import ClientInteractableManager from "./ClientInteractableManager.ts";
 import ClientInteractionHandler from "./ClientInteractionHandler.ts";
 import type Game from "../Data/Game.ts";
-import BotCommand from "./BotCommand.ts";
-import ModeratorCommand from "./ModeratorCommand.ts";
-import PlayerCommand from "./PlayerCommand.ts";
-import EligibleCommand from "./EligibleCommand.ts";
+import { type default as Command, type CommandConfig, type CommandType } from "./Command/Command.ts";
+import type Context from "./Command/Context.ts";
+import BotCommand from "./Command/BotCommand.ts";
+import ModeratorCommand from "./Command/ModeratorCommand.ts";
+import PlayerCommand from "./Command/PlayerCommand.ts";
+import EligibleCommand from "./Command/EligibleCommand.ts";
 import { loadCredentials } from "../Modules/credentialsLoader.ts";
+import type { ValidatedInvocation } from "./Command/Invocation.ts";
 
 /**
  * Represents a log entry for a command executed in the game.
@@ -60,19 +64,19 @@ export default class ClientContext {
 	/**
 	 * All commands usable by the bot itself.
 	 */
-	static readonly #botCommands: Collection<string, BotCommand> = new Collection();
+	static readonly #botCommands: Collection<string, BotCommand<ValidatedInvocation>> = new Collection();
 	/**
 	 * All commands usable by moderators.
 	 */
-    static readonly #moderatorCommands: Collection<string, ModeratorCommand> = new Collection();
+    static readonly #moderatorCommands: Collection<string, ModeratorCommand<ValidatedInvocation>> = new Collection();
 	/**
 	 * All commands usable by players.
 	 */
-    static readonly #playerCommands: Collection<string, PlayerCommand> = new Collection();
+    static readonly #playerCommands: Collection<string, PlayerCommand<ValidatedInvocation>> = new Collection();
 	/**
 	 * All commands usable by members with the eligible role.
 	 */
-    static readonly #eligibleCommands: Collection<string, EligibleCommand> = new Collection();
+    static readonly #eligibleCommands: Collection<string, EligibleCommand<ValidatedInvocation>> = new Collection();
     /**
      * The Discord Client associated with the bot.
      */
@@ -244,28 +248,28 @@ export default class ClientContext {
     /**
      * All commands usable by the bot itself.
      */
-    public get botCommands(): Collection<string, BotCommand> {
+    public get botCommands(): Collection<string, BotCommand<ValidatedInvocation>> {
         return ClientContext.#botCommands;
     }
 
     /**
      * All commands usable by moderators.
      */
-    public get moderatorCommands(): Collection<string, ModeratorCommand> {
+    public get moderatorCommands(): Collection<string, ModeratorCommand<ValidatedInvocation>> {
         return ClientContext.#moderatorCommands;
     }
 
     /**
      * All commands usable by players.
      */
-    public get playerCommands(): Collection<string, PlayerCommand> {
+    public get playerCommands(): Collection<string, PlayerCommand<ValidatedInvocation>> {
         return ClientContext.#playerCommands;
     }
 
     /**
      * All commands usable by members with the eligible role.
      */
-    public get eligibleCommands(): Collection<string, EligibleCommand> {
+    public get eligibleCommands(): Collection<string, EligibleCommand<ValidatedInvocation>> {
         return ClientContext.#eligibleCommands;
     }
 
@@ -280,25 +284,38 @@ export default class ClientContext {
 
         const commandsDir = path.join(ClientContext.__dirname, "..", "Commands");
         try {
-            const files = await readdir(commandsDir);
-            const commandFiles = files.filter(filename => filename.split('.').pop() === 'js');
+            let files: string[] = [];
+            for (const dir of ["Bot", "Eligible", "Moderator", "Player"]) {
+                const dirFiles = await readdir(path.join(commandsDir, dir));
+                files = files.concat(dirFiles.map(file => path.join(dir, file)));
+            }
+            const commandFiles = files.filter(filename => filename.split('.').pop() === 'ts');
             if (commandFiles.length <= 0) {
                 console.log("Error: Couldn't find commands.");
                 return process.exit(1);
             }
             await Promise.all(commandFiles.map(async file => {
-                await import(path.join(commandsDir, file)).then(commandProps => {
-                    const config = commandProps.config as CommandConfig;
+                await import(path.join(commandsDir, file)).then(module => {
+                    const command = module.default as Command<Context, ValidatedInvocation>;
+                    const config = command.config;
+                    const filepath = path.join(commandsDir, file);
+                    for (const alias of config.aliases) {
+                        const commandWithAlias = this.getCommand(config.usableBy, alias);
+                        if (commandWithAlias) {
+                            console.log(`Error: Invalid command at ${filepath}. The alias "${alias}" is already used by command ${commandWithAlias.config.name}.`);
+                            return process.exit(1);
+                        }
+                    }
                     if (config.usableBy === "Bot")
-                        ClientContext.#botCommands.set(config.name, new BotCommand(config, commandProps.usage, commandProps.execute));
+                        ClientContext.#botCommands.set(config.name, command);
                     else if (config.usableBy === "Moderator")
-                        ClientContext.#moderatorCommands.set(config.name, new ModeratorCommand(config, commandProps.usage, commandProps.execute));
+                        ClientContext.#moderatorCommands.set(config.name, command);
                     else if (config.usableBy === "Player")
-                        ClientContext.#playerCommands.set(config.name, new PlayerCommand(config, commandProps.usage, commandProps.execute));
+                        ClientContext.#playerCommands.set(config.name, command);
                     else if (config.usableBy === "Eligible")
-                        ClientContext.#eligibleCommands.set(config.name, new EligibleCommand(config, commandProps.usage, commandProps.execute));
+                        ClientContext.#eligibleCommands.set(config.name, command);
                     else {
-                        console.log(`Error: Invalid command at ${commandsDir}${file}`);
+                        console.log(`Error: Invalid command at ${path.join(commandsDir, file)}`);
                         return process.exit(1);
                     }
                 });
@@ -342,13 +359,13 @@ export default class ClientContext {
      */
     getCommand<T extends CommandType>(type: T, alias: string): CommandOf<T> | undefined {
         if (type === "Bot")
-            return ClientContext.#botCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+            return ClientContext.#botCommands.find(command => command.config.aliases.has(alias)) as CommandOf<T>;
         if (type === "Moderator")
-            return ClientContext.#moderatorCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+            return ClientContext.#moderatorCommands.find(command => command.config.aliases.has(alias)) as CommandOf<T>;
         if (type === "Player")
-            return ClientContext.#playerCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+            return ClientContext.#playerCommands.find(command => command.config.aliases.has(alias)) as CommandOf<T>;
         if (type === "Eligible")
-            return ClientContext.#eligibleCommands.find(command => command.config.aliases.includes(alias)) as CommandOf<T>;
+            return ClientContext.#eligibleCommands.find(command => command.config.aliases.has(alias)) as CommandOf<T>;
         return undefined;
     }
 
@@ -357,7 +374,7 @@ export default class ClientContext {
      * @param command - The command that was issued.
      * @param message - The message in which the command was sent.
      */
-    commandIssuedInValidChannel(command: ModeratorCommand | PlayerCommand | EligibleCommand, message?: UserMessage): boolean {
+    commandIssuedInValidChannel(command: ModeratorCommand<ValidatedInvocation> | PlayerCommand<ValidatedInvocation> | EligibleCommand<ValidatedInvocation>, message?: UserMessage): boolean {
         if (!message)
             return false;
         const guild = this.#game.guildContext;
