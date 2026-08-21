@@ -78,7 +78,7 @@ const command = new ModeratorCommand({
             return new InvalidInvocation([`You need to mention a user to add. Usage:\n${command.usage(ctx.game.settings)}`]);
 
         const match = inv.glob[0].match(AddPlayerInvocation.targetRegex);
-        if (match[0] === null)
+        if (match)
             return new InvalidInvocation([`You need to mention a user to add. Usage:\n${command.usage(ctx.game.settings)}`]);
 
         const snowflake = match[0];

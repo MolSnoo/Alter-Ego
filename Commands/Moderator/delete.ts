@@ -65,7 +65,7 @@ const command = new ModeratorCommand({
         if (inv.glob.length === 0)
             return new InvalidInvocation([`You need to specify an amount of messages to delete. Usage:\n${command.usage(ctx.game.settings)}`]);
         const match = inv.glob[0].match(DeleteInvocation.targetRegex);
-        const user = match[0] === null ? await ctx.game.clientContext.client.users.fetch(match[0]) : null;
+        const user = match ? await ctx.game.clientContext.client.users.fetch(match[0]) : null;
         const amount = parseInt(inv.glob[inv.glob.length - 1]);
         if (isNaN(amount))
             return new InvalidInvocation([`Invalid amount specified.`]);
