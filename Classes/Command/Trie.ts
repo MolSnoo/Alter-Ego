@@ -5,6 +5,7 @@
 
 import type Command from "./Command.ts";
 import type Context from "./Context.ts";
+import type { ValidatedInvocation } from "./Invocation.ts";
 import type { Pattern } from "./Pattern.ts";
 import { SentinelToken, type Token } from "./Token.ts";
 import TrieNode from "./TrieNode.ts";
@@ -30,7 +31,7 @@ export default class Trie {
      * @param ctx - Command context to get lexicon from.
      * @param pat - Patterns to use when gathering lexicon.
      */
-    static buildFromCommandAndPatterns<T extends Context>(ctx: T, cmd: Command<T>): Trie {
+    static buildFromCommandAndPatterns<T extends Context, I extends ValidatedInvocation>(ctx: T, cmd: Command<T, I>): Trie {
         const trie = new Trie();
         const tokens = ctx.getLexicon(cmd.patterns, cmd.config);
         for (const token of tokens)

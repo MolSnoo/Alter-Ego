@@ -22,6 +22,7 @@ import ModeratorCommand from "./Command/ModeratorCommand.ts";
 import PlayerCommand from "./Command/PlayerCommand.ts";
 import EligibleCommand from "./Command/EligibleCommand.ts";
 import { loadCredentials } from "../Modules/credentialsLoader.ts";
+import type { ValidatedInvocation } from "./Command/Invocation.ts";
 
 /**
  * Represents a log entry for a command executed in the game.
@@ -63,19 +64,19 @@ export default class ClientContext {
 	/**
 	 * All commands usable by the bot itself.
 	 */
-	static readonly #botCommands: Collection<string, BotCommand> = new Collection();
+	static readonly #botCommands: Collection<string, BotCommand<ValidatedInvocation>> = new Collection();
 	/**
 	 * All commands usable by moderators.
 	 */
-    static readonly #moderatorCommands: Collection<string, ModeratorCommand> = new Collection();
+    static readonly #moderatorCommands: Collection<string, ModeratorCommand<ValidatedInvocation>> = new Collection();
 	/**
 	 * All commands usable by players.
 	 */
-    static readonly #playerCommands: Collection<string, PlayerCommand> = new Collection();
+    static readonly #playerCommands: Collection<string, PlayerCommand<ValidatedInvocation>> = new Collection();
 	/**
 	 * All commands usable by members with the eligible role.
 	 */
-    static readonly #eligibleCommands: Collection<string, EligibleCommand> = new Collection();
+    static readonly #eligibleCommands: Collection<string, EligibleCommand<ValidatedInvocation>> = new Collection();
     /**
      * The Discord Client associated with the bot.
      */
@@ -247,28 +248,28 @@ export default class ClientContext {
     /**
      * All commands usable by the bot itself.
      */
-    public get botCommands(): Collection<string, BotCommand> {
+    public get botCommands(): Collection<string, BotCommand<ValidatedInvocation>> {
         return ClientContext.#botCommands;
     }
 
     /**
      * All commands usable by moderators.
      */
-    public get moderatorCommands(): Collection<string, ModeratorCommand> {
+    public get moderatorCommands(): Collection<string, ModeratorCommand<ValidatedInvocation>> {
         return ClientContext.#moderatorCommands;
     }
 
     /**
      * All commands usable by players.
      */
-    public get playerCommands(): Collection<string, PlayerCommand> {
+    public get playerCommands(): Collection<string, PlayerCommand<ValidatedInvocation>> {
         return ClientContext.#playerCommands;
     }
 
     /**
      * All commands usable by members with the eligible role.
      */
-    public get eligibleCommands(): Collection<string, EligibleCommand> {
+    public get eligibleCommands(): Collection<string, EligibleCommand<ValidatedInvocation>> {
         return ClientContext.#eligibleCommands;
     }
 
@@ -295,7 +296,7 @@ export default class ClientContext {
             }
             await Promise.all(commandFiles.map(async file => {
                 await import(path.join(commandsDir, file)).then(module => {
-                    const command = module.default as Command<Context>;
+                    const command = module.default as Command<Context, ValidatedInvocation>;
                     const config = command.config;
                     const filepath = path.join(commandsDir, file);
                     for (const alias of config.aliases) {
@@ -373,7 +374,7 @@ export default class ClientContext {
      * @param command - The command that was issued.
      * @param message - The message in which the command was sent.
      */
-    commandIssuedInValidChannel(command: ModeratorCommand | PlayerCommand | EligibleCommand, message?: UserMessage): boolean {
+    commandIssuedInValidChannel(command: ModeratorCommand<ValidatedInvocation> | PlayerCommand<ValidatedInvocation> | EligibleCommand<ValidatedInvocation>, message?: UserMessage): boolean {
         if (!message)
             return false;
         const guild = this.#game.guildContext;
