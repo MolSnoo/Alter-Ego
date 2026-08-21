@@ -171,7 +171,8 @@ export default class RecipesAction extends Action {
             (pageIsProcessingType ? `**Using Fixture(s):** ${pages[page][entryIndex].fixtures}\n` : '') +
             (pageIsProcessingType ? `**Duration:** ${pages[page][entryIndex].duration}` : '');
         let embed = createPaginatedEmbed(this.getGame(), page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
-        const prevPageCallback = (interaction: ButtonInteraction) => {
+        const prevPageCallback = (interaction: BotInteraction) => {
+            if (!interaction.isButton()) return;
             if (page > 0)
                 page--;
             pageIsProcessingType = pages[page][0].type === "processing";
@@ -181,7 +182,8 @@ export default class RecipesAction extends Action {
             embed = createPaginatedEmbed(this.getGame(), page, pages, embedAuthorName, embedAuthorIcon, fieldDescription, fieldName, fieldValue);
             interaction.update({ embeds: [embed] });
         };
-        const nextPageCallback = (interaction: ButtonInteraction) => {
+        const nextPageCallback = (interaction: BotInteraction) => {
+            if (!interaction.isButton()) return;
             if (page < pages.length - 1)
                 page++;
             pageIsProcessingType = pages[page][0].type === "processing";

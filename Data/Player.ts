@@ -87,7 +87,7 @@ interface Pronouns {
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/player.html
  */
-export default class Player extends RecipeProcessor implements PersistentGameEntity, User {
+export default class Player extends RecipeProcessor implements PersistentGameEntity<PlayerField>, User {
     /**
      * The Discord ID of the player, or the avatar URL for an NPC.
      */

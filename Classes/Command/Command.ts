@@ -33,6 +33,8 @@ export interface CommandConfig<T extends (Set<string> | Array<string>)> {
     whitespaceSensitive?: boolean;
     /** Whether the possessive genitive form of player names should be allowed for the command. */
     possessivePlayer?: boolean;
+    /** Whether the command is usable in edit mode. */
+    usableInEditMode?: boolean;
     /** 
      * Declare the behavior for how player names should be specified.
      * - 0, or undefined, is the default (moderators and the bot use name, players use display name)

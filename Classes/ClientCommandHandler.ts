@@ -23,6 +23,7 @@ import { MatchedInvocation, ValidatedInvocation, type InvalidInvocation, type Ma
 import type { Pattern } from '../Classes/Command/Pattern.ts';
 import type { Token } from '../Classes/Command/Token.ts';
 import Trie from '../Classes/Command/Trie.ts';
+import { getErrorMessage } from '../Modules/errorHandler.ts';
 
 export type CommandOf<T extends CommandType> =
     T extends "Bot" ? BotCommand
@@ -69,17 +70,23 @@ export default class ClientCommandHandler {
      * @param game - The game in which the command is being executed.
      * @param message - The message in which the command was issued, if applicable.
      */
-    private getCommandType(game: Game, message: UserMessage): CommandType {
+    private getCommandType(game: Game, message?: UserMessage): CommandType | undefined {
         if (!message) return "Bot";
         else {
             // Don't attempt to find the member who sent this message if it was sent by a webhook.
-            if (message.webhookId !== null && message.webhookId !== undefined) return undefined;
+            if (message.webhookId !== null)
+                return undefined;
             const member = game.guildContext.getMember(message.author.id);
-            if (!member) return undefined;
-            if (game.guildContext.hasModeratorRole(member)) return "Moderator";
-            else if (game.guildContext.hasPlayerRole(member)) return "Player";
-            else if (game.settings.debug && game.guildContext.hasTesterRole(member)) return "Eligible";
-            else if (!game.settings.debug && game.guildContext.hasEligibleRole(member)) return "Eligible";
+            if (!member)
+                return undefined;
+            if (game.guildContext.hasModeratorRole(member))
+                return "Moderator";
+            else if (game.guildContext.hasPlayerRole(member))
+                return "Player";
+            else if (game.settings.debug && game.guildContext.hasTesterRole(member))
+                return "Eligible";
+            else if (!game.settings.debug && game.guildContext.hasEligibleRole(member))
+                return "Eligible";
             return undefined;
         }
     }
@@ -102,7 +109,7 @@ export default class ClientCommandHandler {
      * @param context - The context to validate within.
      * @returns The array of validation results, that is, an array of Invalid Invocations and/or Validated Invocations.
      */
-    private async validateMatches(matches: MatchedInvocation[], command: Command<Context>, context: Context): Promise<ValidationResult[]> {
+    private async validateMatches<T extends Context>(matches: MatchedInvocation[], command: Command<T>, context: T): Promise<ValidationResult[]> {
         const invocations: ValidationResult[] = [];
         for (const match of matches)
             invocations.push(await command.validate(context, match));
@@ -191,11 +198,11 @@ export default class ClientCommandHandler {
                 this.#client.logCommand(this.#client.user.username, commandStr, timestamp);
             }
             catch (error) {
-                game.communicationHandler.sendToCommandChannel(error.message ?? error);
+                game.communicationHandler.sendToCommandChannel(getErrorMessage(error));
             }
             return true;
         }
-        else if (command instanceof ModeratorCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+        else if (command instanceof ModeratorCommand && message && this.#client.commandIssuedInValidChannel(command, message)) {
             const messageDeletable = message.channel.id !== game.guildContext.commandChannel.id;
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -217,11 +224,11 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error.message ?? error);
+                game.communicationHandler.reply(message, getErrorMessage(error));
             }
             return true;
         }
-        else if (command instanceof PlayerCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+        else if (command instanceof PlayerCommand && message && this.#client.commandIssuedInValidChannel(command, message)) {
             let messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -247,7 +254,7 @@ export default class ClientCommandHandler {
                 else game.communicationHandler.reply(message, `You cannot do that because you are **${status[0].id}**.`, messageDeletable);
                 return true;
             }
-            if (game.editMode && commandName !== "say") {
+            if (game.editMode && !command.config.usableInEditMode) {
                 game.communicationHandler.reply(message, "You cannot do that because edit mode is currently enabled.", messageDeletable);
                 return true;
             }
@@ -272,11 +279,11 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error.message ?? error);
+                game.communicationHandler.reply(message, getErrorMessage(error));
             }
             return true;
         }
-        else if (command instanceof EligibleCommand && this.#client.commandIssuedInValidChannel(command, message)) {
+        else if (command instanceof EligibleCommand && message && this.#client.commandIssuedInValidChannel(command, message)) {
             const messageDeletable = !game.settings.debug && !game.guildContext.sentInDMChannel(message);
             if (command.config.requiresGame && !game.inProgress) {
                 game.communicationHandler.reply(message, "There is no game currently running.", messageDeletable);
@@ -292,7 +299,7 @@ export default class ClientCommandHandler {
                 if (messageDeletable) await game.communicationHandler.deleteMessage(message);
             }
             catch (error) {
-                game.communicationHandler.reply(message, error.message ?? error);
+                game.communicationHandler.reply(message, getErrorMessage(error));
             }
             return true;
         }
@@ -318,7 +325,7 @@ export default class ClientCommandHandler {
             else {
                 if (callee instanceof Puzzle && callee.type === "matrix") {
                     const regex = /{([^{},/]+?)}/g;
-                    let match: RegExpExecArray;
+                    let match: RegExpExecArray | null;
                     const originalCommand = command;
                     while (match = regex.exec(originalCommand)) {
                         for (const requirement of callee.requirements) {
@@ -329,7 +336,7 @@ export default class ClientCommandHandler {
                         }
                     }
                 }
-                await this.executeCommand(command, game, null, player, callee);
+                await this.executeCommand(command, game, undefined, player, callee);
             }
         }
     }

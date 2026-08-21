@@ -15,7 +15,8 @@ export const config = {
 	usableBy: "Player",
 	aliases: ["narrate", "n"],
     requiresGame: true,
-	whitespaceSensitive: true
+	whitespaceSensitive: true,
+    usableInEditMode: true
 };
 
 /**

@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -11,6 +12,7 @@ import Prefab from "../Prefab.ts";
 import { parseProceduralSelections } from "../../Modules/stringDataExtractor.ts";
 import { instantiateInventoryItem } from "../../Modules/itemManager.ts";
 import { generateListString, makeCopyable } from "../../Modules/helpers.ts";
+import { getErrorMessage } from "../../Modules/errorHandler.ts";
 
 /**
  * Represents an instantiate inventory item action.
@@ -41,7 +43,7 @@ export default class InstantiateInventoryItemAction extends Action {
                 createdItems.push(this.#instantiateInventoryItem(prefab, equipmentSlotId, container, inventorySlotId, 1, proceduralSelections, uses, notify));
         }
         else createdItems.push(this.#instantiateInventoryItem(prefab, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections, uses, notify));
-        
+
         const entityType = `inventory item${createdItems.length !== 1 ? `s` : ``}`;
         const itemsString = generateListString(createdItems.map(item => makeCopyable(item.getIdentifier())));
         const containerString = container ? `${container.getPreposition()} ${this.player.name}'s ${inventorySlotId} of ${container.getIdentifier()}` : `to ${this.player.name}'s ${equipmentSlotId}`;
@@ -77,8 +79,8 @@ export default class InstantiateInventoryItemAction extends Action {
 
     /**
      * Finds the required entities to call performInstantiateInventoryItem
-     * 
-     * @param args - The base args as strings. 
+     *
+     * @param args - The base args as strings.
      * @param prefabId - The ID of the prefab to instantiate.
      * @param quantityString - The quantity to instantiate the prefab with.
      * @param usesString - The number of uses to instantiate the prefab with.
@@ -99,7 +101,7 @@ export default class InstantiateInventoryItemAction extends Action {
 
     /**
      * Validates the parsed args. The results can be passed directly into performInstantiateInventoryItem.
-     * 
+     *
      * @param args - The args after being parsed.
      */
     validateInteractionArgs(args: [Prefab, EquipmentSlot, InventoryItem, InventorySlot<InventoryItem>, number, string, number]): [Prefab, string, InventoryItem, string, number, Map<string, string>, number] {
@@ -120,7 +122,7 @@ export default class InstantiateInventoryItemAction extends Action {
         if (args[5]) {
             try {
                 proceduralSelections = parseProceduralSelections(args[5]);
-            } catch (error) { throw new Error(error.message); }
+            } catch (error) { throw new Error(getErrorMessage(error)); }
         }
         if (args[6] !== undefined && isNaN(args[6])) throw new Error("The given uses is not a number.");
         if (args[6] !== undefined && args[6] < 1) throw new Error("The given uses must be greater than or equal to 1.");

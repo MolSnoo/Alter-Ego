@@ -11,7 +11,7 @@ export type StatusField = "id"|"durationString"|"fatal"|"visible"|"overridersStr
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/status.html
  */
-export default class Status extends GameEntity implements PersistentGameEntity {
+export default class Status extends GameEntity implements PersistentGameEntity<StatusField> {
     /**
      * The unique ID of the status.
      */

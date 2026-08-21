@@ -1,4 +1,10 @@
-import {readFileSync} from "fs";
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+import { readFileSync } from "fs";
+import { getErrorMessage } from "./errorHandler.ts";
 
 const CREDENTIALS_FILE_PATH = "./Configs/credentials.json";
 
@@ -52,7 +58,7 @@ export function parseCredentialsFile(file: string): Credentials {
     try {
         return JSON.parse(file);
     } catch (err) {
-        throw new Error(`Cannot parse credentials file. Please check that the file is valid JSON and has the correct fields. Error: ${err.message}`);
+        throw new Error(`Cannot parse credentials file. Please check that the file is valid JSON and has the correct fields. Error: ${getErrorMessage(err)}`);
     }
 }
 

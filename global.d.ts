@@ -41,7 +41,7 @@ declare global {
         /** The Discord ID of the user. */
         id: string;
         /** The Discord member object of the user. */
-        readonly member: GuildMember;
+        readonly member: GuildMember | null;
         /** The name that will be displayed for this user. */
         displayName: string;
         /** An image URL that will be used as an avatar when the user's messages are mirrored in a webhook. */
@@ -95,11 +95,11 @@ declare global {
 
     type PersistentGameEntityName = "Room"|"Exit"|"Fixture"|"Prefab"|"Recipe"|"RoomItem"|"Puzzle"|"Event"|"StatusEffect"|"Player"|"InventoryItem"|"Gesture"|"Flag";
 
-    interface PersistentGameEntity extends GameEntity {
+    interface PersistentGameEntity<F extends string> extends GameEntity {
         getEntityID: () => string;
-        getLabel: (field: string) => string;
-        getValue: (field: string) => string;
-        getViewField: (field: string) => ViewField;
+        getLabel: (field: F) => string;
+        getValue: (field: F) => string;
+        getViewField: (field: F) => ViewField;
     }
 
     interface ViewField {

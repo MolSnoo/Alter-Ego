@@ -30,7 +30,7 @@ export default class Trie {
      * @param ctx - Command context to get lexicon from.
      * @param pat - Patterns to use when gathering lexicon.
      */
-    static buildFromCommandAndPatterns(ctx: Context, cmd: Command<Context>): Trie {
+    static buildFromCommandAndPatterns<T extends Context>(ctx: T, cmd: Command<T>): Trie {
         const trie = new Trie();
         const tokens = ctx.getLexicon(cmd.patterns, cmd.config);
         for (const token of tokens)

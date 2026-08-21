@@ -3,13 +3,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import ActivateAction from '../Data/Actions/ActivateAction.ts';
+import ActivateAndAttemptAction from '../Data/Actions/ActivateAndAttemptAction.ts';
 import AttemptAction from '../Data/Actions/AttemptAction.ts';
 import DeactivateAction from '../Data/Actions/DeactivateAction.ts';
+import DeactivateAndAttemptAction from '../Data/Actions/DeactivateAndAttemptAction.ts';
 import UseAction from '../Data/Actions/UseAction.ts';
 
+/** @import Fixture from '../Data/Fixture.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
 /** @import Game from '../Data/Game.ts' */
+/** @import InventoryItem from '../Data/InventoryItem.ts' */
 /** @import Player from '../Data/Player.ts' */
+/** @import Puzzle from '../Data/Puzzle.ts' */
 
 /** @type {CommandConfig} */
 export const config = {
@@ -73,6 +78,7 @@ export async function execute(game, message, command, args, player) {
     let parsedInput = input.toUpperCase();
 
     // First find the item in the player's hand, if applicable.
+    /** @type {InventoryItem} */
     let item = null;
     for (const hand of game.entityFinder.getPlayerHands(player)) {
         if (hand.equippedItem !== null && (parsedInput.startsWith(hand.equippedItem.name + ' ') || hand.equippedItem.name === parsedInput)) {
@@ -85,17 +91,30 @@ export async function execute(game, message, command, args, player) {
         input = input.substring(item.name.length).trim();
     }
 
+    /** A set of aliases that will only result in a UseAction. */
+    const useActionAliases = new Set(["ingest", "consume", "swallow", "eat", "drink"]);
+
     // Now check to see if the player is trying to solve a puzzle.
+    /** @type {Puzzle} */
     let puzzle = null;
+    /** @type {Fixture} */
+    let fixture = null;
     let password = "";
+    /** @type {Player} */
     let targetPlayer = null;
-    if (parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
+    if (parsedInput !== "" && !useActionAliases.has(command)) {
         let puzzles = game.puzzles.filter(puzzle => puzzle.location.id === player.location.id);
-        if (command === "lock" || command === "unlock")
+        /** A set of aliases that will filter puzzles to lock types. */
+        const lockAliases = new Set(["lock", "unlock"]);
+        /** A set of aliases that will filter puzzles to password types. */
+        const passwordAliases = new Set(["type"]);
+        /** A set of aliases that will filter puzzles to interact and switch types. */
+        const interactAliases = new Set(["push", "press", "activate", "deactivate", "flip"]);
+        if (lockAliases.has(command))
             puzzles = puzzles.filter(puzzle => puzzle.type === "combination lock" || puzzle.type === "key lock");
-        else if (command === "type")
+        else if (passwordAliases.has(command))
             puzzles = puzzles.filter(puzzle => puzzle.type === "password" || puzzle.type === "channels");
-        else if (command === "push" || command === "press" || command === "activate" || command === "deactivate" || command === "flip")
+        else if (interactAliases.has(command))
             puzzles = puzzles.filter(puzzle => puzzle.type === "interact" || puzzle.type === "toggle" || puzzle.type === "switch" || puzzle.type === "option");
         for (let i = 0; i < puzzles.length; i++) {
             if (puzzles[i].parentFixture !== null &&
@@ -115,16 +134,17 @@ export async function execute(game, message, command, args, player) {
         if (puzzle !== null) {
             // Make sure the player can only solve the puzzle if it's a child puzzle of the fixture they're hiding in, if they're hidden.
             if (hiddenStatus.length > 0 && puzzle.parentFixture !== null && player.hidingSpot !== puzzle.parentFixture.name) return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
+            if (puzzle.parentFixture !== null)
+                fixture = puzzle.parentFixture;
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
-            targetPlayer = game.entityFinder.getLivingPlayers(input, null, player.location.id, player.hidingSpot)[0];
+            if (input !== "") targetPlayer = game.entityFinder.getLivingPlayers(input, null, player.location.id, player.hidingSpot)[0];
         }
     }
 
     // Check if the player specified a fixture.
-    let fixture = null;
-    if (item === null && parsedInput !== "" && (command !== "ingest" && command !== "consume" && command !== "swallow" && command !== "eat" && command !== "drink")) {
+    if (fixture === null && item === null && parsedInput !== "" && !useActionAliases.has(command)) {
         const fixtures = game.fixtures.filter(fixture => fixture.location.id === player.location.id);
         for (let i = 0; i < fixtures.length; i++) {
             if (fixtures[i].name === parsedInput) {
@@ -134,34 +154,43 @@ export async function execute(game, message, command, args, player) {
         }
     }
 
+    let fixtureAndPuzzle = false;
     // If there is a fixture, do the required behavior.
     if (fixture !== null && fixture.recipeTag !== "" && fixture.activatable) {
         // Make sure the player can only activate the fixture if it's the fixture they're hiding in, if they're hidden.
         if (hiddenStatus.length > 0 && player.hidingSpot !== fixture.name) return game.communicationHandler.reply(message, `You cannot do that because you are **${hiddenStatus[0].id}**.`);
 
-        const narrate = puzzle === null ? true : false;
-        if (fixture.activated) {
+        fixtureAndPuzzle = puzzle !== null;
+        if (fixtureAndPuzzle && fixture.activated) {
+            const deactivateAndAttemptAction = new DeactivateAndAttemptAction(game, message, player, player.location, false);
+            deactivateAndAttemptAction.performDeactivateAndAttempt(fixture, puzzle, item, password, command, input, targetPlayer);
+        }
+        else if (fixtureAndPuzzle) {
+            const activateAndAttemptAction = new ActivateAndAttemptAction(game, message, player, player.location, false);
+            activateAndAttemptAction.performActivateAndAttempt(fixture, puzzle, item, password, command, input, targetPlayer);
+        }
+        else if (fixture.activated) {
             const deactivateAction = new DeactivateAction(game, message, player, player.location, false);
-            await deactivateAction.performDeactivate(fixture, narrate);
+            deactivateAction.performDeactivate(fixture, true);
         }
         else {
             const activateAction = new ActivateAction(game, message, player, player.location, false);
-            await activateAction.performActivate(fixture, narrate);
+            activateAction.performActivate(fixture, true);
         }
     }
 
     // If there is a puzzle, do the required behavior.
-    if (puzzle !== null) {
+    if (!fixtureAndPuzzle && puzzle !== null) {
         const attemptAction = new AttemptAction(game, message, player, player.location, false);
         attemptAction.performAttempt(puzzle, item, password, command, input, targetPlayer);
     }
     // Otherwise, the player must be trying to use an item on themselves.
-    else if (item !== null && (command === "use" || command === "ingest" || command === "consume" || command === "swallow" || command === "eat" || command === "drink")) {
+    else if (item !== null && (command === "use" || useActionAliases.has(command))) {
         if (item.uses === 0) return game.communicationHandler.reply(message, "That item has no uses left.");
         if (!item.prefab.usable) return game.communicationHandler.reply(message, "That item has no programmed use on its own, but you may be able to use it some other way.");
         if (!item.usableOn(player)) return game.communicationHandler.reply(message, `${item.name} currently has no effect on you.`);
         const action = new UseAction(game, message, player, player.location, false);
-        action.performUse(item);
+        await action.performUse(item);
     }
     else if (fixture === null) return game.communicationHandler.reply(message, `Couldn't find "${input}" to ${command}. Try using a different command?`);
 }

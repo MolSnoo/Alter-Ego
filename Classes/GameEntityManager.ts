@@ -398,12 +398,13 @@ export default abstract class GameEntityManager {
      */
     async #createWhisperChannel(whisper: Whisper): Promise<TextChannel> {
         return new Promise(async resolve => {
-            let channel: TextChannel;
+            let channel: TextChannel | undefined;
             // If the whisper is associated with an entity and it already has a channel, we don't need to create a new one.
             // We look for a channel name that matches the whisper's full ID, because the channel name may have been truncated and we don't want to make assumptions.
             if (whisper.type !== WhisperType.STANDALONE)
                 channel = this.game.guildContext.findChannel(whisper.id, this.game.guildContext.whisperCategoryId) as TextChannel;
-            if (!channel) channel = await this.game.guildContext.createChannel(whisper.channelName, this.game.guildContext.whisperCategoryId);
+            if (!channel)
+                channel = await this.game.guildContext.createChannel(whisper.channelName, this.game.guildContext.whisperCategoryId);
             if (channel) {
                 for (const player of whisper.players.values()) {
                     const noChannel = player.isNPC

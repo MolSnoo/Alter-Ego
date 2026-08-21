@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { default as evaluateScript } from "../Modules/scriptParser.js";
+import { default as evaluateScript } from "../Modules/scriptParser.ts";
 import type Game from "./Game.ts";
 import GameEntity from "./GameEntity.ts";
 import type Player from "./Player.ts";
@@ -23,7 +23,7 @@ export interface FlagCommandSet {
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/flag.html
  */
-export default class Flag extends GameEntity implements PersistentGameEntity {
+export default class Flag extends GameEntity implements PersistentGameEntity<FlagField> {
 	/**
 	 * The unique identifier for this flag.
 	 */

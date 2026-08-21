@@ -59,7 +59,7 @@ export interface PuzzleCommandSet {
  *
  * @see https://msvblank.github.io/Alter-Ego/reference/data_structures/puzzle.html
  */
-export default class Puzzle extends ItemContainer implements PersistentGameEntity {
+export default class Puzzle extends ItemContainer implements PersistentGameEntity<PuzzleField> {
     /**
      * The name of the puzzle.
      */

@@ -16,6 +16,7 @@ const require = createRequire(import.meta.url);
  * @import Player from "../../../Data/Player.ts"
  */
 
+// @ts-ignore
 /** @type {import("discord.js").Collection} */
 let webhooks;
 
@@ -30,6 +31,7 @@ export function createPermissionOverwritesManager() {
     return permissionOverwritesManager;
 }
 
+// @ts-ignore
 export function createMockGuildChannelManager(client) {
     const { Collection } = require('discord.js');
     const channelManager = {
@@ -56,6 +58,7 @@ export function createMockGuildMessageManager() {
     return messageManager;
 }
 
+// @ts-ignore
 export function createMockWebhook(name, channel, owner) {
     const { Collection } = require('discord.js');
     const webhook = {
@@ -86,6 +89,7 @@ export function createMockWebhook(name, channel, owner) {
     return webhook;
 }
 
+// @ts-ignore
 export function createMockChannel(id, name, type, parentId, parent, client) {
     const messageManager = createMockGuildMessageManager();
     const permissionOverwritesManager = createPermissionOverwritesManager();
@@ -97,6 +101,7 @@ export function createMockChannel(id, name, type, parentId, parent, client) {
         parentId: parentId,
         parent: parent,
         messages: messageManager,
+        // @ts-ignore
         bulkDelete: vi.fn((messages, filterOld) => messageManager.cache.clear()),
         send: vi.fn(async function (content) {
             const messagePayload = typeof content === 'string' ? { content: content, channel: channel } : { content: content.content, channel: channel, components: content.components };
@@ -142,6 +147,7 @@ export function createMockRoleManager() {
     const roleManager = {
         cache: new Collection(),
         resolve: vi.fn((id) => roleManager.cache.get(id)),
+        // @ts-ignore
         fetch: vi.fn(async (id) => roleManager.get(id)),
         add: vi.fn((role) => { roleManager.cache.set(role.id, role) }),
         remove: vi.fn((role) => { roleManager.cache.delete(role.id) }),
@@ -149,6 +155,7 @@ export function createMockRoleManager() {
     return roleManager;
 }
 
+// @ts-ignore
 function createPermissionsBitField(channel) {
     return {
         has: vi.fn(permission => true)
@@ -200,6 +207,7 @@ export function createMockGuildMemberManager() {
  * @param {*} members
  * @returns
  */
+// @ts-ignore
 export function createMockGuild(channels = [], roles = [], members = [], client) {
     const guild = {
         iconURL: vi.fn(() => ''),

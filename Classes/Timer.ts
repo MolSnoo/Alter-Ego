@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { Duration } from 'luxon';
-import type { DurationUnit } from 'luxon';
+import type { DurationLikeObject, DurationUnit } from 'luxon';
 
 interface TimerAttributes {
     loop: boolean;
@@ -134,7 +134,7 @@ export default class Timer {
             if (typeof duration === "number") {
                 // Convert based on unit if provided.
                 if (unit) {
-                    let durationInput = {}
+                    let durationInput: DurationLikeObject = {}
                     durationInput[unit] = duration;
                     ms = Duration.fromObject(durationInput).as('milliseconds');
                 } else {

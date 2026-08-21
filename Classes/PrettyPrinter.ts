@@ -696,29 +696,29 @@ function isBasic(value: unknown): value is null | undefined | string | number | 
 }
 
 /** Returns a copy of the object to display in console.log with certain properties excluded. */
-function prettyObject<T extends any>(object: T, level = 0): T | string {
+function prettyObject(object: any, level = 0): any | string {
     if (level >= 3) return `<Truncated [Depth]>`;
     else if (isBasic(object)) return object;
     else if (Array.isArray(object)) {
-        const ctor = object.constructor as Constructor<T & any[]>;
+        const ctor = object.constructor as Constructor<any[]>;
         const clone = new ctor();
         for (const item of object)
             clone.push(prettyObject(item, level + 1));
         return clone;
     } else if (object instanceof Set) {
-        const ctor = object.constructor as Constructor<T & Set<any>>;
+        const ctor = object.constructor as Constructor<Set<any>>;
         const clone = new ctor();
         for (const value of object)
             clone.add(prettyObject(value, level + 1));
         return clone;
     } else if (object instanceof Map) {
-        const ctor = object.constructor as Constructor<T & Map<any, any>>;
+        const ctor = object.constructor as Constructor<Map<any, any>>;
         const clone = new ctor();
         for (const [key, value] of object)
             clone.set(key, prettyObject(value, level + 1));
         return clone;
     } else {
-        const clone: T = Object.create(Object.getPrototypeOf(object));
+        const clone = Object.create(Object.getPrototypeOf(object));
         for (const key of Object.keys(object)) {
             if (truncate.has(key)) {
                 clone[key] = `<Truncated [Filtered]>`;
@@ -727,11 +727,11 @@ function prettyObject<T extends any>(object: T, level = 0): T | string {
                     if (object[key] instanceof Array) {
                         clone[key] = object[key].map((value) => prettyObject(value, level + 1));
                     } else if (object[key] instanceof Set) {
-                        const ctor = object[key].constructor as Constructor<T & Set<any>>;
+                        const ctor = object[key].constructor as Constructor<Set<any>>;
                         clone[key] = new ctor();
                         object[key].forEach(val => clone[key].add(prettyObject(val, level + 1)));
                     } else if (object[key] instanceof Map) {
-                        const ctor = object[key].constructor as Constructor<T & Map<any, any>>;
+                        const ctor = object[key].constructor as Constructor<Map<any, any>>;
                         clone[key] = new ctor();
                         for (const [k, v] of object[key])
                             clone[key].set(k, prettyObject(v, level + 1));

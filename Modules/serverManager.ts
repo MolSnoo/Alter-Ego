@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { ChannelType, Client, PermissionFlagsBits, Role, TextChannel, type Guild, type GuildBasedChannel } from "discord.js";
+import { ChannelType, Client, GuildMember, PermissionFlagsBits, Role, TextChannel, type Guild, type GuildBasedChannel } from "discord.js";
 import { access, constants, readFile, writeFile, mkdir } from "node:fs/promises";
 import type Game from "../Data/Game.ts";
 import GuildContext from "../Classes/GuildContext.ts";
@@ -34,7 +35,7 @@ export interface ServerConfig {
  */
 export async function createGuildContext(client: Client): Promise<[GuildContext, boolean]> {
     if (client.guilds.cache.size === 1) {
-        const guild = client.guilds.cache.first();
+        const guild = client.guilds.cache.first() as Guild;
         await createServerConfigFileIfNotExists();
         let serverConfig = await loadServerConfig();
         let firstBootMessage = await validateServerConfig(guild, serverConfig);
@@ -84,23 +85,23 @@ export async function createGuildContext(client: Client): Promise<[GuildContext,
             console.log(errors.join('\n'));
             return process.exit(3);
         }
-        const adminRoles = guild.members.me.roles.cache.filter(role => role.permissions.has(PermissionFlagsBits.Administrator));
+        const adminRoles = (guild.members.me as GuildMember).roles.cache.filter(role => role.permissions.has(PermissionFlagsBits.Administrator));
         if (adminRoles.size === 0) {
             console.log("Error: Bot must have the Administrator permission.");
             return process.exit(4);
         }
-        const adminRole = adminRoles.sort((a, b) => b.position - a.position).first();
-        if (adminRole.comparePositionTo(testerRole) < 0)
+        const adminRole = adminRoles.sort((a, b) => b.position - a.position).first() as Role;
+        if (testerRole && adminRole.comparePositionTo(testerRole) < 0)
             errors.push("Error: Bot's Administrator role must be higher than testerRole in the role list.");
-        if (adminRole.comparePositionTo(eligibleRole) < 0)
+        if (eligibleRole && adminRole.comparePositionTo(eligibleRole) < 0)
             errors.push("Error: Bot's Administrator role must be higher than eligibleRole in the role list.");
-        if (adminRole.comparePositionTo(playerRole) < 0)
+        if (playerRole && adminRole.comparePositionTo(playerRole) < 0)
             errors.push("Error: Bot's Administrator role must be higher than playerRole in the role list.");
-        if (adminRole.comparePositionTo(freeMovementRole) < 0)
+        if (freeMovementRole && adminRole.comparePositionTo(freeMovementRole) < 0)
             errors.push("Error: Bot's Administrator role must be higher than freeMovementRole in the role list.");
-        if (adminRole.comparePositionTo(deadRole) < 0)
+        if (deadRole && adminRole.comparePositionTo(deadRole) < 0)
             errors.push("Error: Bot's Administrator role must be higher than deadRole in the role list.");
-        if (adminRole.comparePositionTo(spectatorRole) < 0)
+        if (spectatorRole && adminRole.comparePositionTo(spectatorRole) < 0)
             errors.push("Error: Bot's Administrator role must be higher than spectatorRole in the role list.");
         if (errors.length > 0) {
             console.log(errors.join('\n'));
@@ -116,13 +117,13 @@ export async function createGuildContext(client: Client): Promise<[GuildContext,
             serverConfig.roomCategories.split(','),
             serverConfig.whisperCategory,
             serverConfig.spectateCategory,
-            testerRole,
-            eligibleRole,
-            playerRole,
-            freeMovementRole,
-            moderatorRole,
-            deadRole,
-            spectatorRole
+            testerRole as Role,
+            eligibleRole as Role,
+            playerRole as Role,
+            freeMovementRole as Role,
+            moderatorRole as Role,
+            deadRole as Role,
+            spectatorRole as Role
         );
         return [guildContext, !!(firstBootMessage && commandChannel)];
     }

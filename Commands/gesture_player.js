@@ -19,7 +19,8 @@ export const config = {
         + `To specify a target, enter the name of the target directly after the name of the gesture. Note that a gesture can only be performed with one target at a time.`,
     usableBy: "Player",
     aliases: ["gesture", "g"],
-    requiresGame: true
+    requiresGame: true,
+    usableInEditMode: true
 };
 
 /**

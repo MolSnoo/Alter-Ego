@@ -15,7 +15,8 @@ export const config = {
 	usableBy: "Player",
 	aliases: ["monolog", "monologue", "mo", "mn"],
 	requiresGame: true,
-	whitespaceSensitive: true
+	whitespaceSensitive: true,
+    usableInEditMode: true
 };
 
 /**

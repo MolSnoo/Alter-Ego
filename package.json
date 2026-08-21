@@ -10,7 +10,9 @@
     "createLocalFiles": "node Test/createLocalFiles.ts",
     "test": "vitest run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "compile": "tsc",
+    "compile:watch": "tsc --watch"
   },
   "repository": {
     "type": "git",

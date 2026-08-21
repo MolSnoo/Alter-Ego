@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -25,6 +26,7 @@ import { default as Flag, type FlagCommandSet } from '../Data/Flag.ts';
 import InflictAction from '../Data/Actions/InflictAction.ts';
 import { getSheetValues } from '../Modules/sheets.js';
 import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration } from '../Modules/helpers.ts';
+import { getErrorMessage, addToErrors, errorHasCode } from '../Modules/errorHandler.ts';
 import { parsePrefabPossibleNames } from '../Modules/stringDataExtractor.ts';
 import { ChannelType, Collection, type TextChannel, type GuildMember } from 'discord.js';
 import { Duration } from 'luxon';
@@ -184,7 +186,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.rooms.size);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -204,7 +206,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.fixtures.length);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -224,7 +226,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.prefabs.size);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -244,7 +246,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.recipes.length);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -264,7 +266,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.roomItems.length);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -284,7 +286,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.puzzles.length);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -304,7 +306,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.events.size);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -324,7 +326,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.statusEffects.size);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -344,7 +346,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.players.size);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -365,7 +367,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.inventoryItems.length);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -386,7 +388,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.gestures.size);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -407,7 +409,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 resolve(this.game.flags.size);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
                 resolve(0);
             }
         });
@@ -1898,7 +1900,7 @@ export default class GameEntityLoader extends GameEntityManager {
                 await this.#getInventoryItems(false);
             }
             catch (error) {
-                errors.push(...error);
+                addToErrors(errors, error);
             }
             if (doErrorChecking) {
                 for (const player of this.game.players.values()) {
@@ -2382,7 +2384,7 @@ export default class GameEntityLoader extends GameEntityManager {
             try {
                 const value = flag.evaluate(flag.valueScript);
                 flag.value = value;
-            } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${err.message}`) }
+            } catch (err) { return new Error(`Couldn't get flag on row ${flag.row}. The value script contains an error: ${getErrorMessage(err)}`) }
         }
     }
 
@@ -2404,7 +2406,7 @@ export default class GameEntityLoader extends GameEntityManager {
      * Prints an array or map of entities to the console.
      * @param data - The data to print.
      */
-    #printData(data: PersistentGameEntity[] | Map<string, PersistentGameEntity>): void {
+    #printData(data: PersistentGameEntity<any>[] | Map<string, PersistentGameEntity<any>>): void {
         if (data instanceof Array) {
             for (let i = 0; i < data.length; i++) {
                 console.log(this.game.clientContext.prettyPrinter.prettyObject(data[i]));
@@ -2427,8 +2429,8 @@ export default class GameEntityLoader extends GameEntityManager {
             if (player.member) {
                 player.member.send('')
                 .then(() => resolve(true))
-                .catch(error => {
-                    if (error.hasOwnProperty("code") && (error.code === 50007 || error.code === 50278))
+                .catch((error: unknown) => {
+                    if (errorHasCode(error) && (error.code === 50007 || error.code === 50278))
                         resolve(false);
                     else resolve(true);
                 });
