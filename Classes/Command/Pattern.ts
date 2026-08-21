@@ -13,7 +13,6 @@ import {
     SentinelToken,
     type Token,
 } from "./Token.ts";
-import type GameEntity from "../../Data/GameEntity.ts";
 import { Collection } from "discord.js";
 import ItemInstance from "../../Data/ItemInstance.ts";
 import type InventorySlot from "../../Data/InventorySlot.ts";
@@ -105,7 +104,7 @@ export class Multiconstant implements PatternElement {
 /**
  * Slot class representing a slot in a grammar pattern for a tokenized argument.
  */
-export class Slot<T extends GameEntity = GameEntity> implements PatternElement {
+export class Slot<T extends InstantiatedGameEntity = InstantiatedGameEntity> implements PatternElement {
     /**
      * The GameErrorMessageGenerator call data when the Slot element encounters an error in matching.
      */
@@ -136,7 +135,7 @@ export class Slot<T extends GameEntity = GameEntity> implements PatternElement {
      * Returns whether this Slot is satisfied by the given token.
      * @param token - The token to check against this Slot.
      */
-    satisfiedBy(token: EntityToken<GameEntity>): token is EntityToken<T> {
+    satisfiedBy(token: EntityToken<InstantiatedGameEntity>): token is EntityToken<T> {
         return this.type.name === token.reference.getEntityType();
     }
 }
@@ -153,7 +152,7 @@ export class Multislot implements PatternElement {
     /**
      * The slots that make up the Multislot.
      */
-    readonly slots: Set<Constructor<GameEntity>>;
+    readonly slots: Set<Constructor<InstantiatedGameEntity>>;
 
     /**
      * The name to refer to the Multislot with. Inherited by any Tokens that fit the Slot.
@@ -163,14 +162,14 @@ export class Multislot implements PatternElement {
     /**
      * The types of Game Entities contained within a multislot.
      */
-    #types: Set<Constructor<GameEntity>>;
+    #types: Set<Constructor<InstantiatedGameEntity>>;
 
     /**
      * @param slots - The slots that make up the Multislot.
      * @param name - The name to refer to the Multislot with. Inherited by any Tokens that fit the Slot.
      * @param error - The data to call the GameErrorMessageGenerator with when an error is encountered in matching. Optional.
      */
-    constructor(slots: Constructor<GameEntity>[], name: string, error?: ErrorFactory) {
+    constructor(slots: Constructor<InstantiatedGameEntity>[], name: string, error?: ErrorFactory) {
         this.error = error;
         this.slots = new Set(slots);
         this.name = name;
@@ -183,11 +182,11 @@ export class Multislot implements PatternElement {
     /**
      * The types of Game Entities contained within a multislot.
      */
-    get types(): Set<Constructor<GameEntity>> {
+    get types(): Set<Constructor<InstantiatedGameEntity>> {
         return this.#types;
     }
 
-    protected set types(types: Set<Constructor<GameEntity>>) {
+    protected set types(types: Set<Constructor<InstantiatedGameEntity>>) {
         this.#types = types;
     }
 
@@ -195,7 +194,7 @@ export class Multislot implements PatternElement {
      * Returns whether this Multislot is satisfied by the given token.
      * @param token - The token to check against this Multislot.
      */
-    satisfiedBy(token: EntityToken<GameEntity>): boolean {
+    satisfiedBy(token: EntityToken<InstantiatedGameEntity>): boolean {
         for (const slot of this.slots) {
             if (slot.name === token.reference.getEntityType()) return true;
         }
@@ -296,7 +295,7 @@ class MatchData {
     /** Array of errors encountered while matching, such as slots that cannot be filled, or missing prepositions or constants. */
     errors: string[];
 
-    /** Collection of PatternElements to Tokens, representing the tokens that have been successfully matched to pattern elements. */
+    /** Map of PatternElements to Tokens, representing the tokens that have been successfully matched to pattern elements. */
     matches: DefaultMap<PatternElement, Token[]>;
 
     /** Collection of Patterns to booleans, representing whether or not they have begun the process of consuming tokens. */
@@ -322,11 +321,35 @@ class MatchData {
     constructor(streams: Token[][], game: Game) {
         this.game = game;
         this.errors = [];
-        this.matches = new DefaultMap(() => []);
+        this.matches = new DefaultMap((): Token[] => []);
         this.hasConsumed = new Collection();
         this.glob = [];
         this.streams = streams;
         this.streamIndex = 0;
+    }
+
+    /** Map of Slots, Multislots, and Pockets to EntityTokens, representing the entity tokens that have been successfully matched to slot, multislot, or pocket elements. */
+    get references(): DefaultMap<Slot | Multislot | Pocket, EntityToken<InstantiatedGameEntity>[]> {
+        const output: DefaultMap<Slot | Multislot | Pocket, EntityToken<InstantiatedGameEntity>[]> = new DefaultMap((): EntityToken<InstantiatedGameEntity>[] => []);
+        for (const [key, val] of this.matches) {
+            if (key instanceof Slot || key instanceof Multislot || key instanceof Pocket) {
+                const values = val.filter(token => token instanceof EntityToken);
+                output.set(key, values);
+            }
+        }
+        return output;
+    }
+
+    /** Map of Options to ConstantTokens, representing the constant tokens that have been successfully matched to option elements. */
+    get options(): DefaultMap<Option, ConstantToken[]> {
+        const output: DefaultMap<Option, ConstantToken[]> = new DefaultMap((): ConstantToken[] => []);
+        for (const [key, val] of this.matches) {
+            if (key instanceof Option) {
+                const values = val.filter(token => token instanceof ConstantToken);
+                output.set(key, values);
+            }
+        }
+        return output;
     }
 
     /** Shorthand for the Game Error Message Generator. */
@@ -437,7 +460,7 @@ export class Pattern implements PatternElement {
     /**
      * The types of Game Entities contained within a pattern. Informs Contexts what must be gathered, to prevent gathering unnecessary context.
      */
-    #types: Set<Constructor<GameEntity>>;
+    #types: Set<Constructor<InstantiatedGameEntity>>;
 
     /**
      * The constants contained within a pattern. Informs Contexts what constants exist for the given pattern.
@@ -479,11 +502,11 @@ export class Pattern implements PatternElement {
     /**
      * The types of Game Entities contained within a pattern. Informs Contexts what must be gathered, to prevent gathering unnecessary context.
      */
-    get types(): Set<Constructor<GameEntity>> {
+    get types(): Set<Constructor<InstantiatedGameEntity>> {
         return this.#types;
     }
 
-    protected set types(types: Set<Constructor<GameEntity>>) {
+    protected set types(types: Set<Constructor<InstantiatedGameEntity>>) {
         this.#types = types;
     }
 
@@ -622,7 +645,7 @@ export class Pattern implements PatternElement {
                         }
                     }
                 } else if (element instanceof Slot || element instanceof Multislot) {
-                    let elementMatches: EntityToken<GameEntity>[] = [];
+                    let elementMatches: EntityToken<InstantiatedGameEntity>[] = [];
                     for (const token of data.stream) {
                         if (token instanceof EntityToken && element.satisfiedBy(token))
                             elementMatches.push(token);
@@ -994,22 +1017,17 @@ export class Pattern implements PatternElement {
         if (data.errors.length > 0)
             return new InvalidInvocation(data.errors as ArrayNonEmpty<string>);
         else {
-            const args: Collection<string, ArrayNonEmpty<GameEntity>> = new Collection();
+            const args: Collection<string, ArrayNonEmpty<InstantiatedGameEntity>> = new Collection();
             const opts: DefaultMap<string, DefaultMap<string, boolean>> = new DefaultMap(
                 () => new DefaultMap(
                     () => false
                 ),
             );
-            data.matches.forEach((val, key) => {
-                if (key instanceof Slot || key instanceof Multislot || key instanceof Pocket)
-                    args.set(
-                        key.name,
-                        val.map(
-                            (token: EntityToken<GameEntity>) => token.reference
-                        ) as ArrayNonEmpty<GameEntity>,
-                    );
-                else if (key instanceof Option)
-                    opts.get(key.name).set(val.find((token) => token instanceof ConstantToken).value, true);
+            data.references.forEach((val, key) => {
+                args.set(key.name, val.map(token => token.reference) as ArrayNonEmpty<InstantiatedGameEntity>)
+            });
+            data.options.forEach((val, key) => {
+                opts.get(key.name).set(val[0].value, true);
             });
             return new MatchedInvocation({ args: args, glob: data.glob, opts: opts });
         }
