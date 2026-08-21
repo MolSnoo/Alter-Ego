@@ -353,17 +353,13 @@ export default class PlayerContext extends Context {
             for (const player of this.game.players.values()) {
                 if (!config?.playerNameStyle || config?.playerNameStyle === 2) {
                     tokens.push(new EntityToken(player.displayName, player));
-                    if (config?.possessivePlayer) {
-                        tokens.push(new EntityToken(`${player.displayName}'s`, player));
+                    if (config?.possessivePlayer)
                         tokens.push(new EntityToken(`${player.displayName}s`, player));
-                    }
                 }
                 if (config?.playerNameStyle === 1 || config?.playerNameStyle === 2) {
                     tokens.push(new EntityToken(player.name, player));
-                    if (config?.possessivePlayer) {
-                        tokens.push(new EntityToken(`${player.name}'s`, player));
+                    if (config?.possessivePlayer)
                         tokens.push(new EntityToken(`${player.name}s`, player));
-                    }
                 }
             }
         }
@@ -430,8 +426,10 @@ export default class PlayerContext extends Context {
 
         if (types.has(Room))
             for (const room of this.adjacentRooms) {
+                const spacedName = room.id.replace(/-/g, " ");
                 tokens.push(new EntityToken(room.id, room));
-                tokens.push(new EntityToken(room.id.replace(/-/g, " "), room));
+                if (room.id !== spacedName)
+                    tokens.push(new EntityToken(room.id.replace(/-/g, " "), room));
             }
 
         if (types.has(Exit))

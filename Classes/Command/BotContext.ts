@@ -75,17 +75,13 @@ export default class BotContext extends Context {
                 if (types.has(Player)) {
                     if (!config?.playerNameStyle || config?.playerNameStyle === 2) {
                         tokens.push(new EntityToken(player.name, player));
-                        if (config?.possessivePlayer) {
-                            tokens.push(new EntityToken(`${player.name}'s`, player));
+                        if (config?.possessivePlayer)
                             tokens.push(new EntityToken(`${player.name}s`, player));
-                        }
                     }
                     if (config?.playerNameStyle === 1 || config?.playerNameStyle === 2) {
                         tokens.push(new EntityToken(player.displayName, player));
-                        if (config?.possessivePlayer) {
-                            tokens.push(new EntityToken(`${player.displayName}'s`, player));
+                        if (config?.possessivePlayer)
                             tokens.push(new EntityToken(`${player.displayName}s`, player));
-                        }
                     }
                 }
                 if (types.has(EquipmentSlot))
@@ -151,8 +147,10 @@ export default class BotContext extends Context {
         if (types.has(Room) || types.has(Exit)) {
             for (const room of this.game.rooms.values()) {
                 if (types.has(Room)) {
+                    const spacedName = room.id.replace(/-/g, " ");
                     tokens.push(new EntityToken(room.id, room));
-                    tokens.push(new EntityToken(room.id.replace(/-/g, " "), room));
+                    if (room.id !== spacedName)
+                        tokens.push(new EntityToken(room.id.replace(/-/g, " "), room));
                 }
                 if (types.has(Exit))
                     for (const exit of room.exits.values())

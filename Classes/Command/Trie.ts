@@ -60,7 +60,7 @@ export default class Trie {
      */
     tokenize(words: string[]): Token[][] {
         const input: Word[] = words.map((word) => {
-            return { clean: word.toLocaleLowerCase(), original: word };
+            return { clean: word.toLocaleLowerCase().replace(/'/g, ""), original: word };
         });
         const output: Token[][] = [];
         let i = 0;
