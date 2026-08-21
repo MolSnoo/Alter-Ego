@@ -8,12 +8,6 @@ import { Pattern, Glob } from "../../Classes/Command/Pattern.ts";
 import type GameSettings from "../../Classes/GameSettings.ts";
 import ModeratorCommand from "../../Classes/Command/ModeratorCommand.ts";
 import type ModeratorContext from "../../Classes/Command/ModeratorContext.ts";
-import Player from "../../Data/Player.ts";
-import { Collection, type GuildMember } from "discord.js";
-import Room from "../../Data/Room.ts";
-import { loadPlayerDefaults } from "../../Modules/settingsLoader.ts";
-import Game from "../../Data/Game.ts";
-import { appendRowsToSheet } from "../../Modules/sheets.js";
 
 const command = new ModeratorCommand({
     config: {
@@ -38,7 +32,7 @@ const command = new ModeratorCommand({
         new Pattern([new Glob()]),
     ],
 
-    validate: async (ctx: ModeratorContext, inv: MatchedInvocation): Promise<ValidationResult<ValidatedInvocation>> => {
+    validate: async (ctx: ModeratorContext): Promise<ValidationResult<ValidatedInvocation>> => {
         if (!ctx.game.editMode)
             return new InvalidInvocation([`You cannot clean the room items and inventory items sheet while edit mode is disabled. Please turn edit mode on before using this command.`]);
 
