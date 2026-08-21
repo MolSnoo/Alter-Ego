@@ -23,13 +23,13 @@ import { MatchedInvocation, ValidatedInvocation, type InvalidInvocation, type Ma
 import type { Pattern } from '../Classes/Command/Pattern.ts';
 import type { Token } from '../Classes/Command/Token.ts';
 import Trie from '../Classes/Command/Trie.ts';
-import { getErrorMessage } from '../Modules/errorHandler.ts';
+import { getErrorMessage, getErrorStack } from '../Modules/errorHandler.ts';
 
 export type CommandOf<T extends CommandType> =
-    T extends "Bot" ? BotCommand
-        : T extends "Moderator" ? ModeratorCommand
-            : T extends "Player" ? PlayerCommand
-                : T extends "Eligible" ? EligibleCommand
+    T extends "Bot" ? BotCommand<ValidatedInvocation>
+        : T extends "Moderator" ? ModeratorCommand<ValidatedInvocation>
+            : T extends "Player" ? PlayerCommand<ValidatedInvocation>
+                : T extends "Eligible" ? EligibleCommand<ValidatedInvocation>
                     : undefined;
 
 /**
@@ -109,8 +109,8 @@ export default class ClientCommandHandler {
      * @param context - The context to validate within.
      * @returns The array of validation results, that is, an array of Invalid Invocations and/or Validated Invocations.
      */
-    private async validateMatches<T extends Context>(matches: MatchedInvocation[], command: Command<T>, context: T): Promise<ValidationResult[]> {
-        const invocations: ValidationResult[] = [];
+    private async validateMatches<T extends Context, I extends ValidatedInvocation>(matches: MatchedInvocation[], command: Command<T, I>, context: T): Promise<ValidationResult<I>[]> {
+        const invocations: ValidationResult<I>[] = [];
         for (const match of matches)
             invocations.push(await command.validate(context, match));
         return invocations;
@@ -126,7 +126,7 @@ export default class ClientCommandHandler {
      * @throws {@link Error}
      * Thrown if the command invocation is invalid.
      */
-    private async validateCommand<T extends Context>(command: Command<T>, context: T, args: string[], game: Game): Promise<ValidatedInvocation> {
+    private async validateCommand<T extends Context, I extends ValidatedInvocation>(command: Command<T, I>, context: T, args: string[], game: Game): Promise<ValidatedInvocation> {
         const trie = Trie.buildFromCommandAndPatterns(context, command);
         const tokens = trie.tokenize(args);
         const errors: InvalidInvocation[] = [];
@@ -199,6 +199,7 @@ export default class ClientCommandHandler {
             }
             catch (error) {
                 game.communicationHandler.sendToCommandChannel(getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }
@@ -225,6 +226,7 @@ export default class ClientCommandHandler {
             }
             catch (error) {
                 game.communicationHandler.reply(message, getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }
@@ -280,6 +282,7 @@ export default class ClientCommandHandler {
             }
             catch (error) {
                 game.communicationHandler.reply(message, getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }
@@ -300,6 +303,7 @@ export default class ClientCommandHandler {
             }
             catch (error) {
                 game.communicationHandler.reply(message, getErrorMessage(error));
+                console.error(getErrorStack(error));
             }
             return true;
         }
