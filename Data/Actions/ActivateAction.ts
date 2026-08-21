@@ -43,8 +43,8 @@ export default class ActivateAction extends Action {
     #getInteractables(fixture: Fixture): Interactable[] {
         let interactables: Interactable[] = [];
         const interactableManager = this.getGame().clientContext.interactableManager;
-        interactables = interactables.concat(interactableManager.createInspectActionInteractable([fixture], this.player));
-        interactables = interactables.concat(interactableManager.getActivateOrDeactivateInteractables(fixture, this.player, true));
+        if (this.player) interactables = interactables.concat(interactableManager.createInspectActionInteractable([fixture], this.player, this.user));
+        interactables = interactables.concat(interactableManager.getActivateOrDeactivateInteractables(fixture, this.player, true, this.user));
         return interactables;
     }
 
