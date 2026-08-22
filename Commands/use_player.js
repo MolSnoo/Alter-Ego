@@ -139,7 +139,7 @@ export async function execute(game, message, command, args, player) {
 
             password = input;
             if (password !== "") parsedInput = parsedInput.substring(0, parsedInput.indexOf(password.toUpperCase())).trim();
-            if (input !== "") targetPlayer = game.entityFinder.getLivingPlayers(input, null, player.location.id, player.hidingSpot)[0];
+            if (parsedInput !== "") targetPlayer = game.entityFinder.getLivingPlayers(parsedInput, null, player.location.id, player.hidingSpot)[0] ?? null;
         }
     }
 
