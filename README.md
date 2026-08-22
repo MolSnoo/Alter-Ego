@@ -25,6 +25,9 @@ SPDX-License-Identifier: CC-BY-SA-4.0
     <a href="https://github.com/MsVBLANK/Alter-Ego/actions/workflows/test.yml">
         <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/MsVBLANK/Alter-Ego/test.yml?branch=master&style=flat-square&logo=github&label=tests">
     </a>
+    <a href="https://discord.gg/zdfnyu8A6w">
+        <img alt="Discord Support Server" src="https://img.shields.io/badge/Support%20Server-5865F2?style=flat-square&logo=discord&logoColor=ffffff">
+    </a>
     <br /><br />
 </div>
 
@@ -380,7 +383,8 @@ If you don't find an answer in the Docs, check the relevant category of the
 [Discussions board](https://github.com/MsVBLANK/Alter-Ego/discussions) to see if anyone else has had the same issue as
 you; there may already be a solution posted.
 
-If you don't find the issue you're facing in the Discussions board, feel free to open a new Discussion.
+If you don't find the issue you're facing in the Discussions board, feel free to open a new Discussion. Or, join the
+official [Alter Ego Support](https://discord.gg/zdfnyu8A6w) Discord server.
 
 ## Requesting Features
 
