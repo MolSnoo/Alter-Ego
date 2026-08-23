@@ -10,29 +10,16 @@ import InstantiateRoomItemAction from '../../Data/Actions/InstantiateRoomItemAct
 import { clearQueue } from '../../Modules/messageHandler.ts';
 import { createMockMessage } from '../__mocks__/libs/discord.js';
 import { createMockModerator } from '../__mocks__/utility.ts';
-
-/** @import Prefab from '../../Data/Prefab.ts' */
-/** @import InventoryItem from '../../Data/InventoryItem.ts' */
-/** @import RoomItem from '../../Data/RoomItem.ts' */
-/** @import { ContainedItem } from '../../Modules/stringDataExtractor.ts' */
-/** @import { Mock } from 'vitest' */
-
-/**
- * @privateRemarks
- * there are a few edge cases i still do not cover...
- * 1. collisions of player and fixture names comes to mind...
- * 2. containing with nothing after it should error...
- * 3. nested containers should error...
- * 4. duplicate procedural keys...?
- * 5. zero or negative quantities?
- * 6. procedural groups without spaces...
- * - AC
- */
+import type Prefab from '../../Data/Prefab.ts';
+import type InventoryItem from '../../Data/InventoryItem.ts';
+import type RoomItem from '../../Data/RoomItem.ts';
+import type { ContainedItem } from '../../Modules/stringDataExtractor.ts';
+import type { Mock } from 'vitest';
+import type Moderator from '../../Data/Moderator.ts';
 
 describe('instantiate_moderator command', () => {
     beforeAll(async () => {
         if (!testGame.inProgress) await testGame.entityLoader.loadAll();
-        // @ts-expect-error
         moderator = createMockModerator();
     });
 
@@ -43,14 +30,12 @@ describe('instantiate_moderator command', () => {
 
     const instantiate_moderator = new ModeratorCommand(config, usage, execute);
 
-    /** @type {typeof import('../../Data/Moderator.ts')} */
-    let moderator;
+    let moderator: Moderator;
 
     describe('inventory items', () => {
         beforeEach(() => {
             spy = vi.spyOn(InstantiateInventoryItemAction.prototype, "performInstantiateInventoryItem");
-            spy.mockImplementation(function (...args) {
-                // @ts-expect-error
+            spy.mockImplementation(function(this: InstantiateInventoryItemAction) {
                 context = this;
                 return [];
             });
@@ -60,17 +45,14 @@ describe('instantiate_moderator command', () => {
             context = undefined;
         });
 
-        /** @type Mock<(prefab: Prefab, equipmentSlotId: string, container: InventoryItem, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, containedItems?: ContainedItem[], notify?: boolean) => InventoryItem[]> */
-        let spy;
+        let spy: Mock<(prefab: Prefab, equipmentSlotId: string, container: InventoryItem, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, containedItems?: ContainedItem[], notify?: boolean) => InventoryItem[]>;
 
-        /** @type {InstantiateInventoryItemAction} */
-        let context;
+        let context: InstantiateInventoryItemAction;
 
         describe('valid invocations', () => {
             test('1 valid item without procedural selections into valid player equipment slot', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "mug of coffee in kyra's left hand".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, "LEFT HAND", null, "", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
@@ -80,7 +62,6 @@ describe('instantiate_moderator command', () => {
             test('1 valid item with valid procedural selections into valid player equipment slot', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const pen = testGame.entityFinder.getPrefab("pen");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "pen (ink color = red) in kyra's left hand".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, "LEFT HAND", null, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
@@ -100,7 +81,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
                     {
@@ -133,7 +113,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
                     {
@@ -172,7 +151,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, "LEFT HAND", null, "", 1, new Map([
                     ["base color", "obscured"],
@@ -217,7 +195,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, "LEFT HAND", null, "", 1, new Map([
                     ["base color", "obscured"],
@@ -244,7 +221,6 @@ describe('instantiate_moderator command', () => {
         describe('invalid invocations (prefab)', () => {
             test('1 invalid item without procedural selections into valid player equipment slot', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -254,7 +230,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 invalid item with procedural selections into valid player equipment slot', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -266,7 +241,6 @@ describe('instantiate_moderator command', () => {
         describe('invalid invocations (procedural)', () => {
             test('1 valid item with invalid procedural selection possibility into valid player equipment slot', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -276,7 +250,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 valid item with invalid procedural selection into valid player equipment slot', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -295,7 +268,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -314,7 +286,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -333,7 +304,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -352,7 +322,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -377,7 +346,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -401,7 +369,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -426,7 +393,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -450,7 +416,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -475,7 +440,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -499,7 +463,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -524,7 +487,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -548,7 +510,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -573,7 +534,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -597,7 +557,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -622,7 +581,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -646,7 +604,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -658,7 +615,6 @@ describe('instantiate_moderator command', () => {
         describe('invalid invocations (player)', () => {
             test('1 valid item without procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "mug of coffee in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -668,7 +624,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 valid item with valid procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = red) in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -678,7 +633,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 invalid item without procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -688,7 +642,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 invalid item with procedural selections into invalid player hand', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in nobody's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -700,7 +653,6 @@ describe('instantiate_moderator command', () => {
         describe('invalid invocations (quantity)', () => {
             test('2 valid items without procedural selections into valid player equipment slot', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 mug of coffee in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -710,7 +662,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 valid items with valid procedural selections into valid player equipment slot', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 pen (ink color = red) in kyra's left hand".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -729,7 +680,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -753,7 +703,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -772,7 +721,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -797,7 +745,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -818,7 +765,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                     "kyra's", "abyssal", "void",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -842,7 +788,6 @@ describe('instantiate_moderator command', () => {
                     "in",
                         "kyra's", "abyssal", "void",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -855,8 +800,7 @@ describe('instantiate_moderator command', () => {
     describe('room items', () => {
         beforeEach(() => {
             spy = vi.spyOn(InstantiateRoomItemAction.prototype, "performInstantiateRoomItem");
-            spy.mockImplementation(function (...args) {
-                // @ts-expect-error
+            spy.mockImplementation(function(this: InstantiateRoomItemAction) {
                 context = this;
                 return [];
             });
@@ -866,17 +810,14 @@ describe('instantiate_moderator command', () => {
             context = undefined;
         });
 
-        /** @type Mock<(prefab: Prefab, container: RoomItemContainer, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, containedItems?: ContainedItem[]) => RoomItem[]> */
-        let spy;
+        let spy: Mock<(prefab: Prefab, container: RoomItemContainer, inventorySlotId: string, quantity: number, proceduralSelections: Map<string, string>, uses?: number, containedItems?: ContainedItem[]) => RoomItem[]>;
 
-        /** @type {InstantiateRoomItemAction} */
-        let context;
+        let context: InstantiateRoomItemAction;
 
         describe('valid invocations', () => {
             test('1 valid item without procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "mug of coffee on floor at lobby".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, floor, "", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
@@ -885,7 +826,6 @@ describe('instantiate_moderator command', () => {
             test('2 valid items without procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "2 mug of coffee on floor at lobby".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, floor, "", 2, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
@@ -894,7 +834,6 @@ describe('instantiate_moderator command', () => {
             test('1 valid item with valid procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "pen (ink color = red) on floor at lobby".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, floor, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
@@ -903,7 +842,6 @@ describe('instantiate_moderator command', () => {
             test('2 valid items with valid procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "2 pen (ink color = red) on floor at lobby".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, floor, "", 2, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
@@ -924,7 +862,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, floor, "", 1, new Map(), pack.uses, [
                     {
@@ -958,7 +895,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, floor, "", 2, new Map(), pack.uses, [
                     {
@@ -992,7 +928,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, floor, "", 1, new Map(), pack.uses, [
                     {
@@ -1026,7 +961,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, floor, "", 2, new Map(), pack.uses, [
                     {
@@ -1066,7 +1000,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, floor, "", 1, new Map([
                     ["base color", "obscured"],
@@ -1113,7 +1046,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, floor, "", 2, new Map([
                     ["base color", "obscured"],
@@ -1159,7 +1091,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, floor, "", 1, new Map([
                     ["base color", "obscured"],
@@ -1201,7 +1132,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, floor, "", 2, new Map([
                     ["base color", "obscured"],
@@ -1226,7 +1156,6 @@ describe('instantiate_moderator command', () => {
             test('1 valid item without procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "mug of coffee in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, pot, "POT", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
@@ -1235,7 +1164,6 @@ describe('instantiate_moderator command', () => {
             test('2 valid items without procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "2 mug of coffee in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(coffee, pot, "POT", 2, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
@@ -1244,7 +1172,6 @@ describe('instantiate_moderator command', () => {
             test('1 valid item with valid procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "pen (ink color = red) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, pot, "POT", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
@@ -1253,7 +1180,6 @@ describe('instantiate_moderator command', () => {
             test('2 valid items with valid procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", "2 pen (ink color = red) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 expect(spy).toBeInvokedWith(pen, pot, "POT", 2, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
@@ -1276,7 +1202,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, pot, "POT", 1, new Map(), pack.uses, [
                     {
@@ -1311,7 +1236,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(cup, pot, "POT", 2, new Map(), cup.uses, [
                     {
@@ -1343,7 +1267,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, pot, "POT", 1, new Map(), pack.uses, [
                     {
@@ -1377,7 +1300,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pack, pot, "POT", 1, new Map(), pack.uses, [
                     {
@@ -1411,7 +1333,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 1, new Map([
                     ["base color", "obscured"],
@@ -1460,7 +1381,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 2, new Map([
                     ["base color", "obscured"],
@@ -1508,7 +1428,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 1, new Map([
                     ["base color", "obscured"],
@@ -1552,7 +1471,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, createMockMessage(), "create", args, moderator);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 2, new Map([
                     ["base color", "obscured"],
@@ -1578,7 +1496,6 @@ describe('instantiate_moderator command', () => {
         describe('invalid invocations (prefab)', () => {
             test('1 invalid item without procedural selections into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1588,7 +1505,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 invalid item without procedural selections into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 something very scary on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1598,7 +1514,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 invalid item with procedural selections into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1608,7 +1523,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 invalid item with procedural selections into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 something very scary (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1618,7 +1532,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 invalid item without procedural selections into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1628,7 +1541,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 invalid item without procedural selections into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1638,7 +1550,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 invalid item with procedural selections into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1648,7 +1559,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 invalid item with procedural selections into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1660,7 +1570,6 @@ describe('instantiate_moderator command', () => {
         describe('invalid invocations (procedural)', () => {
             test('1 valid item with invalid procedural selection possibility into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1670,7 +1579,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 valid item with invalid procedural selection possibility into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1680,7 +1588,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 valid item with invalid procedural selection into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1690,7 +1597,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 valid item with invalid procedural selection into valid fixture', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 pen (scary = true) on floor at lobby".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1711,7 +1617,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1732,7 +1637,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1753,7 +1657,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1774,7 +1677,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1795,7 +1697,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1816,7 +1717,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1837,7 +1737,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1858,7 +1757,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1885,7 +1783,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1912,7 +1809,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1938,7 +1834,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1964,7 +1859,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -1991,7 +1885,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2018,7 +1911,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2044,7 +1936,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2070,7 +1961,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2097,7 +1987,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2124,7 +2013,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2150,7 +2038,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2176,7 +2063,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2203,7 +2089,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2230,7 +2115,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2256,7 +2140,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2282,7 +2165,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2309,7 +2191,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2336,7 +2217,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2362,7 +2242,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2388,7 +2267,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2415,7 +2293,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2443,7 +2320,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2469,7 +2345,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2495,7 +2370,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2505,7 +2379,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 valid item with invalid procedural selection possibility into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2515,7 +2388,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 valid item with invalid procedural selection possibility into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2525,7 +2397,6 @@ describe('instantiate_moderator command', () => {
 
             test('1 valid item with invalid procedural selection into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2535,7 +2406,6 @@ describe('instantiate_moderator command', () => {
 
             test('2 valid item with invalid procedural selection into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", "2 pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/), moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2558,7 +2428,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2580,7 +2449,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2603,7 +2471,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2624,7 +2491,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2647,7 +2513,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2669,7 +2534,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2692,7 +2556,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2713,7 +2576,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2742,7 +2604,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2771,7 +2632,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2799,7 +2659,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2827,7 +2686,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2856,7 +2714,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2885,7 +2742,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2913,7 +2769,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2941,7 +2796,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2970,7 +2824,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -2999,7 +2852,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3027,7 +2879,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3055,7 +2906,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3084,7 +2934,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3113,7 +2962,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3141,7 +2989,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3169,7 +3016,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3198,7 +3044,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3227,7 +3072,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3255,7 +3099,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3283,7 +3126,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3312,7 +3154,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3341,7 +3182,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3369,7 +3209,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3397,7 +3236,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3420,7 +3258,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3447,7 +3284,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3470,7 +3306,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3499,7 +3334,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3522,7 +3356,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3550,7 +3383,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3573,7 +3405,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3599,7 +3430,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "lobby",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3622,7 +3452,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3650,7 +3479,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3673,7 +3501,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                     "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
@@ -3701,7 +3528,6 @@ describe('instantiate_moderator command', () => {
                     "at",
                         "kitchen",
                 ];
-                // @ts-expect-error
                 await instantiate_moderator.execute(testGame, message, "create", args, moderator);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
