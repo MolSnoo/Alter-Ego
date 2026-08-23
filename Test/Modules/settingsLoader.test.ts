@@ -31,6 +31,7 @@ describe("settingsLoader tests", () => {
             expect(gs.pixelsPerMeter).toBe(DEFAULT_GAME_SETTINGS.pixelsPerMeter);
             expect(gs.staminaUseRate).toBe(DEFAULT_GAME_SETTINGS.staminaUseRate);
             expect(gs.heatedSlowdownRate).toBe(DEFAULT_GAME_SETTINGS.heatedSlowdownRate);
+            expect(gs.sendMoveProgressIndicator).toBe(DEFAULT_GAME_SETTINGS.sendMoveProgressIndicator);
             expect(gs.autoSaveInterval).toBe(DEFAULT_GAME_SETTINGS.autoSaveInterval);
             expect(gs.diceMin).toBe(DEFAULT_GAME_SETTINGS.diceMin);
             expect(gs.diceMax).toBe(DEFAULT_GAME_SETTINGS.diceMax);
@@ -60,6 +61,7 @@ describe("settingsLoader tests", () => {
             expect(gs.pixelsPerMeter).toBe(20);
             expect(gs.staminaUseRate).toBe(-0.02);
             expect(gs.heatedSlowdownRate).toBe(0.1);
+            expect(gs.sendMoveProgressIndicator).toBe(false);
             expect(gs.autoSaveInterval).toBe(10);
             expect(gs.diceMin).toBe(2);
             expect(gs.diceMax).toBe(20);
@@ -205,6 +207,7 @@ describe("settingsLoader tests", () => {
         vi.stubEnv("PIXELS_PER_METER", "20");
         vi.stubEnv("STAMINA_USE_RATE", "-0.02");
         vi.stubEnv("HEATED_SLOWDOWN_RATE", "0.1");
+        vi.stubEnv("SEND_MOVE_PROGRESS_INDICATOR", "false");
         vi.stubEnv("AUTOSAVE_INTERVAL", "10");
         vi.stubEnv("DICE_MIN", "2");
         vi.stubEnv("DICE_MAX", "20");
@@ -234,6 +237,7 @@ describe("settingsLoader tests", () => {
         vi.stubEnv("PIXELS_PER_METER", undefined);
         vi.stubEnv("STAMINA_USE_RATE", undefined);
         vi.stubEnv("HEATED_SLOWDOWN_RATE", undefined);
+        vi.stubEnv("SEND_MOVE_PROGRESS_INDICATOR", undefined);
         vi.stubEnv("AUTOSAVE_INTERVAL", undefined);
         vi.stubEnv("DICE_MIN", undefined);
         vi.stubEnv("DICE_MAX", undefined);

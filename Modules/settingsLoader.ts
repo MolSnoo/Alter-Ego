@@ -23,6 +23,7 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
     pixelsPerMeter: 25,
     staminaUseRate: -0.01,
     heatedSlowdownRate: 0.5,
+    sendMoveProgressIndicator: true,
     autoSaveInterval: 30,
     diceMin: 1,
     diceMax: 6,
@@ -130,6 +131,7 @@ export function loadGameSettings(): [GameSettings, string[]] {
 
     const heatedSlowdownRate = pushErrors(parseFloatOrDefault(process.env.HEATED_SLOWDOWN_RATE, DEFAULT_GAME_SETTINGS.heatedSlowdownRate), errors);
     const autoSaveInterval = pushErrors(parseIntOrDefault(process.env.AUTOSAVE_INTERVAL, DEFAULT_GAME_SETTINGS.autoSaveInterval), errors);
+    const sendMoveProgressIndicator = pushErrors(stringToBoolOrDefault(process.env.SEND_MOVE_PROGRESS_INDICATOR, DEFAULT_GAME_SETTINGS.sendMoveProgressIndicator), errors);
 
     let diceMin = pushErrors(parseIntOrDefault(process.env.DICE_MIN, DEFAULT_GAME_SETTINGS.diceMin), errors);
     let diceMax = pushErrors(parseIntOrDefault(process.env.DICE_MAX, DEFAULT_GAME_SETTINGS.diceMax), errors);
@@ -211,6 +213,7 @@ export function loadGameSettings(): [GameSettings, string[]] {
         pixelsPerMeter,
         staminaUseRate,
         heatedSlowdownRate,
+        sendMoveProgressIndicator,
         autoSaveInterval,
         diceMin,
         diceMax,
