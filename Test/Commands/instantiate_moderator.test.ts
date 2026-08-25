@@ -795,6 +795,23 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("Couldn't find inventory item or equipment slot \"ABYSSAL VOID\".");
             });
         });
+
+        describe('invalid invocations (syntax)', () => {
+            test('1 valid item without procedural selections and invalid containing syntax into valid player equipment slot', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                    "in",
+                    "kyra's", "left", "hand",
+                ];
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("TODO");
+            });
+        });
     });
 
     describe('room items', () => {
@@ -3533,6 +3550,44 @@ describe('instantiate_moderator command', () => {
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
                 expect(message.reply).toBeInvokedWith("Couldn't find \"VOID\" of POT 1.");
+            });
+        });
+
+        describe('invalid invocations (syntax)', () => {
+            test('1 valid item without procedural selections and invalid containing syntax into valid fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("TODO");
+            });
+
+            test('1 valid item without procedural selections and invalid containing syntax into valid room item', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                    "in",
+                        "pot",
+                    "of",
+                        "pot", "1",
+                    "at",
+                        "kitchen",
+                ];
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("TODO");
             });
         });
     });
