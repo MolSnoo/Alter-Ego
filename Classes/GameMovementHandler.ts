@@ -236,9 +236,12 @@ export default class GameMovementHandler {
      * We don't want players to be able to predict if a heated situation is occurring, so the result is randomly determined.
      * Returns true if the amount of time it takes to complete the movement in milliseconds is greater than a
      * randomly generated number within a given range.
+     *
+     * If the `SEND_MOVE_PROGRESS_INDICATOR` setting is `false`, this will always return `false`.
      * @param time - The number of milliseconds it will take to move to the destination.
      */
     private doSendProgressIndicator(time: number): boolean {
+        if (!this.#game.settings.sendMoveProgressIndicator) return false;
         const timeThreshold = this.#game.rollCustomDie(8, 12);
         return time / 1000 >= timeThreshold.result;
     }

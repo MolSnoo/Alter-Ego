@@ -7,6 +7,8 @@ import { usage, execute, config } from "../../Commands/use_player.js";
 import ActivateAction from "../../Data/Actions/ActivateAction.ts";
 import AttemptAction from "../../Data/Actions/AttemptAction.ts";
 import DeactivateAction from "../../Data/Actions/DeactivateAction.ts";
+import ActivateAndAttemptAction from "../../Data/Actions/ActivateAndAttemptAction.ts";
+import DeactivateAndAttemptAction from "../../Data/Actions/DeactivateAndAttemptAction.ts";
 import UseAction from "../../Data/Actions/UseAction.ts";
 import { createMockMessage, createMockUser } from "../__mocks__/libs/discord.js";
 import { sendQueuedMessages, clearQueue } from "../../Modules/messageHandler.ts";
@@ -113,26 +115,34 @@ describe("use_player command", () => {
             const spy = vi.spyOn(AttemptAction.prototype, "performAttempt");
             // @ts-ignore
             await use_player.execute(testGame, createMockMessage(), "use", ["USERNAME", "root"], player);
-            expect(spy).toBeInvokedWith(puzzle, null, "root", "use", "root", undefined);
+            expect(spy).toBeInvokedWith(puzzle, null, "root", "use", "root", null);
         });
     });
 
     describe("on fixture & puzzle", () => {
-        afterEach(async () => {
+        afterAll(async () => {
             await testGame.entityLoader.loadFixtures(false);
             await testGame.entityLoader.loadPuzzles(false);
         });
 
-        test("AttemptAction & ActivateAction execution", async () => {
+        test("ActivateAndAttemptAction execution", async () => {
             const player = testGame.entityFinder.getPlayer("Kiara");
             const fixture = testGame.entityFinder.getFixture("SHOWER", "restroom-11");
             const puzzle = testGame.entityFinder.getPuzzle("SHOWER 11", "restroom-11", "toggle", true);
-            const activate_spy = vi.spyOn(ActivateAction.prototype, "performActivate");
-            const attempt_spy = vi.spyOn(AttemptAction.prototype, "performAttempt");
+            const activate_and_attempt_spy = vi.spyOn(ActivateAndAttemptAction.prototype, "performActivateAndAttempt");
             // @ts-ignore
             await use_player.execute(testGame, createMockMessage(), "use", ["shower"], player);
-            expect(activate_spy).toBeInvokedWith(fixture, false);
-            expect(attempt_spy).toBeInvokedWith(puzzle, null, "", "use", "", player);
+            expect(activate_and_attempt_spy).toBeInvokedWith(fixture, puzzle, null, "", "use", "", null);
+        });
+
+        test("DeactivateAndAttemptAction execution", async () => {
+            const player = testGame.entityFinder.getPlayer("Kiara");
+            const fixture = testGame.entityFinder.getFixture("SHOWER", "restroom-11");
+            const puzzle = testGame.entityFinder.getPuzzle("SHOWER 11", "restroom-11", "toggle", true);
+            const deactivate_and_attempt_spy = vi.spyOn(DeactivateAndAttemptAction.prototype, "performDeactivateAndAttempt");
+            // @ts-ignore
+            await use_player.execute(testGame, createMockMessage(), "use", ["shower"], player);
+            expect(deactivate_and_attempt_spy).toBeInvokedWith(fixture, puzzle, null, "", "use", "", null);
         });
     });
 });

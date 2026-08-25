@@ -368,13 +368,14 @@ export default class AttemptAction extends Action {
     }
 
     /**
-     * If an inaccessible puzzle was attempted without a message being sent (i.e. by a bot command), then passing an empty string as the customNarration will prevent a narration from being sent.
+     * If an inaccessible puzzle was attempted without a message being sent and by a user other than the player (i.e. by a bot command),
+     * then passing an empty string as the customNarration will prevent a narration from being sent.
      *
      * @param customNarration - The custom narration to use, if any.
-     * @returns Returns either an empty string if no message was sent, or the custom narration if one was. If no custom narration was specified, it is undefined.
+     * @returns Either an empty string if no message was sent and the user is not the player, or the custom narration if one was. If no custom narration was specified, it is undefined.
      */
     #getInaccessiblePuzzleCustomNarration(customNarration?: string): string | undefined {
-        return this.message === undefined ? "" : customNarration;
+        return this.message === undefined && this.user !== this.player ? "" : customNarration;
     }
 
     /**

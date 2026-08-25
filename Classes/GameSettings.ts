@@ -44,6 +44,10 @@ export default class GameSettings {
 	 * A number that will be multiplied by the amount of time passing when at least 1 Player is inflicted with the heated Status.
 	 */
 	heatedSlowdownRate: number;
+    /**
+     * Whether or not a progress indicator will be sent to players for long movements.
+     */
+    sendMoveProgressIndicator: boolean;
 	/**
 	 * How often, in seconds, the bot will save game data to the spreadsheet.
 	 */
@@ -129,6 +133,7 @@ export default class GameSettings {
 	 * @param pixelsPerMeter - How many pixels it takes to represent 1 meter of Player movement.
 	 * @param staminaUseRate - How much stamina a Player loses every 1/10th of a second while they are moving.
 	 * @param heatedSlowdownRate - A number that will be multiplied by the amount of time passing when at least 1 Player is inflicted with the heated Status.
+     * @param sendMoveProgressIndicator - Whether or not a progress indicator will be sent to players for long movements.
 	 * @param autoSaveInterval - How often, in seconds, the bot will save game data to the spreadsheet.
 	 * @param diceMin - The lowest possible number for a standard Die roll.
 	 * @param diceMax - The highest possible number for a standard Die roll.
@@ -155,6 +160,7 @@ export default class GameSettings {
 		pixelsPerMeter: number,
 		staminaUseRate: number,
 		heatedSlowdownRate: number,
+        sendMoveProgressIndicator: boolean,
 		autoSaveInterval: number,
 		diceMin: number,
 		diceMax: number,
@@ -180,6 +186,7 @@ export default class GameSettings {
 		this.pixelsPerMeter = pixelsPerMeter;
 		this.staminaUseRate = staminaUseRate;
 		this.heatedSlowdownRate = heatedSlowdownRate;
+        this.sendMoveProgressIndicator = sendMoveProgressIndicator;
 		this.autoSaveInterval = autoSaveInterval;
 		this.diceMin = diceMin;
 		this.diceMax = diceMax;
