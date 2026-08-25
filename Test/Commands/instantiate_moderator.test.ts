@@ -811,6 +811,24 @@ describe('instantiate_moderator command', () => {
                 expect(context).toBeUndefined();
                 expect(message.reply).toBeInvokedWith("TODO");
             });
+
+            test('1 valid item without procedural selections and nested containing syntax into valid player equipment slot', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                    "pack", "of", "pens",
+                    "containing",
+                    "pack", "of", "pens",
+                    "in",
+                    "kyra's", "left", "hand",
+                ];
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find prefab \"PACK OF PENS CONTAINING PACK OF PENS\".");
+            });
         });
     });
 
@@ -3571,6 +3589,26 @@ describe('instantiate_moderator command', () => {
                 expect(message.reply).toBeInvokedWith("TODO");
             });
 
+            test('1 valid item without procedural selections and nested containing syntax into valid fixture', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                        "pack", "of", "pens",
+                        "containing",
+                            "pack", "of", "pens",
+                    "on",
+                        "floor",
+                    "at",
+                        "lobby",
+                ];
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find prefab \"PACK OF PENS CONTAINING PACK OF PENS\".");
+            });
+
             test('1 valid item without procedural selections and invalid containing syntax into valid room item', async () => {
                 const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
                 const args = [
@@ -3588,6 +3626,28 @@ describe('instantiate_moderator command', () => {
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
                 expect(message.reply).toBeInvokedWith("TODO");
+            });
+
+            test('1 valid item without procedural selections and nested containing syntax into valid player equipment slot', async () => {
+                const message = createMockMessage({ channel: testGame.guildContext.commandChannel });
+                const args = [
+                    "pack", "of", "pens",
+                    "containing",
+                        "pack", "of", "pens",
+                        "containing",
+                            "pack", "of", "pens",
+                    "in",
+                        "pot",
+                    "of",
+                        "pot", "1",
+                    "at",
+                        "kitchen",
+                ];
+                await instantiate_moderator.execute(testGame, message, "create", args, moderator);
+                await testGame.messageQueue.process();
+                expect(spy).not.toHaveBeenCalled();
+                expect(context).toBeUndefined();
+                expect(message.reply).toBeInvokedWith("Couldn't find prefab \"PACK OF PENS CONTAINING PACK OF PENS\".");
             });
         });
     });
