@@ -24,7 +24,7 @@ import Player from '../Data/Player.ts';
 import Gesture from '../Data/Gesture.ts';
 import { default as Flag, type FlagCommandSet } from '../Data/Flag.ts';
 import InflictAction from '../Data/Actions/InflictAction.ts';
-import { getSheetValues } from '../Modules/sheets.js';
+import { getSheetValues } from '../Modules/sheets.ts';
 import { round, convertTimeStringToDurationUnits, parseDuration, validateDuration } from '../Modules/helpers.ts';
 import { getErrorMessage, addToErrors, errorHasCode } from '../Modules/errorHandler.ts';
 import { parsePrefabPossibleNames } from '../Modules/stringDataExtractor.ts';

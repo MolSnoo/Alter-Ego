@@ -1,6 +1,6 @@
 import GameConstants from '../Classes/GameConstants.ts';
 import GameSettings from '../Classes/GameSettings.ts';
-import { batchUpdateSheet, batchUpdateSheetValues, getSheetWithProperties } from './sheets.js';
+import { batchUpdateSheet, batchUpdateSheetValues, getSheetWithProperties } from './sheets.ts';
 import { generateListString } from './helpers.ts';
 
 import fs from 'fs';

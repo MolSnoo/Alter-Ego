@@ -1,9 +1,9 @@
 import Game from '../Data/Game.ts';
 import Player from '../Data/Player.ts';
 import Room from '../Data/Room.ts';
-import { appendRowsToSheet } from '../Modules/sheets.js';
+import { appendRowsToSheet } from '../Modules/sheets.ts';
 import { Collection } from 'discord.js';
-import {loadPlayerDefaults} from "../Modules/settingsLoader.ts";
+import { loadPlayerDefaults } from '../Modules/settingsLoader.ts';
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */

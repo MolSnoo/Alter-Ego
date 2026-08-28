@@ -1,5 +1,5 @@
-﻿import { updateSheetValues } from '../Modules/sheets.js';
-import {loadPlayerDefaults} from "../Modules/settingsLoader.ts";
+﻿import { updateSheetValues } from "../Modules/sheets.ts";
+import { loadPlayerDefaults } from "../Modules/settingsLoader.ts";
 
 /** @import Moderator from '../Data/Moderator.ts' */
 /** @import GameSettings from '../Classes/GameSettings.ts' */
@@ -116,7 +116,7 @@ export async function execute(game, message, command, args, moderator) {
             playerCells.push(playerData);
 
             for (let j = 0; j < playerdefaults.defaultInventory.length; j++) {
-                // Update this so it replaces the number smybol in any cell.
+                // Update this so it replaces the number symbol in any cell.
                 let row = [player.name];
                 row = row.concat(playerdefaults.defaultInventory[j]);
                 for (let k = 0; k < row.length; k++) {

@@ -93,7 +93,7 @@ describe('sheets module', () => {
 });
 
 /*const googleapisMock = include('Test/Mocks/googleapis').mock();
-const sheets = include('Modules/sheets.js');
+const sheets = include('Modules/sheets.ts');
 
 describe('sheets module', () => {
     describe('getData', () => {

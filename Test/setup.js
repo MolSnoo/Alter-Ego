@@ -12,7 +12,7 @@ import toBeWebhookMessage from './__extenders__/toBeWebhookMessage.ts';
 import toBeMessageWith from './__extenders__/toBeMessageWith.ts';
 
 import * as sheetsMock from './__mocks__/libs/sheets.js';
-vi.mock('../Modules/sheets.js', () => sheetsMock);
+vi.mock('../Modules/sheets.ts', () => sheetsMock);
 import * as discordMock from './__mocks__/libs/discord.js';
 vi.mock(import('discord.js'), async (importOriginal) => {
     const actual = await importOriginal();
