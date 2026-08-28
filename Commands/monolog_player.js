@@ -49,5 +49,5 @@ export async function execute(game, message, command, args, player) {
 		return game.communicationHandler.reply(message, `Your monolog exceeds Discord's character limit. Please split it into multiple messages.`);
 
 	const action = new MonologAction(game, message, player, player.location, false);
-	action.performMonolog(input);
+	action.performMonolog(await game.communicationHandler.replaceEmoji(input));
 }

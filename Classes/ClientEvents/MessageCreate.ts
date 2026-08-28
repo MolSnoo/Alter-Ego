@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { ChannelType, Events } from "discord.js";
 import ClientEvent from "../ClientEvent.ts";
-import { processIncomingMessage } from "../../Modules/messageHandler.ts";
 
 export default new ClientEvent({
     name: Events.MessageCreate,
@@ -23,11 +23,12 @@ export default new ClientEvent({
         const messageStartsWithCommandAlias = message.content.startsWith(game.settings.commandPrefix);
         let isCommand = messageStartsWithCommandAlias || message.channel.type === ChannelType.DM || message.channel.id === game.guildContext.commandChannel.id;
         if (isCommand) {
+            await game.communicationHandler.cacheEmojis(message);
             const command = messageStartsWithCommandAlias ? message.content.substring(game.settings.commandPrefix.length) : message.content;
             isCommand = await game.clientContext.commandHandler.executeCommand(command, game, message);
         }
         if (message.channel.type !== ChannelType.DM && !isCommand && game.inProgress) {
-            processIncomingMessage(game, message);
+            game.dialogQueue.enqueue(message);
         }
     }
 });

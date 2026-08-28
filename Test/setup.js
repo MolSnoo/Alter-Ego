@@ -105,6 +105,8 @@ beforeAll(() => {
     try { ClientContext.instance.updatePresence(); } catch (e) { }
     globalThis.testGame = testGame;
     testGame.messageQueue.manual = true;
+    testGame.editQueue.manual = true;
+    testGame.dialogQueue.manual = true;
 });
 
 afterEach(() => {

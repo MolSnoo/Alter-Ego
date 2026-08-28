@@ -1,4 +1,5 @@
 // SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+// SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -48,6 +49,12 @@ export default new ClientEvent({
             if (loadCommand)
                 await loadCommand.execute(game, undefined, "lar", []);
         }
+
+        // Fetch all application emojis now, so that the application emoji cache is populated for application emoji mirroring.
+        clientContext.emojis = await client.application.emojis.fetch();
+
+        // Fetch all guild emojis now, so that the guild emoji cache is populated for exempting guild emojis from application emoji mirroring.
+        await guildContext.guild.emojis.fetch();
 
         // Set the bot as finished initializing.
         clientContext.initialize();

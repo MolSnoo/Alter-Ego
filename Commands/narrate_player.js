@@ -49,5 +49,5 @@ export async function execute(game, message, command, args, player) {
 		return game.communicationHandler.reply(message, `Your narration exceeds Discord's character limit. Please split it into multiple messages.`);
 
 	const narrateAction = new NarrateAction(game, message, player, player.location, false);
-	game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAYER, narrateAction, input, player);
+	game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAYER, narrateAction, await game.communicationHandler.replaceEmoji(input), player);
 }

@@ -36,6 +36,7 @@
     "googleapis": "^164.1.0",
     "luxon": "^3.7.2",
     "pretty-format": "^30.2.0",
+    "sharp": "^0.35.3",
     "table": "^6.9.0"
   },
   "devDependencies": {

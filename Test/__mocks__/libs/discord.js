@@ -209,11 +209,13 @@ export function createMockGuildMemberManager() {
  */
 // @ts-ignore
 export function createMockGuild(channels = [], roles = [], members = [], client) {
+    const { Collection } = require('discord.js');
     const guild = {
         iconURL: vi.fn(() => ''),
         channels: createMockGuildChannelManager(client),
         members: createMockGuildMemberManager(),
-        roles: createMockRoleManager()
+        roles: createMockRoleManager(),
+        emojis: {cache: new Collection()}
     };
     for (const channel of channels)
         guild.channels.cache.set(channel.id, channel);

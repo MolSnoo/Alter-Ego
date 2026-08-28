@@ -16,9 +16,11 @@ import type Player from "../Data/Player.ts";
 import type Room from "../Data/Room.ts";
 import { MessageDisplayType } from "../Modules/enums.ts";
 import * as messageHandler from "../Modules/messageHandler.ts";
-import { capitalizeFirstLetter } from "../Modules/helpers.ts";
-import { Collection } from "discord.js";
-import type { Attachment, Embed, EmbedBuilder, Message, Snowflake, TextChannel } from "discord.js";
+import { asyncReplace, capitalizeFirstLetter } from "../Modules/helpers.ts";
+import { Collection, SnowflakeUtil } from "discord.js";
+import crypto from "crypto";
+import sharp from "sharp";
+import type { ApplicationEmoji, Attachment, Embed, EmbedBuilder, Message, Snowflake, TextChannel } from "discord.js";
 
 /**
  * A dialog message that has been mirrored in a spectate channel.
@@ -55,6 +57,11 @@ export default class GameCommunicationHandler {
      * The maximum size of the dialogSpectateMirrorCache.
      */
     readonly #dialogSpectateMirrorCacheSizeLimit = 50;
+
+    /**
+     * The regex used when matching emojis.
+     */
+    private static readonly emojiRegex = /<(a?):([a-zA-Z0-9_]+):([0-9]+)>/g;
 
     /**
      * @param game - The game this belongs to.
@@ -117,6 +124,149 @@ export default class GameCommunicationHandler {
         if (this.#dialogSpectateMirrorCache.size >= this.#dialogSpectateMirrorCacheSizeLimit)
             this.#dialogSpectateMirrorCache.delete(this.#dialogSpectateMirrorCache.firstKey()!);
         this.#dialogSpectateMirrorCache.set(message.id, []);
+    }
+
+    /**
+     * Hash an emoji given the name, snowflake, and whether or not it is animated.
+     * Mostly for keeping code DRY.
+     * @param name - The name of the emoji.
+     * @param snowflake - The snowflake of the emoji.
+     * @param animated - Whether the emoji is animated.
+     * @returns The hash of the emoji.
+     */
+    private hashEmoji(name: string, snowflake: string, animated: boolean): string {
+        return crypto.createHash('md5').update(`${name}:${snowflake}:${animated}`).digest('hex');
+    }
+
+    /**
+     * Generate an emoji name given the name and hash of the original emoji.
+     * Mostly for keeping code DRY.
+     * @param name - The name of the emoji.
+     * @param hash - The hash of the original emoji, computed by `GameCommunicationHandler.hashEmoji`.
+     * @returns The name of the new emoji.
+     */
+    private generateEmojiName(name: string, hash: string): string {
+        return name.slice(0, 23) + "_" + hash.slice(0, 8);
+    }
+
+    /**
+     * Cache a single emoji.
+     * @param cached - Set of MD5 hashes that are already cached.
+     * @param data - Data object of the emoji to cache.
+     */
+    private async cacheEmoji(cached: Set<string>, data: { animated: boolean, name: string, snowflake: string, hash: string }): Promise<void> {
+        const selfName = this.generateEmojiName(data.name, data.hash);
+        if (cached.has(selfName))
+            return;
+
+        const url = `https://cdn.discordapp.com/emojis/${data.snowflake}${data.animated ? `.webp?size=64&animated=true&name=${data.name}&lossless=true` : `.webp?size=64&name=${data.name}&lossless=true`}`;
+        const emoji = await fetch(url);
+        const emojiData = data.animated ?
+            await sharp(await emoji.bytes(), { animated: true }).gif().toBuffer() :
+            await sharp(await emoji.bytes()).png().toBuffer();
+        const emojiBase64 = emojiData.toString("base64");
+        const emojiInstance = await this.#game.clientContext.client.application.emojis.create({ attachment: `data:image/${data.animated ? "gif" : "png"};base64,${emojiBase64}`, name: selfName });
+        this.#game.clientContext.emojis.set(emojiInstance.id, emojiInstance);
+    }
+
+    /**
+     * Adds the emojis in the given message to the emoji cache.
+     * @param message - The message that initiated the cache.
+     */
+    async cacheEmojis(message: UserMessage) {
+        const application = this.#game.clientContext.client.application;
+        const emojiData: { animated: boolean, name: string, snowflake: string, hash: string }[] = [];
+        const guildEmojis = this.#game.guildContext.guild.emojis.cache;
+
+        for (const match of message.content.matchAll(GameCommunicationHandler.emojiRegex)) {
+            const animated = match[1] === "a";
+            const name = match[2];
+            const snowflake = match[3];
+            const hash = this.hashEmoji(name, snowflake, animated);
+            emojiData.push({ animated: animated, name: name, snowflake: snowflake, hash: hash });
+        }
+
+        emojiData.filter(emoji => !guildEmojis.has(emoji.snowflake));
+
+        if (emojiData.length === 0)
+            return;
+
+        if (this.#game.clientContext.emojis.size >= 1975)
+            await this.deleteNumberOfOldestEmoji(emojiData.length);
+
+        const appEmojis = new Set(this.#game.clientContext.emojis.map(emoji => emoji.name));
+
+        const promises: Promise<void>[] = [];
+        for (const data of emojiData)
+            promises.push(this.cacheEmoji(appEmojis, data));
+        await Promise.all(promises);
+    }
+
+    /**
+     * Delete a given number of the oldest emoji.
+     * @param x - The number of emoji to delete.
+     */
+    private async deleteNumberOfOldestEmoji(x: number): Promise<void> {
+        const emojis = this.#game.clientContext.emojis.map(emoji => emoji);
+
+        emojis.sort((a, b) => {
+            const aSnow = SnowflakeUtil.deconstruct(a.id);
+            const bSnow = SnowflakeUtil.deconstruct(b.id);
+
+            if (aSnow.epoch < bSnow.epoch) return 1;
+            if (aSnow.epoch > bSnow.epoch) return -1;
+            return 0;
+        });
+
+        const promises: Promise<void>[] = [];
+        for (let i = 0; i < x; i++) {
+            const emoji = emojis.pop();
+            this.#game.clientContext.emojis.delete(emoji.id);
+            promises.push(this.#game.clientContext.client.application.emojis.delete(emoji));
+        }
+        await Promise.all(promises);
+    }
+
+    /**
+     * Fetches the application emoji version of the given emoji
+     * @param emoji - The message that initiated the cache.
+     */
+    fetchCachedEmoji(emoji: {animated: boolean, name: string, snowflake: string}): ApplicationEmoji | undefined {
+        const guildEmojis = this.#game.guildContext.guild.emojis.cache;
+        if (guildEmojis.has(emoji.snowflake))
+            return undefined;
+
+        const hash = this.hashEmoji(emoji.name, emoji.snowflake, emoji.animated);
+        const name = this.generateEmojiName(emoji.name, hash);
+
+        return this.#game.clientContext.emojis.find(emoji => emoji.name === name);
+    }
+
+    /**
+     * asyncReplace replacer for emojis, swapping user emojis with application emojis.
+     * @param match - The matched text.
+     * @param _offset - Unused.
+     * @param _input - Unused.
+     * @param captures - The array of captured strings.
+     * @returns Text with user emojis swapped with application emojis.
+     */
+    private async emojiReplacer(match: string, _offset: number, _input: string, ...captures: string[]) {
+        const animated = captures[0] === "a";
+        const name = captures[1];
+        const snowflake = captures[2];
+        const emoji = this.fetchCachedEmoji({ animated: animated, name: name, snowflake: snowflake });
+        if (emoji)
+            return `<${emoji.animated ? "a" : ""}:${emoji.name}:${emoji.id}>`;
+        else
+            return match;
+    }
+
+    /**
+     * Replaces custom emojis in the input with application cached emojis
+     * @param text - The body of text to replace emojis in.
+     */
+    async replaceEmoji(text: string): Promise<string> {
+        return await asyncReplace(text, GameCommunicationHandler.emojiRegex, this.emojiReplacer, this);
     }
 
     /**

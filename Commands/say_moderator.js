@@ -53,7 +53,7 @@ export async function execute(game, message, command, args, moderator) {
 
     if (player) {
         if (!player.isNPC) return game.communicationHandler.reply(message, `You cannot speak for a player that isn't an NPC.`);
-        const dialog = new Dialog(game, message, player, player.location, content, false);
+        const dialog = new Dialog(game, message, player, player.location, await game.communicationHandler.replaceEmoji(content), false);
         const dialogMessage = await game.communicationHandler.sendDialogAsWebhook(player.location.channel, dialog, dialog.getDisplayNameForWebhook(false), dialog.getDisplayIconForWebhook(false));
         dialog.setMessage(dialogMessage);
         const sayAction = new SayAction(game, dialogMessage, player, player.location, true);
@@ -66,10 +66,10 @@ export async function execute(game, message, command, args, moderator) {
         const location = whisper ? whisper.location : room;
         if (room !== null) {
             const narrateAction = new NarrateAction(game, message, undefined, location, true, whisper);
-            game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAIN_TEXT, narrateAction, content);
+            game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAIN_TEXT, narrateAction, await game.communicationHandler.replaceEmoji(content));
         }
     }
     else if (channel?.type === ChannelType.GuildText)
-        channel.send(content);
+        channel.send(await game.communicationHandler.replaceEmoji(content));
     else game.communicationHandler.reply(message, `Couldn't find a player or channel in your input. Usage:\n${usage(game.settings)}`);
 }

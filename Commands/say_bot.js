@@ -73,7 +73,7 @@ export async function execute(game, command, args, player, callee) {
 
     if (speaker) {
         if (!speaker.isNPC) game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". You cannot speak for a player that isn't an NPC.`);
-        const dialog = new Dialog(game, undefined, speaker, speaker.location, content, false);
+        const dialog = new Dialog(game, undefined, speaker, speaker.location, await game.communicationHandler.replaceEmoji(content), false);
         const dialogMessage = await game.communicationHandler.sendDialogAsWebhook(speaker.location.channel, dialog, dialog.getDisplayNameForWebhook(false), dialog.getDisplayIconForWebhook(false));
         dialog.setMessage(dialogMessage);
         const sayAction = new SayAction(game, dialogMessage, speaker, speaker.location, true);
@@ -81,7 +81,7 @@ export async function execute(game, command, args, player, callee) {
     }
     else if (room) {
         const narrateAction = new NarrateAction(game, undefined, undefined, room, true);
-        game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAIN_TEXT, narrateAction, content);
+        game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAIN_TEXT, narrateAction, await game.communicationHandler.replaceEmoji(content));
     }
     else game.communicationHandler.sendToCommandChannel(`Error: Couldn't execute command "${cmdString}". Couldn't find a player or room.`);
 }

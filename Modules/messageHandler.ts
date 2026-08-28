@@ -4,10 +4,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import Dialog from '../Data/Dialog.ts';
-import AnnounceAction from '../Data/Actions/AnnounceAction.ts';
-import NarrateAction from '../Data/Actions/NarrateAction.ts';
-import SayAction from '../Data/Actions/SayAction.ts';
 import * as discordUtils from './discordUtils.ts';
 import { MessageDisplayType } from './enums.ts';
 import { capitalizeFirstLetter } from './helpers.ts';
@@ -32,72 +28,6 @@ import type Player from '../Data/Player.ts';
 import type Whisper from '../Data/Whisper.ts';
 import type Interactable from '../Classes/Interactables/Interactable.ts';
 import type Command from '../Classes/Command.ts';
-
-/**
- * Processes a message sent in a guild during a game and directs it to the relevant handlers.
- * @param game - The game the message is intended for.
- * @param message - The message to process.
- */
-export function processIncomingMessage(game: Game, message: UserMessage): void {
-    if (message.channel.type !== ChannelType.GuildText) return;
-    const isInWhisperChannel = message.channel.parentId === game.guildContext.whisperCategoryId;
-    const isInAnnouncementChannel = message.channel.id === game.guildContext.announcementChannel.id;
-    const isInRoomChannel = game.guildContext.roomCategories.includes(message.channel.parentId);
-    if (!isInWhisperChannel && !isInAnnouncementChannel && !isInRoomChannel) return;
-
-    game.communicationHandler.cacheDialog(message);
-
-    const isModerator = message.member && message.member.roles.cache.has(game.guildContext.moderatorRole.id);
-    const room = game.entityFinder.getRoom(message.channel.name);
-    const whisper = game.entityFinder.getWhisperByChannelId(message.channel.id);
-    const player = game.entityFinder.getLivingPlayerById(message.author.id);
-
-    // Forwarded messages should be deleted.
-    if (message.flags.has(MessageFlags.HasSnapshot)) {
-        const errorMessage = `You cannot forward messages to game channels.`;
-        game.communicationHandler.reply(message, errorMessage, true);
-        return;
-    }
-
-    if (player) {
-        player.setOnline();
-        const playerNoSpeechStatusEffects = player.getBehaviorAttributeStatusEffects("no speech");
-        if (playerNoSpeechStatusEffects.length > 0) {
-            game.communicationHandler.sendMessageToPlayer(player, game.notificationGenerator.generatePlayerNoSpeechNotification(playerNoSpeechStatusEffects[0].id), false, MessageDisplayType.ALERT);
-            game.communicationHandler.deleteMessage(message);
-            return;
-        }
-        const location = isInAnnouncementChannel || isInWhisperChannel ? player.location : room;
-        const dialog = new Dialog(game, message, player, location, message.content, isInAnnouncementChannel, whisper, message.cleanContent);
-        if (dialog.isAnnouncement) {
-            const announceAction = new AnnounceAction(game, message, dialog.speaker, dialog.location, false, dialog.whisper);
-            announceAction.performAnnounce(dialog);
-        }
-        else {
-            const sayAction = new SayAction(game, message, dialog.speaker, dialog.location, false, dialog.whisper);
-            sayAction.performSay(dialog);
-        }
-    }
-    else if (isModerator && (room || whisper)) {
-        const moderator = game.entityLoader.getOrCreateModerator(message.member);
-        if (moderator.sentMessageInLatchChannel(message) && !message.content.startsWith("(")) {
-            const npc = moderator.getLatch();
-            const dialog = new Dialog(game, message, npc, npc.location, message.content, false, whisper, message.cleanContent);
-            const channel = whisper ? whisper.channel : npc.location.channel;
-            game.communicationHandler.sendDialogAsWebhook(channel, dialog, dialog.getDisplayNameForWebhook(!!whisper), dialog.getDisplayIconForWebhook(!!whisper)).then(dialogMessage => {
-                dialog.setMessage(dialogMessage);
-                const sayAction = new SayAction(game, dialogMessage, npc, npc.location, true, whisper);
-                sayAction.performSay(dialog);
-                game.communicationHandler.deleteMessage(message);
-            });
-        }
-        else {
-            const location = whisper ? whisper.location : room;
-            const narrateAction = new NarrateAction(game, message, undefined, location, false, whisper);
-            game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAIN_TEXT, narrateAction, message.content, moderator);
-        }
-    }
-}
 
 /**
  * Narrates a message to a room.

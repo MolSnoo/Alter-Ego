@@ -279,3 +279,40 @@ export function addPages<T>(pages: T[][], array: T[], pageSize = 5): void {
         pages[pageNo].push(array[i]);
     }
 }
+
+/**
+ * Asynchronous string replace.
+ * @param text - The string to operate on.
+ * @param regex - The regular expression to utilize in replacement.
+ * @param asyncReplacer - The function to run when replacing matches.
+ * @param context - Optional `this` to apply to the given asyncReplacer.
+ * @returns String with replacements applied.
+ */
+export async function asyncReplace(text: string, regex: RegExp, asyncReplacer: (match: string, offset: number, input: string, ...captures: string[]) => Promise<string>, context?: any): Promise<string> {
+    const matches = [...text.matchAll(regex)];
+    if (matches.length === 0)
+        return text;
+
+    const replacements = context === undefined ? await Promise.all(
+        matches.map(match => asyncReplacer(match[0], match.index, match.input, ...match.slice(1)))
+    ) : await Promise.all(
+        matches.map(match => asyncReplacer.apply(context, [match[0], match.index, match.input, ...match.slice(1)]) as Promise<string>)
+    );
+
+    let result = text;
+    let offsetAdjustment = 0;
+    /**
+     * @privateRemarks
+     * This is horrible...
+     * - RH
+     */
+    matches.forEach((matchArray, i) => {
+        const originalMatch = matchArray[0];
+        const start = matchArray.index + offsetAdjustment;
+        const end = start + originalMatch.length;
+        const replacement = replacements[i];
+        result = result.slice(0, start) + replacement + result.slice(end);
+        offsetAdjustment += replacement.length - originalMatch.length;
+    });
+    return result;
+}

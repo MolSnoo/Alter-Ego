@@ -60,7 +60,7 @@ export async function execute(game, message, command, args, moderator) {
 	if (player) {
 		if (!player.isNPC) return game.communicationHandler.reply(message, `You cannot narrate for a player that isn't an NPC. Send a message directly to their room or whisper channel instead.`);
 		const narrateAction = new NarrateAction(game, message, player, player.location, true);
-		game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAYER, narrateAction, input, player);
+		game.narrationHandler.sendNarrateAction(MessageDisplayType.PLAYER, narrateAction, await game.communicationHandler.replaceEmoji(input), player);
 		narrateAction.sendSuccessMessageToCommandChannel();
 	}
 	else game.communicationHandler.reply(message, `Couldn't find an NPC in your input. Usage:\n${usage(game.settings)}`);
