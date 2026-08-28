@@ -25,7 +25,7 @@ describe('instantiate_bot command', () => {
         vi.resetAllMocks();
     });
 
-    const instantiate_moderator = new BotCommand(config, usage, execute);
+    const instantiate_bot = new BotCommand(config, usage, execute);
 
     describe('inventory items', () => {
         beforeEach(() => {
@@ -48,7 +48,7 @@ describe('instantiate_bot command', () => {
             test('1 valid item without procedural selections into valid player equipment slot', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                await instantiate_moderator.execute(testGame, "create", "mug of coffee in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "mug of coffee in kyra's left hand".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(coffee, "LEFT HAND", null, "", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
                 expect(context.player.name).toBe(kyra.name);
@@ -57,7 +57,7 @@ describe('instantiate_bot command', () => {
             test('1 valid item with valid procedural selections into valid player equipment slot', async () => {
                 const kyra = testGame.entityFinder.getPlayer("Kyra");
                 const pen = testGame.entityFinder.getPrefab("pen");
-                await instantiate_moderator.execute(testGame, "create", "pen (ink color = red) in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (ink color = red) in kyra's left hand".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(pen, "LEFT HAND", null, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
                 expect(context.player.name).toBe(kyra.name);
@@ -76,7 +76,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 1, uses: pen.uses,
@@ -108,7 +108,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, "LEFT HAND", null, "", 1, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 3, uses: pen.uses,
@@ -146,7 +146,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, "LEFT HAND", null, "", 1, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -190,7 +190,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, "LEFT HAND", null, "", 1, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -215,7 +215,7 @@ describe('instantiate_bot command', () => {
 
         describe('invalid invocations (prefab)', () => {
             test('1 invalid item without procedural selections into valid player equipment slot', async () => {
-                await instantiate_moderator.execute(testGame, "create", "something very scary in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary in kyra's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -223,7 +223,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 invalid item with procedural selections into valid player equipment slot', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "something very scary (scary = true) in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary (scary = true) in kyra's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -233,7 +233,7 @@ describe('instantiate_bot command', () => {
 
         describe('invalid invocations (procedural)', () => {
             test('1 valid item with invalid procedural selection possibility into valid player equipment slot', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "pen (ink color = rainbow) in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (ink color = rainbow) in kyra's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -241,7 +241,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 valid item with invalid procedural selection into valid player equipment slot', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "pen (scary = true) in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (scary = true) in kyra's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -258,7 +258,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -275,7 +275,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -292,7 +292,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -309,7 +309,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -332,7 +332,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -354,7 +354,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -377,7 +377,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -399,7 +399,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -422,7 +422,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -444,7 +444,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -467,7 +467,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -489,7 +489,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -512,7 +512,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -534,7 +534,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -557,7 +557,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -579,7 +579,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -589,7 +589,7 @@ describe('instantiate_bot command', () => {
 
         describe('invalid invocations (player)', () => {
             test('1 valid item without procedural selections into invalid player hand', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "mug of coffee in nobody's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "mug of coffee in nobody's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -597,7 +597,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 valid item with valid procedural selections into invalid player hand', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "pen (ink color = red) in nobody's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (ink color = red) in nobody's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -605,7 +605,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 invalid item without procedural selections into invalid player hand', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "something very scary in nobody's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary in nobody's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -613,7 +613,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 invalid item with procedural selections into invalid player hand', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "something very scary (scary = true) in nobody's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary (scary = true) in nobody's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -623,7 +623,7 @@ describe('instantiate_bot command', () => {
 
         describe('invalid invocations (quantity)', () => {
             test('2 valid items without procedural selections into valid player equipment slot', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 mug of coffee in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 mug of coffee in kyra's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -631,7 +631,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 valid items with valid procedural selections into valid player equipment slot', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 pen (ink color = red) in kyra's left hand".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 pen (ink color = red) in kyra's left hand".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -648,7 +648,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -670,7 +670,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -687,7 +687,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -710,7 +710,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -729,7 +729,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "abyssal", "void",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -751,7 +751,7 @@ describe('instantiate_bot command', () => {
                     "in",
                         "kyra's", "abyssal", "void",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -767,7 +767,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -784,7 +784,7 @@ describe('instantiate_bot command', () => {
                     "in",
                     "kyra's", "left", "hand",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -814,7 +814,7 @@ describe('instantiate_bot command', () => {
             test('1 valid item without procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                await instantiate_moderator.execute(testGame, "create", "mug of coffee on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "mug of coffee on floor at lobby".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(coffee, floor, "", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -822,7 +822,7 @@ describe('instantiate_bot command', () => {
             test('2 valid items without procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                await instantiate_moderator.execute(testGame, "create", "2 mug of coffee on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 mug of coffee on floor at lobby".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(coffee, floor, "", 2, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -830,7 +830,7 @@ describe('instantiate_bot command', () => {
             test('1 valid item with valid procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                await instantiate_moderator.execute(testGame, "create", "pen (ink color = red) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (ink color = red) on floor at lobby".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(pen, floor, "", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -838,7 +838,7 @@ describe('instantiate_bot command', () => {
             test('2 valid items with valid procedural selections into valid fixture', async () => {
                 const floor = testGame.entityFinder.getFixture('floor', 'lobby');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                await instantiate_moderator.execute(testGame, "create", "2 pen (ink color = red) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 pen (ink color = red) on floor at lobby".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(pen, floor, "", 2, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -858,7 +858,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, floor, "", 1, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 1, uses: pen.uses,
@@ -891,7 +891,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, floor, "", 2, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 1, uses: pen.uses,
@@ -924,7 +924,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, floor, "", 1, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 3, uses: pen.uses,
@@ -957,7 +957,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, floor, "", 2, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 3, uses: pen.uses,
@@ -996,7 +996,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, floor, "", 1, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1042,7 +1042,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, floor, "", 2, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1087,7 +1087,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, floor, "", 1, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1128,7 +1128,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, floor, "", 2, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1152,7 +1152,7 @@ describe('instantiate_bot command', () => {
             test('1 valid item without procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                await instantiate_moderator.execute(testGame, "create", "mug of coffee in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "mug of coffee in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(coffee, pot, "POT", 1, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -1160,7 +1160,7 @@ describe('instantiate_bot command', () => {
             test('2 valid items without procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const coffee = testGame.entityFinder.getPrefab("mug of coffee");
-                await instantiate_moderator.execute(testGame, "create", "2 mug of coffee in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 mug of coffee in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(coffee, pot, "POT", 2, new Map(), coffee.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -1168,7 +1168,7 @@ describe('instantiate_bot command', () => {
             test('1 valid item with valid procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                await instantiate_moderator.execute(testGame, "create", "pen (ink color = red) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (ink color = red) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(pen, pot, "POT", 1, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -1176,7 +1176,7 @@ describe('instantiate_bot command', () => {
             test('2 valid items with valid procedural selections into valid room item', async () => {
                 const pot = testGame.entityFinder.getRoomItem('pot 1', 'kitchen');
                 const pen = testGame.entityFinder.getPrefab("pen");
-                await instantiate_moderator.execute(testGame, "create", "2 pen (ink color = red) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 pen (ink color = red) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 expect(spy).toBeInvokedWith(pen, pot, "POT", 2, new Map([["ink color", "red"]]), pen.uses, []);
                 expect(context).not.toBeUndefined();
             });
@@ -1198,7 +1198,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, pot, "POT", 1, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 1, uses: pen.uses,
@@ -1232,7 +1232,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(cup, pot, "POT", 2, new Map(), cup.uses, [
                     {
                         prefab: pen, quantity: 1, uses: pen.uses,
@@ -1263,7 +1263,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, pot, "POT", 1, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 3, uses: pen.uses,
@@ -1296,7 +1296,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pack, pot, "POT", 1, new Map(), pack.uses, [
                     {
                         prefab: pen, quantity: 2, uses: pen.uses,
@@ -1329,7 +1329,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 1, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1377,7 +1377,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 2, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1424,7 +1424,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 1, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1467,7 +1467,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 expect(spy).toBeInvokedWith(pot, kitchenPot, "POT", 2, new Map([
                     ["base color", "obscured"],
                     ["quality", "excellent"],
@@ -1491,7 +1491,7 @@ describe('instantiate_bot command', () => {
 
         describe('invalid invocations (prefab)', () => {
             test('1 invalid item without procedural selections into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "something very scary on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1499,7 +1499,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 invalid item without procedural selections into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 something very scary on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 something very scary on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1507,7 +1507,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 invalid item with procedural selections into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "something very scary (scary = true) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary (scary = true) on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1515,7 +1515,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 invalid item with procedural selections into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 something very scary (scary = true) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 something very scary (scary = true) on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1523,7 +1523,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 invalid item without procedural selections into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1531,7 +1531,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 invalid item without procedural selections into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 something very scary in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1539,7 +1539,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 invalid item with procedural selections into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1547,7 +1547,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 invalid item with procedural selections into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 something very scary (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1557,7 +1557,7 @@ describe('instantiate_bot command', () => {
 
         describe('invalid invocations (procedural)', () => {
             test('1 valid item with invalid procedural selection possibility into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1565,7 +1565,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 valid item with invalid procedural selection possibility into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 pen (ink color = rainbow) on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1573,7 +1573,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 valid item with invalid procedural selection into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "pen (scary = true) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (scary = true) on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1581,7 +1581,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 valid item with invalid procedural selection into valid fixture', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 pen (scary = true) on floor at lobby".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 pen (scary = true) on floor at lobby".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1600,7 +1600,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1619,7 +1619,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1638,7 +1638,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1657,7 +1657,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1676,7 +1676,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1695,7 +1695,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1714,7 +1714,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1733,7 +1733,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1758,7 +1758,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1783,7 +1783,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1807,7 +1807,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1831,7 +1831,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1856,7 +1856,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1881,7 +1881,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1905,7 +1905,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1929,7 +1929,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1954,7 +1954,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -1979,7 +1979,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2003,7 +2003,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2027,7 +2027,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2052,7 +2052,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2077,7 +2077,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2101,7 +2101,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2125,7 +2125,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2150,7 +2150,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2175,7 +2175,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2199,7 +2199,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2223,7 +2223,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2248,7 +2248,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2273,7 +2273,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2297,7 +2297,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2321,7 +2321,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2329,7 +2329,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 valid item with invalid procedural selection possibility into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2337,7 +2337,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 valid item with invalid procedural selection possibility into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 pen (ink color = rainbow) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2345,7 +2345,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('1 valid item with invalid procedural selection into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2353,7 +2353,7 @@ describe('instantiate_bot command', () => {
             });
 
             test('2 valid item with invalid procedural selection into valid room item', async () => {testGame.guildContext.commandChannel.send
-                await instantiate_moderator.execute(testGame, "create", "2 pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
+                await instantiate_bot.execute(testGame, "create", "2 pen (scary = true) in pot of pot 1 at kitchen".split(/[^\S\n]/));
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2374,7 +2374,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2394,7 +2394,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2415,7 +2415,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2434,7 +2434,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2455,7 +2455,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2475,7 +2475,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2496,7 +2496,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2515,7 +2515,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2542,7 +2542,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2569,7 +2569,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2595,7 +2595,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2621,7 +2621,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2648,7 +2648,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2675,7 +2675,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2701,7 +2701,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2727,7 +2727,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2754,7 +2754,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2781,7 +2781,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2807,7 +2807,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2833,7 +2833,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2860,7 +2860,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2887,7 +2887,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2913,7 +2913,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2939,7 +2939,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2966,7 +2966,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -2993,7 +2993,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3019,7 +3019,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3045,7 +3045,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3072,7 +3072,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3099,7 +3099,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3125,7 +3125,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3151,7 +3151,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3172,7 +3172,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3197,7 +3197,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3218,7 +3218,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3245,7 +3245,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3266,7 +3266,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3292,7 +3292,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3313,7 +3313,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3337,7 +3337,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3358,7 +3358,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3384,7 +3384,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3405,7 +3405,7 @@ describe('instantiate_bot command', () => {
                     "at",
                     "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3431,7 +3431,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3449,7 +3449,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3468,7 +3468,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "lobby",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3486,7 +3486,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
@@ -3507,7 +3507,7 @@ describe('instantiate_bot command', () => {
                     "at",
                         "kitchen",
                 ];
-                await instantiate_moderator.execute(testGame, "create", args);
+                await instantiate_bot.execute(testGame, "create", args);
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
