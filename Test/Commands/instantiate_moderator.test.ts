@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -809,7 +810,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("TODO");
+                expect(message.reply).toBeInvokedWith("You need to specify at least one contained item.");
             });
 
             test('1 valid item without procedural selections and nested containing syntax into valid player equipment slot', async () => {
@@ -3586,7 +3587,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("TODO");
+                expect(message.reply).toBeInvokedWith("You need to specify at least one contained item.");
             });
 
             test('1 valid item without procedural selections and nested containing syntax into valid fixture', async () => {
@@ -3625,7 +3626,7 @@ describe('instantiate_moderator command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(message.reply).toBeInvokedWith("TODO");
+                expect(message.reply).toBeInvokedWith("You need to specify at least one contained item.");
             });
 
             test('1 valid item without procedural selections and nested containing syntax into valid player equipment slot', async () => {

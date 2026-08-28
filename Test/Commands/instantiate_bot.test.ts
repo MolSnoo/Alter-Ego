@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2019 Alter Ego Contributors
 // SPDX-FileCopyrightText: 2026 LavCorps <lavcorps@protonmail.com>
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -8,14 +9,11 @@ import { usage, execute, config } from '../../Commands/instantiate_bot.js'
 import InstantiateInventoryItemAction from '../../Data/Actions/InstantiateInventoryItemAction.ts';
 import InstantiateRoomItemAction from '../../Data/Actions/InstantiateRoomItemAction.ts';
 import { clearQueue } from '../../Modules/messageHandler.ts';
-import { createMockMessage } from '../__mocks__/libs/discord.js';
-import { createMockModerator } from '../__mocks__/utility.ts';
 import type Prefab from '../../Data/Prefab.ts';
 import type InventoryItem from '../../Data/InventoryItem.ts';
 import type RoomItem from '../../Data/RoomItem.ts';
 import type { ContainedItem } from '../../Modules/stringDataExtractor.ts';
 import type { Mock } from 'vitest';
-import type Moderator from '../../Data/Moderator.ts';
 
 describe('instantiate_bot command', () => {
     beforeAll(async () => {
@@ -773,7 +771,7 @@ describe('instantiate_bot command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(testGame.guildContext.commandChannel.send).toBeInvokedWith("TODO");
+                expect(testGame.guildContext.commandChannel.send).toBeInvokedWith("Error: Couldn't execute command \"create pack of pens containing in kyra's left hand\". You need to specify at least one contained item.");
             });
 
             test('1 valid item without procedural selections and nested containing syntax into valid player equipment slot', async () => {testGame.guildContext.commandChannel.send
@@ -3455,7 +3453,7 @@ describe('instantiate_bot command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(testGame.guildContext.commandChannel.send).toBeInvokedWith("TODO");
+                expect(testGame.guildContext.commandChannel.send).toBeInvokedWith("Error: Couldn't execute command \"create pack of pens containing on floor at lobby\". You need to specify at least one contained item.");
             });
 
             test('1 valid item without procedural selections and nested containing syntax into valid fixture', async () => {testGame.guildContext.commandChannel.send
@@ -3492,7 +3490,7 @@ describe('instantiate_bot command', () => {
                 await testGame.messageQueue.process();
                 expect(spy).not.toHaveBeenCalled();
                 expect(context).toBeUndefined();
-                expect(testGame.guildContext.commandChannel.send).toBeInvokedWith("TODO");
+                expect(testGame.guildContext.commandChannel.send).toBeInvokedWith("Error: Couldn't execute command \"create pack of pens containing in pot of pot 1 at kitchen\". You need to specify at least one contained item.");
             });
 
             test('1 valid item without procedural selections and nested containing syntax into valid player equipment slot', async () => {testGame.guildContext.commandChannel.send
