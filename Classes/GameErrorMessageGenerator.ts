@@ -42,12 +42,19 @@ export default class GameErrorMessageGenerator {
     }
 
     /**
+     * Returns true if the given context is "Moderator" or "Bot".
+     */
+    private contextIsElevated(context: UserContext) {
+        return context === "Moderator" || context === "Bot";
+    }
+
+    /**
      * If the player's pronouns are plural, returns "are". If the player's pronouns are singular, returns "is".
      * @param player - The player whose pronouns determine the verb.
      * @param context - The context in which the command is being issued. If the context is "Moderator" or "Bot", the player's original pronouns will be used.
      */
     private isOrAre(player: Player, context: UserContext) {
-        const pronouns = context === "Moderator" || context === "Bot" ? player.originalPronouns : player.pronouns;
+        const pronouns = this.contextIsElevated(context) ? player.originalPronouns : player.pronouns;
         return pronouns?.plural ? "are" : "is";
     }
 
@@ -666,7 +673,7 @@ export default class GameErrorMessageGenerator {
     generateItemsWillNotFitInInventorySlotError(items: ItemInstance[] | Prefab[], container: ItemInstance | Prefab, slot: InventorySlot<any>, context: "Bot", fullCommandText: string): string;
     generateItemsWillNotFitInInventorySlotError(items: ItemInstance[] | Prefab[], container: ItemInstance | Prefab, slot: InventorySlot<any>, context: Exclude<UserContext, "Bot">): string;
     generateItemsWillNotFitInInventorySlotError(items: ItemInstance[] | Prefab[], container: ItemInstance | Prefab, slot: InventorySlot<any>, context: UserContext, fullCommandText?: string) {
-        const itemList = generateListString(items.map((item: ItemInstance | Prefab) => context === "Moderator" ? item.getIdentifier() : item.name));
+        const itemList = generateListString(items.map((item: ItemInstance | Prefab) => this.contextIsElevated(context) ? item.getIdentifier() : item.name));
         const containerPrefab = container instanceof Prefab ? container : container.prefab;
         const slotPhrase = containerPrefab.inventory.size > 1 ? `${slot.id} of ` : ``;
         switch (context) {

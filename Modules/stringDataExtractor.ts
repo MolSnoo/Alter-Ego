@@ -59,6 +59,7 @@ function parseProceduralAssignment(procedural: string): [string, string] {
  * @throws {SyntaxError} If any of the procedural selections in the list are not formatted correctly.
  */
 export function parseInstantiateContainingString(game: Game, input: string): ContainedItem[] {
+    if (!input || input.trim() === "") throw new Error(game.errorMessageGenerator.generateSpecifyError("at least one contained item"));
     const containedItems: ContainedItem[] = [];
     const itemList = input.split(/\+(?![^(]*\))/).map(s => s.trim());
     for (let itemString of itemList) {

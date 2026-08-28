@@ -206,9 +206,9 @@ export async function execute(game, command, args, player, callee) {
 
         /** @type {ContainedItem[]} */
         let containedItems = [];
-        if (parsedInput.includes(" CONTAINING ")) {
-            const containedItemStringStart = parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length;
-            const containedItemString = parsedInput.substring(containedItemStringStart);
+        if (parsedInput.includes(" CONTAINING")) {
+            const containedItemStringStart = parsedInput.indexOf(" CONTAINING") + " CONTAINING".length;
+            const containedItemString = parsedInput.substring(containedItemStringStart).trim();
             try {
                 containedItems = parseInstantiateContainingString(game, containedItemString);
                 let containedItemStringEnd = -1;
@@ -220,8 +220,8 @@ export async function execute(game, command, args, player, callee) {
                         containedItemStringEnd = containedItemStringStart + offset;
                     }
                 }
-                const affix = containedItemStringEnd !== -1 ? parsedInput.substring(containedItemStringEnd) : ``;
-                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING ")) + affix;
+                const affix = containedItemStringEnd !== -1 ? ` ${parsedInput.substring(containedItemStringEnd).trimStart()}` : ``;
+                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING")) + affix;
             }
             catch (error) {
                 return game.communicationHandler.sendToCommandChannel(`${game.errorMessageGenerator.getErrorPrefix(cmdString)}${getErrorMessage(error)}`);
@@ -386,13 +386,13 @@ export async function execute(game, command, args, player, callee) {
 
             /** @type {ContainedItem[]} */
             let containedItems = [];
-            if (parsedInput.includes(" CONTAINING ")) {
-                const containedItemStringStart = parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length;
-                const containedItemString = parsedInput.substring(containedItemStringStart);
+            if (parsedInput2.includes(" CONTAINING")) {
+                const containedItemStringStart = parsedInput2.indexOf(" CONTAINING") + " CONTAINING".length;
+                const containedItemString = parsedInput2.substring(containedItemStringStart).trim();
                 try {
                     containedItems = parseInstantiateContainingString(game, containedItemString);
                     let containedItemStringEnd = -1;
-                    if (containedItemString.includes(')')) containedItemStringEnd = parsedInput.lastIndexOf(')') + 1;
+                    if (containedItemString.includes(')')) containedItemStringEnd = parsedInput2.lastIndexOf(')') + 1;
                     else {
                         const lastContainedItemId = containedItems[containedItems.length - 1]?.prefab.id.toUpperCase();
                         if (containedItemString.includes(lastContainedItemId)) {
@@ -400,8 +400,8 @@ export async function execute(game, command, args, player, callee) {
                             containedItemStringEnd = containedItemStringStart + offset;
                         }
                     }
-                    const affix = containedItemStringEnd !== -1 ? parsedInput.substring(containedItemStringEnd) : ``;
-                    parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING ")) + affix;
+                    const affix = containedItemStringEnd !== -1 ? ` ${parsedInput2.substring(containedItemStringEnd).trimStart()}` : ``;
+                    parsedInput2 = parsedInput.substring(0, parsedInput2.indexOf(" CONTAINING")) + affix;
                 }
                 catch (error) {
                     return game.communicationHandler.sendToCommandChannel(`${game.errorMessageGenerator.getErrorPrefix(cmdString)}${getErrorMessage(error)}`);

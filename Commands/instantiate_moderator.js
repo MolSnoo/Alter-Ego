@@ -203,9 +203,9 @@ export async function execute(game, message, command, args, moderator) {
 
         /** @type {ContainedItem[]} */
         let containedItems = [];
-        if (parsedInput.includes(" CONTAINING ")) {
-            const containedItemStringStart = parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length;
-            const containedItemString = parsedInput.substring(containedItemStringStart);
+        if (parsedInput.includes(" CONTAINING")) {
+            const containedItemStringStart = parsedInput.indexOf(" CONTAINING") + " CONTAINING".length;
+            const containedItemString = parsedInput.substring(containedItemStringStart).trim();
             try {
                 containedItems = parseInstantiateContainingString(game, containedItemString);
                 let containedItemStringEnd = -1;
@@ -217,8 +217,8 @@ export async function execute(game, message, command, args, moderator) {
                         containedItemStringEnd = containedItemStringStart + offset;
                     }
                 }
-                const affix = containedItemStringEnd !== -1 ? parsedInput.substring(containedItemStringEnd) : ``;
-                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING ")) + affix;
+                const affix = containedItemStringEnd !== -1 ? ` ${parsedInput.substring(containedItemStringEnd).trimStart()}` : ``;
+                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING")) + affix;
             }
             catch (error) {
                 return game.communicationHandler.reply(message, getErrorMessage(error));
@@ -364,9 +364,9 @@ export async function execute(game, message, command, args, moderator) {
 
         /** @type {ContainedItem[]} */
         let containedItems = [];
-        if (parsedInput.includes(" CONTAINING ")) {
-            const containedItemStringStart = parsedInput.indexOf(" CONTAINING ") + " CONTAINING ".length;
-            const containedItemString = parsedInput.substring(containedItemStringStart);
+        if (parsedInput.includes(" CONTAINING")) {
+            const containedItemStringStart = parsedInput.indexOf(" CONTAINING") + " CONTAINING".length;
+            const containedItemString = parsedInput.substring(containedItemStringStart).trim();
             try {
                 containedItems = parseInstantiateContainingString(game, containedItemString);
                 let containedItemStringEnd = -1;
@@ -378,8 +378,8 @@ export async function execute(game, message, command, args, moderator) {
                         containedItemStringEnd = containedItemStringStart + offset;
                     }
                 }
-                const affix = containedItemStringEnd !== -1 ? parsedInput.substring(containedItemStringEnd) : ``;
-                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING ")) + affix;
+                const affix = containedItemStringEnd !== -1 ? ` ${parsedInput.substring(containedItemStringEnd).trimStart()}` : ``;
+                parsedInput = parsedInput.substring(0, parsedInput.indexOf(" CONTAINING")) + affix;
             }
             catch (error) {
                 return game.communicationHandler.reply(message, getErrorMessage(error));
