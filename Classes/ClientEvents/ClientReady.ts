@@ -12,7 +12,7 @@ import type GuildContext from "../GuildContext.ts";
 import Game from "../../Data/Game.ts";
 import type GameSettings from "../GameSettings.ts";
 import { createGuildContext } from "../../Modules/serverManager.ts";
-import autoUpdate from "../../Modules/updateHandler.js";
+import autoUpdate from "../../Modules/updateHandler.ts";
 import { loadGameSettingsAndPlayerDefaults } from "../../Modules/settingsLoader.ts";
 
 export default new ClientEvent({

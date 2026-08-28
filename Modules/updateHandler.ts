@@ -1,15 +1,17 @@
-import GameConstants from '../Classes/GameConstants.ts';
-import GameSettings from '../Classes/GameSettings.ts';
-import { batchUpdateSheet, batchUpdateSheetValues, getSheetWithProperties } from './sheets.ts';
-import { generateListString } from './helpers.ts';
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
-import fs from 'fs';
+import GameConstants from '../Classes/GameConstants.ts';
+import type GameSettings from '../Classes/GameSettings.ts';
+import { batchUpdateSheet, batchUpdateSheetValues, getSheetWithProperties, type CellData, type Request, type RowData } from './sheets.ts';
+import { generateListString } from './helpers.ts';
 
 /**
  * Automatically updates config files and the sheet.
- * @param {GameSettings} settings
  */
-export default async function autoUpdate(settings) {
+export default async function autoUpdate(settings: GameSettings) {
     const constants = GameConstants.Instance;
     await v1_9Update(settings, constants);
     await v1_10Update(settings, constants);
@@ -17,16 +19,15 @@ export default async function autoUpdate(settings) {
 }
 
 /**
- * @param {GameSettings} settings
- * @param {GameConstants} constants
+ * Updates the sheet from 1.10 to 2.0.
  */
-async function v2_0Update(settings, constants) {
+async function v2_0Update(settings: GameSettings, constants: GameConstants) {
     // Update sheets and formatting.
-    const batchUpdateRequests = [];
+    const batchUpdateRequests: Request[] = [];
 
     // Update Rooms sheet with the "Exit Phrase" and "Exit Tags" column.
     let insertRoomColumns = false;
-    let roomsSheetId;
+    let roomsSheetId: number | undefined;
     try {
         const roomsResponse = await getSheetWithProperties("Rooms!A1:K1", settings.spreadsheetID);
         const roomsSheetProperties = roomsResponse?.data?.sheets[0]?.properties;
@@ -49,7 +50,7 @@ async function v2_0Update(settings, constants) {
     }
     // Update Puzzles sheet with the "Description When Unsolved" column.
     let insertUnsolvedDescriptionColumn = false;
-    let puzzlesSheetId;
+    let puzzlesSheetId: number | undefined;
     try {
         const puzzlesResponse = await getSheetWithProperties("Puzzles!A1:Q1", settings.spreadsheetID);
         const puzzlesSheetProperties = puzzlesResponse?.data?.sheets[0]?.properties;
@@ -71,8 +72,7 @@ async function v2_0Update(settings, constants) {
         });
     }
     // Rename Objects sheet to Fixtures.
-    /** @type any */
-    let objectsSheetId;
+    let objectsSheetId: number | undefined;
     try {
         const objectsResponse = await getSheetWithProperties("Objects!A2:K", settings.spreadsheetID);
         objectsSheetId = objectsResponse?.data?.sheets[0]?.properties?.sheetId;
@@ -89,8 +89,7 @@ async function v2_0Update(settings, constants) {
         });
     }
     // Rename Items sheet to Room Items.
-    /** @type any */
-    let itemsSheetId;
+    let itemsSheetId: number | undefined;
     try {
         const itemsResponse = await getSheetWithProperties("Items!A2:H", settings.spreadsheetID);
         itemsSheetId = itemsResponse?.data?.sheets[0]?.properties?.sheetId;
@@ -108,7 +107,7 @@ async function v2_0Update(settings, constants) {
     }
     // Create Flags sheet.
     let createFlagsSheet = false;
-    let flagsSheetId;
+    let flagsSheetId: number | undefined;
     try {
         const flagsResponse = await getSheetWithProperties(constants.flagSheetDataCells, settings.spreadsheetID);
         flagsSheetId = flagsResponse?.data?.sheets[0]?.properties?.sheetId;
@@ -132,7 +131,7 @@ async function v2_0Update(settings, constants) {
                 }
             }
         });
-        const cellFormatting = {
+        const cellFormatting: CellData = {
             userEnteredFormat: {
                 textFormat: {
                     bold: false,
@@ -140,10 +139,10 @@ async function v2_0Update(settings, constants) {
                 }
             }
         };
-        const columns = [];
+        const columns: CellData[] = [];
         for (let i = 0; i < 4; i++)
             columns.push(cellFormatting);
-        const rows = [];
+        const rows: RowData[] = [];
         for (let i = 0; i < 100; i++) {
             rows.push({
                 values: columns
@@ -276,8 +275,7 @@ async function v2_0Update(settings, constants) {
     if (batchUpdateRequests.length > 0) {
         console.log(`Updating spreadsheet https://docs.google.com/spreadsheets/d/${settings.spreadsheetID} ...`);
         await batchUpdateSheet(batchUpdateRequests, settings.spreadsheetID).then(() => {
-            /** @type {string[]} */
-            const changedSheets = [];
+            const changedSheets: string[] = [];
             if (objectsSheetId) changedSheets.push("Objects sheet to Fixtures");
             if (itemsSheetId) changedSheets.push("Items sheet to Room Items");
             if (changedSheets.length > 0) console.log(`Renamed ${generateListString(changedSheets)}.`);
@@ -290,8 +288,7 @@ async function v2_0Update(settings, constants) {
     // If none of the above were changed, stop here.
     if (!objectsSheetId && !itemsSheetId && !createFlagsSheet && !insertRoomColumns && !insertUnsolvedDescriptionColumn) return;
     // Update sheet headers.
-    /** @type {ValueRange[]} */
-    const batchUpdateValuesRequests = [];
+    const batchUpdateValuesRequests: ValueRange[] = [];
     // Rename Rooms headers.
     batchUpdateValuesRequests.push({ range: "Rooms!A1", values: [[
         "Room Display Name",
@@ -382,15 +379,14 @@ async function v2_0Update(settings, constants) {
 }
 
 /**
- * @param {GameSettings} settings
- * @param {GameConstants} constants
+ * Updates the sheet from 1.9 to 1.10.
  */
-async function v1_10Update(settings, constants) {
+async function v1_10Update(settings: GameSettings, constants: GameConstants) {
     // Updated Recipes sheet with the new columns.
     const response = await getSheetWithProperties("Recipes!A1:H1", settings.spreadsheetID);
     const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
     if (sheetProperties.gridProperties.columnCount === 6) {
-        const requests = [
+        const requests: Request[] = [
             {
                 insertDimension: {
                     range: {
@@ -446,15 +442,14 @@ async function v1_10Update(settings, constants) {
 }
 
 /**
- * @param {GameSettings} settings
- * @param {GameConstants} constants
+ * Updates the sheet from 1.8 to 1.9.
  */
-async function v1_9Update(settings, constants) {
+async function v1_9Update(settings: GameSettings, constants: GameConstants) {
     // Update Players sheet with the new voice column.
     const response = await getSheetWithProperties("Players!A1:O1", settings.spreadsheetID);
     const sheetProperties = response.data.sheets[0] ? response.data.sheets[0].properties : {};
     if (sheetProperties.gridProperties.columnCount === 14) {
-        const requests = [
+        const requests: Request[] = [
             {
                 insertDimension: {
                     range: {

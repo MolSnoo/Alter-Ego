@@ -8,6 +8,10 @@ import { loadCredentials } from './credentialsLoader.ts';
 import type { GaxiosResponseWithHTTP2, JWT } from 'googleapis-common';
 
 export type SheetRange = `${string}!${string}`;
+export type CellData = sheets_v4.Schema$CellData;
+export type RowData = sheets_v4.Schema$RowData;
+export type Request = sheets_v4.Schema$Request;
+export type Spreadsheet = GaxiosResponseWithHTTP2<sheets_v4.Schema$Spreadsheet>;
 type GetSheetRequest = sheets_v4.Params$Resource$Spreadsheets$Get;
 type GetSheetValuesRequest = sheets_v4.Params$Resource$Spreadsheets$Values$Get;
 type UpdateSheetValuesRequest = sheets_v4.Params$Resource$Spreadsheets$Values$Update;
@@ -18,8 +22,6 @@ type AppendSheetValuesRequest = sheets_v4.Params$Resource$Spreadsheets$Values$Ap
 type AppendSheetValuesResponse = GaxiosResponseWithHTTP2<sheets_v4.Schema$AppendValuesResponse>;
 type BatchUpdateSheetRequest = sheets_v4.Params$Resource$Spreadsheets$Batchupdate;
 type BatchUpdateSheetResponse = GaxiosResponseWithHTTP2<sheets_v4.Schema$BatchUpdateSpreadsheetResponse>;
-type Request = sheets_v4.Schema$Request;
-type Spreadsheet = GaxiosResponseWithHTTP2<sheets_v4.Schema$Spreadsheet>;
 
 const sheets = google.sheets({ version: 'v4' });
 
