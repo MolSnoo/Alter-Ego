@@ -1,10 +1,28 @@
+// SPDX-FileCopyrightText: 2019 Alter Ego Contributors
+// SPDX-FileCopyrightText: 2026 Ms. VBLANK <alteregomolly@pm.me>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 import Game from '../Data/Game.ts';
 import { Collection } from 'discord.js';
-import { type PrefabPossibleNames } from '../Data/Prefab.ts';
+import type { default as Prefab, PrefabPossibleNames } from '../Data/Prefab.ts';
+
+/** An object representing an item to be instantiated within another item. */
+export interface ContainedItem {
+    /** The prefab to instantiate inside of the container. */
+    prefab: Prefab;
+    /** The quantity to instantiate the prefab with. */
+    quantity: number;
+    /** The number of uses to instantiate the prefab with. */
+    uses: number;
+    /** A map of procedural selections, where the key is the name of the procedural and the value is the name of the selected poss. */
+    proceduralSelections: Map<string, string>;
+}
 
 /**
  * Converts a string representation of procedural selections into a map of procedural selections.
  * @param input - A string containing procedural selections. Must contain a string within parentheses. Multiple selections must be separated by a `+`. E.g. `(color=metal + species=upa)`
+ * @throws {SyntaxError} If the input string does not contain a string within parentheses, or if the procedural selections are not formatted correctly.
  * @returns A map of procedural selections, where the key is the name of the procedural and the value is the name of the selected poss.
  */
 export function parseProceduralSelections(input: string): Map<string, string> {
@@ -34,6 +52,39 @@ function parseProceduralAssignment(procedural: string): [string, string] {
 }
 
 /**
+ * Parses a string representation of a list of items to instantiate separated by `+`, and returns an array of objects containing the prefab, quantity, uses, and procedural selections for each item.
+ * @param game - The game to instantiate items in.
+ * @param input - The string representation of the list of items to instantiate.
+ * @throws {Error} If any of the prefabs in the list cannot be found in the game.
+ * @throws {SyntaxError} If any of the procedural selections in the list are not formatted correctly.
+ */
+export function parseInstantiateContainingString(game: Game, input: string): ContainedItem[] {
+    if (!input || input.trim() === "") throw new Error(game.errorMessageGenerator.generateSpecifyError("at least one contained item"));
+    const containedItems: ContainedItem[] = [];
+    const itemList = input.split(/\+(?![^(]*\))/).map(s => s.trim());
+    for (let itemString of itemList) {
+        let proceduralSelections: Map<string, string> = new Map();
+        if (itemString.indexOf('(') < itemString.indexOf(')')) {
+            proceduralSelections = parseProceduralSelections(itemString);
+            itemString = itemString.substring(0, itemString.indexOf('(')).trim();
+        }
+        let quantity = 1;
+        const quantityMatch = itemString.match(/^\d+(?=\s)/);
+        if (quantityMatch) {
+            quantity = parseInt(quantityMatch[0]);
+            itemString = itemString.substring(quantityMatch[0].length).trim();
+        }
+        let prefab = game.entityFinder.getPrefab(itemString);
+        if (!prefab) throw new Error(game.errorMessageGenerator.generateEntityNotFoundError("prefab", itemString));
+        if (isNaN(quantity) || quantity < 1) throw new Error(game.errorMessageGenerator.generateCannotInstantiateWithInvalidQuantityError(prefab, quantity));
+        if (quantity > 1 && !prefab.pluralContainingPhrase) throw new Error(game.errorMessageGenerator.generateNoPluralContainingPhraseError(prefab));
+        const uses = prefab.uses;
+        containedItems.push({ prefab: prefab, quantity: quantity, uses: uses, proceduralSelections: proceduralSelections });
+    }
+    return containedItems;
+}
+
+/**
  * Creates an array of strings by splitting the given input by commas and trims the results.
  * @param input - A comma-separated list of strings.
  * @param normalize - Whether or not to normalize the results as valid game entity names. Defaults to false.
@@ -48,7 +99,7 @@ export function parseAndTrimCommaSeparatedStrings(input: string, normalize = fal
 }
 
 /**
- * Converts a string representation of a prefab's possible names or containing phrases into a map, 
+ * Converts a string representation of a prefab's possible names or containing phrases into a map,
  * where the key is a procedural selection and the value is the single name and plural name as an array.
  * @param input - A string in the form [procedural name=poss name: single name, plural name]
  * @param normalize - Whether or not to normalize the names as valid game entity names. Defaults to false.

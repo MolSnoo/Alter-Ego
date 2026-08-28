@@ -3,13 +3,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { capitalizeFirstLetter, generateListString, makeCopyable } from "../Modules/helpers.ts";
+import type EquipmentSlot from "../Data/EquipmentSlot.ts";
 import type Fixture from "../Data/Fixture.ts";
 import type Game from "../Data/Game.ts";
 import type GameSettings from "./GameSettings.ts";
-import type InventoryItem from "../Data/InventoryItem.ts";
+import InventoryItem from "../Data/InventoryItem.ts";
 import type InventorySlot from "../Data/InventorySlot.ts";
 import type ItemInstance from "../Data/ItemInstance.ts";
 import type Player from "../Data/Player.ts";
+import Prefab from "../Data/Prefab.ts";
 import type Status from "../Data/Status.ts";
 
 type UserContext = "Player"|"Moderator"|"Bot"|"Eligible";
@@ -40,37 +42,68 @@ export default class GameErrorMessageGenerator {
     }
 
     /**
+     * Returns true if the given context is "Moderator" or "Bot".
+     */
+    private contextIsElevated(context: UserContext) {
+        return context === "Moderator" || context === "Bot";
+    }
+
+    /**
      * If the player's pronouns are plural, returns "are". If the player's pronouns are singular, returns "is".
      * @param player - The player whose pronouns determine the verb.
      * @param context - The context in which the command is being issued. If the context is "Moderator" or "Bot", the player's original pronouns will be used.
      */
     private isOrAre(player: Player, context: UserContext) {
-        const pronouns = context === "Moderator" || context === "Bot" ? player.originalPronouns : player.pronouns;
+        const pronouns = this.contextIsElevated(context) ? player.originalPronouns : player.pronouns;
         return pronouns?.plural ? "are" : "is";
     }
 
     /**
-     * Generates an error message indicating an insufficient number of arguments was provided.
+     * Generates a string with an error message containing the full text of the command.
+     * Intended to be used in Bot command errors.
+     * @param fullCommandText - The full text of the command that was issued.
+     * @returns `Error: Couldn't execute command "${fullCommandText}". ` with a trailing space.
      */
-    generateInsufficientArgumentsError() {
-        return `Insufficient arguments.`;
+    getErrorPrefix(fullCommandText: string) {
+        return `Error: Couldn't execute command "${fullCommandText}". `;
+    }
+
+    /**
+     * Generates an error message indicating an insufficient number of arguments was provided.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateInsufficientArgumentsError(context: "Bot", fullCommandText: string): string;
+    generateInsufficientArgumentsError(context?: Exclude<UserContext, "Bot">): string;
+    generateInsufficientArgumentsError(context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Insufficient arguments.`;
     }
 
     /**
      * Generates an error message indicating that the provided game entity was invalid.
      * @param entity - The type of entity that was invalid.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
      */
-    generateInvalidEntityError(entity: PersistentGameEntityName | "ItemContainer") {
-        return `Invalid ${entity}.`;
+    generateInvalidEntityError(entity: GameEntityName, context: "Bot", fullCommandText: string): string;
+    generateInvalidEntityError(entity: GameEntityName, context?: Exclude<UserContext, "Bot">): string;
+    generateInvalidEntityError(entity: GameEntityName, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Invalid ${entity}.`;
     }
 
     /**
      * Generates an error message indicating that the user needs to specify the given requirements.
-     * Also includes the usage for the command.
      * @param requiredSpecification - A string indicating what the user needs to specify.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
      */
-    generateSpecifyError(requiredSpecification: string) {
-        return `You need to specify ${requiredSpecification}.`;
+    generateSpecifyError(requiredSpecification: string, context: "Bot", fullCommandText: string): string;
+    generateSpecifyError(requiredSpecification: string, context?: Exclude<UserContext, "Bot">): string;
+    generateSpecifyError(requiredSpecification: string, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}You need to specify ${requiredSpecification}.`;
     }
 
     /**
@@ -92,20 +125,74 @@ export default class GameErrorMessageGenerator {
     }
 
     /**
+     * Generates an error message indicating that a string couldn't be found.
+     * @param input - The name of the thing that couldn't be found.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateNotFoundError(input: string, context: "Bot", fullCommandText: string): string;
+    generateNotFoundError(input: string, context?: Exclude<UserContext, "Bot">): string;
+    generateNotFoundError(input: string, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Couldn't find "${input}".`;
+    }
+
+    /**
      * Generates an error message indicating that an entity couldn't be found.
      * @param entityType - The type of entity that couldn't be found.
      * @param entityName - The name of the entity that couldn't be found.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
      */
-    generateEntityNotFoundError(entityType: string, entityName: string) {
-        return `Couldn't find ${entityType} "${entityName}".`;
+    generateEntityNotFoundError(entityType: string, entityName: string, context: "Bot", fullCommandText: string): string;
+    generateEntityNotFoundError(entityType: string, entityName: string, context?: Exclude<UserContext, "Bot">): string;
+    generateEntityNotFoundError(entityType: string, entityName: string, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Couldn't find ${entityType} "${entityName}".`;
+    }
+
+    /**
+     * Generates an error message indicating that an inventory slot with the given ID couldn't be found.
+     * @param item - The item the inventory slot should belong to.
+     * @param entityName - The ID of the inventory slot that couldn't be found.
+     * @param context - The context in which the command is being issued.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateInventorySlotNotFoundError(item: ItemInstance, inventorySlotId: string, context: "Bot", fullCommandText: string): string;
+    generateInventorySlotNotFoundError(item: ItemInstance, inventorySlotId: string, context: Exclude<UserContext, "Bot">): string;
+    generateInventorySlotNotFoundError(item: ItemInstance, inventorySlotId: string, context: UserContext, fullCommandText?: string) {
+        switch (context) {
+            case "Player":
+                return `Couldn't find "${inventorySlotId}" of ${item.name}.`;
+            default:
+                const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+                return `${prefix}Couldn't find "${inventorySlotId}" of ${item.getIdentifier()}.`;
+        }
+    }
+
+    /**
+     * Generates an error message indicating that a room or player couldn't be found.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateRoomOrPlayerNotFoundError(context: "Bot", fullCommandText: string): string;
+    generateRoomOrPlayerNotFoundError(context?: Exclude<UserContext, "Bot">): string;
+    generateRoomOrPlayerNotFoundError(context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Couldn't find a room or player in your input.`;
     }
 
     /**
      * Generates an error message indicating that the listed players couldn't be found.
      * @param playerNames - A list of player names.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
      */
-    generatePlayersNotFoundError(playerNames: string[]) {
-        return `Couldn't find player${playerNames.length !== 1 ? `s` : ``}: ${playerNames.join(", ")}.`;
+    generatePlayersNotFoundError(playerNames: string[], context: "Bot", fullCommandText: string): string;
+    generatePlayersNotFoundError(playerNames: string[], context?: Exclude<UserContext, "Bot">): string;
+    generatePlayersNotFoundError(playerNames: string[], context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Couldn't find player${playerNames.length !== 1 ? `s` : ``}: ${playerNames.join(", ")}.`;
     }
 
     /**
@@ -497,13 +584,35 @@ export default class GameErrorMessageGenerator {
      * Generates a vague error message indicating that an item container cannot contain an item right now.
      * @param container - The item container which cannot contain an item.
      * @param context - The context in which the command is being issued.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
      */
-    generateCannotPutItemsInContainerError(container: RoomItemContainer | InventoryItem, context: UserContext) {
+    generateCannotPutItemsInContainerError(container: RoomItemContainer | InventoryItem | Prefab, context: "Bot", fullCommandText: string): string;
+    generateCannotPutItemsInContainerError(container: RoomItemContainer | InventoryItem | Prefab, context: Exclude<UserContext, "Bot">): string;
+    generateCannotPutItemsInContainerError(container: RoomItemContainer | InventoryItem | Prefab, context: UserContext, fullCommandText?: string) {
         switch (context) {
             case "Player":
-                return `${capitalizeFirstLetter(container.getContainingPhrase())} cannot hold items. Contact a moderator if you believe this is a mistake.`;
+                return `${capitalizeFirstLetter(container instanceof Prefab ? container.toSingleOrPluralContainingPhrase(1) : container.getContainingPhrase())} cannot hold items. Contact a moderator if you believe this is a mistake.`;
             default:
-                return `${capitalizeFirstLetter(container.getEntityID())} cannot hold items.`;
+                const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+                return `${prefix}${capitalizeFirstLetter(container.getEntityID())} cannot hold items.`;
+        }
+    }
+
+    /**
+     * Generates an error message indicating that an item container has more than one inventory slot.
+     * @param container - The item container which has multiple inventory slots.
+     * @param context - The context in which the command is being issued.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateContainerHasMultipleInventorySlotsError(container: RoomItemContainer | InventoryItem | Prefab, context: "Bot", fullCommandText: string): string;
+    generateContainerHasMultipleInventorySlotsError(container: RoomItemContainer | InventoryItem | Prefab, context: Exclude<UserContext, "Bot">): string;
+    generateContainerHasMultipleInventorySlotsError(container: RoomItemContainer | InventoryItem | Prefab, context: UserContext, fullCommandText?: string) {
+        switch (context) {
+            case "Player":
+                return `${capitalizeFirstLetter(container instanceof Prefab ? container.toSingleOrPluralContainingPhrase(1) : container.getContainingPhrase())} has more than one inventory slot.`;
+            default:
+                const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+                return `${prefix}${capitalizeFirstLetter(container.getEntityID())} has more than one inventory slot.`;
         }
     }
 
@@ -512,16 +621,20 @@ export default class GameErrorMessageGenerator {
      * @param fixture - The fixture that is activated.
      * @param command - The command being issued. Either "take" or "drop".
      * @param context - The context in which the command is being issued.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
      */
-    generateCannotChangeItemsInActivatedFixtureError(fixture: Fixture, command: "take" | "drop", context: UserContext) {
+    generateCannotChangeItemsInActivatedFixtureError(fixture: Fixture, command: "take" | "drop", context: "Bot", fullCommandText: string): string;
+    generateCannotChangeItemsInActivatedFixtureError(fixture: Fixture, command: "take" | "drop", context: Exclude<UserContext, "Bot">): string;
+    generateCannotChangeItemsInActivatedFixtureError(fixture: Fixture, command: "take" | "drop", context: UserContext, fullCommandText?: string) {
         let predicate: string;
         switch (context) {
             case "Player":
                 predicate = command === "take" ? `take items from` : `put items ${fixture.getPreposition()}`;
                 return `You cannot ${predicate} ${fixture.getContainingPhrase()} while it is turned on.`;
             default:
+                const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
                 predicate = command === "take" ? `taken from` : `put ${fixture.getPreposition()}`;
-                return `Items cannot be ${predicate} ${fixture.getContainingPhrase()} while it is turned on.`;
+                return `${prefix}Items cannot be ${predicate} ${fixture.getContainingPhrase()} while it is turned on.`;
         }
     }
 
@@ -531,8 +644,11 @@ export default class GameErrorMessageGenerator {
      * @param container - The container the inventory slot belongs to.
      * @param slot - The inventory slot the item will not fit in.
      * @param context - The context in which the command is being issued.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
      */
-    generateItemWillNotFitInInventorySlotError(item: ItemInstance, container: ItemInstance, slot: InventorySlot<any>, context: UserContext) {
+    generateItemWillNotFitInInventorySlotError(item: ItemInstance | Prefab, container: ItemInstance, slot: InventorySlot<any>, context: "Bot", fullCommandText: string): string;
+    generateItemWillNotFitInInventorySlotError(item: ItemInstance | Prefab, container: ItemInstance, slot: InventorySlot<any>, context: Exclude<UserContext, "Bot">): string;
+    generateItemWillNotFitInInventorySlotError(item: ItemInstance | Prefab, container: ItemInstance, slot: InventorySlot<any>, context: UserContext, fullCommandText?: string) {
         const slotPhrase = container.inventory.size > 1 ? `${slot.id} of ` : ``;
         const tooLarge = slot.capacityIsSmallerThan(item);
         const reason = tooLarge ? `it is too large` : `there isn't enough space left`;
@@ -540,7 +656,134 @@ export default class GameErrorMessageGenerator {
             case "Player":
                 return `${item.name} will not fit ${container.getPreposition()} ${slotPhrase}${container.name} because ${reason}.`;
             default:
-                return `${item.getIdentifier()} will not fit ${container.getPreposition()} ${slotPhrase}${container.getIdentifier()} because ${reason}.`;
+                const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+                const possessive = container instanceof InventoryItem ? `${container.player.name}'s ` : ``;
+                return `${prefix}${item.getIdentifier()} will not fit ${container.getPreposition()} ${slotPhrase}${possessive}${container.getIdentifier()} because ${reason}.`;
+        }
+    }
+
+    /**
+     * Generates an error message indicating that the given items cannot be placed in an inventory slot because they will not fit.
+     * @param items - The items which will not fit.
+     * @param container - The container the inventory slot belongs to.
+     * @param slot - The inventory slot the items will not fit in.
+     * @param context - The context in which the command is being issued.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateItemsWillNotFitInInventorySlotError(items: ItemInstance[] | Prefab[], container: ItemInstance | Prefab, slot: InventorySlot<any>, context: "Bot", fullCommandText: string): string;
+    generateItemsWillNotFitInInventorySlotError(items: ItemInstance[] | Prefab[], container: ItemInstance | Prefab, slot: InventorySlot<any>, context: Exclude<UserContext, "Bot">): string;
+    generateItemsWillNotFitInInventorySlotError(items: ItemInstance[] | Prefab[], container: ItemInstance | Prefab, slot: InventorySlot<any>, context: UserContext, fullCommandText?: string) {
+        const itemList = generateListString(items.map((item: ItemInstance | Prefab) => this.contextIsElevated(context) ? item.getIdentifier() : item.name));
+        const containerPrefab = container instanceof Prefab ? container : container.prefab;
+        const slotPhrase = containerPrefab.inventory.size > 1 ? `${slot.id} of ` : ``;
+        switch (context) {
+            case "Player":
+                return `${itemList} will not fit ${containerPrefab.preposition} ${slotPhrase}${container.name}.`;
+            default:
+                const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+                const possessive = container instanceof InventoryItem ? `${container.player.name}'s ` : ``;
+                return `${prefix}${itemList} will not fit ${containerPrefab.preposition} ${slotPhrase}${possessive}${container.getIdentifier()}.`;
+        }
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab does not have a procedural with the given name.
+     * @param prefab - The prefab which does not have the procedural.
+     * @param proceduralName - The name of the procedural which does not exist on the prefab.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateProceduralNotFoundError(prefab: Prefab, proceduralName: string, context: "Bot", fullCommandText: string): string;
+    generateProceduralNotFoundError(prefab: Prefab, proceduralName: string, context?: Exclude<UserContext, "Bot">): string;
+    generateProceduralNotFoundError(prefab: Prefab, proceduralName: string, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}${prefab.id} does not have procedural "${proceduralName}".`;
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab's procedural does not have a possibility with the given name.
+     * @param prefab - The prefab with the procedural.
+     * @param proceduralName - The name of the procedural which does not have the given possibility.
+     * @param possibilityName - The name of the possibility which does not exist on the prefab's procedural.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generatePossibilityNotFoundError(prefab: Prefab, proceduralName: string, possibilityName: string, context: "Bot", fullCommandText: string): string;
+    generatePossibilityNotFoundError(prefab: Prefab, proceduralName: string, possibilityName: string, context?: Exclude<UserContext, "Bot">): string;
+    generatePossibilityNotFoundError(prefab: Prefab, proceduralName: string, possibilityName: string, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}${prefab.id}'s procedural "${proceduralName}" does not have possibility "${possibilityName}".`;
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab cannot be instantiated with the given quantity.
+     * @param prefab - The prefab which cannot be instantiated.
+     * @param quantity - The quantity with which the prefab cannot be instantiated.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateCannotInstantiateWithInvalidQuantityError(prefab: Prefab, quantity: number, context: "Bot", fullCommandText: string): string;
+    generateCannotInstantiateWithInvalidQuantityError(prefab: Prefab, quantity: number, context?: Exclude<UserContext, "Bot">): string;
+    generateCannotInstantiateWithInvalidQuantityError(prefab: Prefab, quantity: number, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Cannot instantiate ${prefab.id} with a quantity of ${quantity}. The quantity must be greater than or equal to 1.`;
+    }
+
+    /**
+     * Generates an error message indicating that an item cannot be instantiated to a player's equipment slot with a quantity other than 1.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateCannotInstantiateEquippedItemWithInvalidQuantityError(context: "Bot", fullCommandText: string): string;
+    generateCannotInstantiateEquippedItemWithInvalidQuantityError(context?: Exclude<UserContext, "Bot">): string;
+    generateCannotInstantiateEquippedItemWithInvalidQuantityError(context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Cannot instantiate an item to a player's equipment slot with a quantity other than 1.`;
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab cannot be instantiated with a quantity greater than 1 because it has no plural containing phrase.
+     * @param prefab - The prefab which cannot be instantiated.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateNoPluralContainingPhraseError(prefab: Prefab, context: "Bot", fullCommandText: string): string;
+    generateNoPluralContainingPhraseError(prefab: Prefab, context?: Exclude<UserContext, "Bot">): string;
+    generateNoPluralContainingPhraseError(prefab: Prefab, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}The given quantity is greater than 1, but ${prefab.id} has no plural containing phrase.`;
+    }
+
+    /**
+     * Generates an error message indicating that the given prefab cannot be instantiated with the given uses.
+     * @param prefab - The prefab which cannot be instantiated.
+     * @param uses - The uses with which the prefab cannot be instantiated.
+     * @param context - The context in which the command is being issued. Optional.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     */
+    generateCannotInstantiateWithInvalidUsesError(prefab: Prefab, uses: number, context: "Bot", fullCommandText: string): string;
+    generateCannotInstantiateWithInvalidUsesError(prefab: Prefab, uses: number, context?: Exclude<UserContext, "Bot">): string;
+    generateCannotInstantiateWithInvalidUsesError(prefab: Prefab, uses: number, context?: UserContext, fullCommandText?: string) {
+        const prefix = context === "Bot" ? this.getErrorPrefix(fullCommandText!) : ``;
+        return `${prefix}Cannot instantiate ${prefab.id} with ${uses} uses. The number of uses must be greater than or equal to 1.`;
+    }
+
+    /**
+     * Generates an error message indicating that the given item cannot be equipped to the given equipment slot because an item is already equipped to it.
+     * @param equipmentSlot - The equipment slot which already has something equipped to it.
+     * @param context - The context in which the command is being issued.
+     * @param fullCommandText - The full text of the command that was issued. Required if context is "Bot".
+     * @param item - The item which cannot be equipped. Optional.
+     */
+    generateCannotEquipToOccupiedEquipmentSlotError(equipmentSlot: EquipmentSlot, context: "Bot", fullCommandText: string, item?: ItemInstance | Prefab): string;
+    generateCannotEquipToOccupiedEquipmentSlotError(equipmentSlot: EquipmentSlot, context: Exclude<UserContext, "Bot">, fullCommandText?: string, item?: ItemInstance | Prefab): string;
+    generateCannotEquipToOccupiedEquipmentSlotError(equipmentSlot: EquipmentSlot, context: UserContext, fullCommandText?: string, item?: ItemInstance | Prefab) {
+        switch (context) {
+            case "Player":
+                return `${item?.name ?? 'An item'} can't be equipped to equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.name} is already equipped to it.`;
+            default:
+                const possessive = `${equipmentSlot.equippedItem!.player.name}'s`;
+                return `${item?.getIdentifier() ?? 'An item'} can't be equipped to ${possessive} equipment slot ${equipmentSlot.id} because ${equipmentSlot.equippedItem!.getIdentifier()} is already equipped to it.`;
         }
     }
 }

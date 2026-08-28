@@ -1644,6 +1644,7 @@ export default class Player extends RecipeProcessor implements PersistentGameEnt
             1,
             proceduralSelections,
             ingredient2.prefab.uses,
+            [],
             false
         );
         let ingredients: InventoryItem[] = [];
@@ -1671,7 +1672,7 @@ export default class Player extends RecipeProcessor implements PersistentGameEnt
     protected override instantiate(prefab: Prefab, quantity: number, uses: number = prefab.uses, proceduralSelections: Map<string, string> = new Map(), container: InventoryItem = null, inventorySlotId: string = "", player = this): InventoryItem[] {
         const equipmentSlotId = container === null ? this.getGame().entityFinder.getPlayerFreeHand(player).id : container.equipmentSlot;
         const instantiateAction = new InstantiateInventoryItemAction(this.getGame(), undefined, player, player.location, true);
-        return instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections, uses, false) as InventoryItem[];
+        return instantiateAction.performInstantiateInventoryItem(prefab, equipmentSlotId, container, inventorySlotId, quantity, proceduralSelections, uses, [], false) as InventoryItem[];
     }
 
     /**
