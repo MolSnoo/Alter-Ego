@@ -12,9 +12,12 @@ import DisbandPartyAction from '../Data/Actions/DisbandPartyAction.ts';
 /** @type {CommandConfig} */
 export const config = {
     name: "dismiss_player",
-    description: "Removes a player from your party.",
-    // TODO: Write help details.
-    details: ``,
+    description: "Removes one or more players from your party.",
+    details: `Removes one or more players from your party. You must be the leader of the party to use this command. `
+        + `When you dismiss a player, they will be notified, and removed from the party's whisper channel. `
+        + `However, they will still be following you unless they choose to stop, or you outrun them.\n\n`
+        + `You can view the current members of your party with the \`party\` command. `
+        + `To dismiss all members of your party at once, use the \`disband\` command.`,
     usableBy: "Player",
     aliases: ["dismiss", "kick"],
     requiresGame: true
@@ -25,8 +28,9 @@ export const config = {
  * @returns {string}
  */
 export function usage(settings) {
-    // TODO: Write examples.
-    return `${settings.commandPrefix}dismiss`;
+    return `${settings.commandPrefix}dismiss Stephanie\n`
+        + `${settings.commandPrefix}kick Sid Clover\n`
+        + `${settings.commandPrefix}party remove Xiuying Diego Piper`;
 }
 
 /**

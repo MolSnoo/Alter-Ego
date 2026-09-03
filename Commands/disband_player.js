@@ -12,8 +12,12 @@ import DisbandPartyAction from '../Data/Actions/DisbandPartyAction.ts';
 export const config = {
     name: "disband_player",
     description: "Disbands your party.",
-    // TODO: Write help details.
-    details: ``,
+    details: `Disbands your current party. You must be the leader of the party to use this command. `
+        + `You will stop leading all of your party members, and your party's whisper channel will be deleted. `
+        + `Your former party members will be notified that you are no longer leading them, but they will still be `
+        + `following you unless they choose to stop, or you outrun them.\n\n`
+        + `If you wish to only remove specific members from your party without disbanding it, use the \`dismiss\` `
+        + `command. To view the current members of your party, use the \`party\` command.`,
     usableBy: "Player",
     aliases: ["disband", "dissolve"],
     requiresGame: true
@@ -24,8 +28,8 @@ export const config = {
  * @returns {string}
  */
 export function usage(settings) {
-    // TODO: Write examples.
-    return `${settings.commandPrefix}disband`;
+    return `${settings.commandPrefix}disband\n`
+        + `${settings.commandPrefix}dissolve`;
 }
 
 /**

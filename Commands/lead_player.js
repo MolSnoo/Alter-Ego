@@ -11,9 +11,18 @@ import LeadAction from '../Data/Actions/LeadAction.ts';
 /** @type {CommandConfig} */
 export const config = {
     name: "lead_player",
-    description: "Leads a player who's following you.",
-    // TODO: Write help details.
-    details: ``,
+    description: "Forms a party with one or more of your followers.",
+    details: `Leads one or more players in the room with you. They must have used the \`follow\` command to follow `
+        + `you first. When you begin leading them, you will form a party. When you—the party leader—begin moving, `
+        + `you will all move together at the lowest speed of any member in your party, ensuring no one gets left `
+        + `behind. If you stop moving, or a party member becomes weary, you will all stop.\n\n`
+        + `When you are in a party, a whisper channel will be created for you and your party members to talk amongst `
+        + `yourselves as you move from room to room. If you add new followers to your party, this channel will be `
+        + `deleted and recreated with the new members.\n\n`
+        + `You can view your party with \`party\` command. To remove one or more players from your party, you can `
+        + `use the \`dismiss\` command. If you wish to disband your party entirely, use the \`disband\` command. `
+        + `However, keep in mind that when members are removed from your party, they will still be following you `
+        + `unless they choose to stop, or you outrun them.`,
     usableBy: "Player",
     aliases: ["lead"],
     requiresGame: true
@@ -24,7 +33,10 @@ export const config = {
  * @returns {string}
  */
 export function usage(settings) {
-    return `${settings.commandPrefix}lead Luna`;
+    return `${settings.commandPrefix}lead Luna\n`
+        + `${settings.commandPrefix}lead Connie Mara\n`
+        + `${settings.commandPrefix}party invite Lanfang\n`
+        + `${settings.commandPrefix}party add Colette`;
 }
 
 /**
@@ -45,7 +57,7 @@ export async function execute(game, message, command, args, player) {
     // This will be checked multiple times, so get it now.
     const hiddenStatus = player.getBehaviorAttributeStatusEffects("hidden");
 
-    /** 
+    /**
      * The new players who will led by the player performing the command.
      * @type {Set<Player>}
      */

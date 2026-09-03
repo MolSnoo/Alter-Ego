@@ -15,8 +15,18 @@ import ViewPartyAction from '../Data/Actions/ViewPartyAction.ts';
 export const config = {
     name: "party_player",
     description: "Displays your party.",
-    // TODO: Write help details.
-    details: ``,
+    details: `Displays your current party. A party is a group of two or more players that are traveling together. `
+        + `A party is comprised of one leader and one or more followers. The leader decides where the party will go. `
+        + `When the leader begins moving, everyone will move together at the lowest speed of any member in the `
+        + `party. When a party is formed, a whisper channel is created for all party members to talk amongst `
+        + `themselves as they move from room to room.\n\n`
+        + `To form a party as the leader, another player must first start following you with the \`follow\` command. `
+        + `Then, you can form a party with that player by leading them with the \`lead\` command. The \`party\` `
+        + `command will tell you if you are the leader or a follower, and it will list any other followers in `
+        + `the party. It will also tell you if you are following anyone, even if they aren't leading you in return.\n\n`
+        + `If you are the leader of a party, you can remove one or more players from your party with the \`dismiss\` `
+        + `command. You can also disband the party entirely with the \`disband\` command. If you are following another `
+        + `player, you can stop doing so with the \`stop\` command, even if you aren't in a party with them.`,
     usableBy: "Player",
     aliases: ["party"],
     requiresGame: true
@@ -27,7 +37,6 @@ export const config = {
  * @returns {string}
  */
 export function usage(settings) {
-    // TODO: Write examples.
     return `${settings.commandPrefix}party`;
 }
 
@@ -57,5 +66,5 @@ export async function execute(game, message, command, args, player) {
     if (status.length > 0) return game.communicationHandler.reply(message, game.errorMessageGenerator.generateCommandDisabledError(status[0]));
 
     const action = new ViewPartyAction(game, message, player, player.location, false);
-    await action.performViewParty();
+    action.performViewParty();
 }
